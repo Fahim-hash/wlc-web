@@ -11,8 +11,10 @@ import Link from "next/link";
 // --- ১. কাস্টম কার্সার কম্পোনেন্ট ---
 const CustomCursor = () => {
   const [position, setPosition] = useState({ x: 0, y: 0 });
+  
   useEffect(() => {
-    const moveCursor = (e) => setPosition({ x: e.clientX, y: e.clientY });
+    // TypeScript-এর জন্য 'e' এর টাইপ 'MouseEvent' ডিফাইন করা হয়েছে
+    const moveCursor = (e: MouseEvent) => setPosition({ x: e.clientX, y: e.clientY });
     window.addEventListener("mousemove", moveCursor);
     return () => window.removeEventListener("mousemove", moveCursor);
   }, []);
@@ -27,7 +29,12 @@ const CustomCursor = () => {
 };
 
 // --- ২. নেভিগেশন ও সাইড প্যানেল ---
-const Navigation = ({ isOpen, setIsOpen }) => {
+interface NavigationProps {
+  isOpen: boolean;
+  setIsOpen: (open: boolean) => void;
+}
+
+const Navigation: React.FC<NavigationProps> = ({ isOpen, setIsOpen }) => {
   const menuItems = [
     { name: "সূচনা", link: "#home" },
     { name: "দর্শন", link: "#philosophy" },
@@ -152,7 +159,10 @@ const AlbumSlider = () => {
                 fill 
                 sizes="(max-width: 768px) 300px, 450px"
                 className="object-cover grayscale group-hover:grayscale-0 transition-all duration-700 scale-110 group-hover:scale-100"
-                onError={(e) => { e.currentTarget.style.opacity = '0.1'; }} 
+                // TypeScript-এর জন্য onError ফিক্স করা হয়েছে
+                onError={(e: React.SyntheticEvent<HTMLImageElement, Event>) => { 
+                  e.currentTarget.style.opacity = '0.1'; 
+                }} 
               />
               <div className="absolute inset-0 border-[15px] border-white opacity-0 group-hover:opacity-100 transition-opacity duration-500 z-10" />
             </div>
