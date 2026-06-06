@@ -6,50 +6,63 @@ import { ReactNode } from "react";
 export default function PanelLayout({ children }: { children: ReactNode }) {
   const links = [
     { name: "রানিং কমিটি", path: "/panel/running" },
-    { name: "জেনারেশন-২ (GEN-2)", path: "/panel/GEN-2" },
-    { name: "জেনারেশন-১ (GEN-1)", path: "/panel/GEN-1" },
+    { name: "জেনারেশন - ২", path: "/panel/GEN-2" },
+    { name: "জেনারেশন - ১", path: "/panel/GEN-1" },
   ];
 
   return (
-    <div className="min-h-screen bg-[#FAFAFA] flex flex-col md:flex-row font-sans relative overflow-hidden">
+    <div className="min-h-screen bg-[#FDFBF7] text-gray-900 font-sans relative">
       
-      {/* Background Motifs */}
-      <div className="absolute inset-0 z-0 opacity-[0.03] text-gray-900 font-serif text-[12vw] leading-none select-none pointer-events-none p-10">
-        অ ক ক ক ব ফ ব ত ল ন শ শ ক ক ক ব ল ব র ন ত শ ন
+      {/* সুক্ষ্ম ব্যাকগ্রাউন্ড মোটিফ - সাহিত্যিক আবহ তৈরি করার জন্য */}
+      <div className="absolute inset-0 z-0 bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] [background-size:16px_16px] opacity-40"></div>
+      
+      <div className="relative z-10 max-w-6xl mx-auto px-4 py-10">
+        
+        {/* মিনিমালিস্টিক অ্যান্ড এলিগ্যান্ট টপ হেডার */}
+        <header className="flex flex-col items-center text-center mb-12 border-b border-stone-200 pb-8">
+          <div className="relative w-24 h-24 mb-4 drop-shadow-sm bg-white rounded-full p-1 border border-stone-100">
+            <Image 
+              src="/logo.png" 
+              alt="উইল্‌স সাহিত্য ক্লাব" 
+              fill 
+              className="object-contain p-1"
+              priority 
+            />
+          </div>
+          <h2 className="text-xl font-bold font-serif text-stone-850 tracking-wide uppercase">
+            উইল্‌স সাহিত্য ক্লাব
+          </h2>
+          <p className="text-xs text-rose-800 font-semibold mt-1 tracking-widest font-serif">
+            "সাহিত্যের বন্ধনে, প্রতিভার সন্ধানে"
+          </p>
+        </header>
+
+        {/* মডার্ন অ্যান্ড স্লিক প্যানেল সুইচিং বার (সাইডবারের বিকল্প) */}
+        <div className="flex justify-center mb-12">
+          <nav className="inline-flex bg-stone-100/80 backdrop-blur-md p-1.5 rounded-full shadow-inner border border-stone-200/60">
+            {links.map((link) => (
+              <Link 
+                key={link.path} 
+                href={link.path} 
+                className="px-6 py-2.5 rounded-full text-sm font-medium text-stone-600 hover:text-rose-900 transition-all duration-300 hover:bg-white hover:shadow-sm"
+              >
+                {link.name}
+              </Link>
+            ))}
+          </nav>
+        </div>
+
+        {/* মেইন কনটেন্ট এরিয়া (যেখানে ট্রি-স্ট্রাকচার লোড হবে) */}
+        <div className="bg-white/60 backdrop-blur-sm rounded-3xl p-6 md:p-10 border border-stone-200/40 shadow-sm">
+          {children}
+        </div>
+
       </div>
-
-      {/* Modern Sidebar */}
-      <aside className="w-full md:w-64 bg-gray-900 text-white flex flex-col shadow-2xl relative z-10">
-        <div className="p-8 border-b border-gray-800 flex flex-col items-center gap-4 text-center">
-          <div className="relative w-20 h-20 bg-white rounded-full p-2">
-            <Image src="/logo.png" alt="Logo" fill className="object-contain" priority />
-          </div>
-          <div>
-            <h2 className="text-2xl font-bold font-serif text-white">প্যানেল আর্কাইভ</h2>
-            <p className="text-sm text-gray-400 mt-1">উইল্‌স সাহিত্য ক্লাব</p>
-          </div>
-        </div>
-        
-        <nav className="flex-1 p-6 flex flex-col gap-3">
-          {links.map((link) => (
-            <Link key={link.path} href={link.path} className="group relative px-5 py-3.5 hover:text-white rounded-lg transition-colors overflow-hidden border border-gray-800 hover:border-rose-900 bg-gray-800/20 hover:bg-rose-950/20">
-              <span className="relative z-10 font-medium text-gray-100">{link.name}</span>
-              <div className="absolute inset-y-0 left-0 w-1.5 bg-rose-700 -translate-x-full group-hover:translate-x-0 transition-transform"></div>
-            </Link>
-          ))}
-        </nav>
-        
-        <div className="p-6 border-t border-gray-800 text-center text-xs text-gray-500">
-          <p>© {new Date().getFullYear()} WSC. All rights reserved.</p>
-          <p className="mt-1">Dhaka, Bangladesh</p>
-        </div>
-      </aside>
-
-      {/* Main Content Area */}
-      <main className="flex-1 p-6 md:p-12 xl:p-16 relative z-10">
-        {children}
-      </main>
       
+      {/* সিম্পল ফুটনোট */}
+      <footer className="text-center py-8 text-xs text-stone-400 font-medium">
+        <p>© {new Date().getFullYear()} Willes Sahitya Club • Dhaka, Bangladesh</p>
+      </footer>
     </div>
   );
 }
