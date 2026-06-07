@@ -8,6 +8,7 @@ export default function PanelLayout({ children }: { children: ReactNode }) {
     { name: "রানিং কমিটি", path: "/panel/running" },
     { name: "জেনারেশন - ২", path: "/panel/GEN-2" },
     { name: "জেনারেশন - ১", path: "/panel/GEN-1" },
+{ name: "শিক্ষক মডারেটর", path: "/panel/moderator" },
   ];
 
   return (
