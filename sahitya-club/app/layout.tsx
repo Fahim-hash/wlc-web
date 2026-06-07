@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { Hind_Siliguri } from "next/font/google"; 
 import Link from "next/link";
 import "./globals.css";
+import Image from "next/image";
 
 const hindSiliguri = Hind_Siliguri({
   subsets: ["bengali", "latin"],
@@ -10,7 +11,7 @@ const hindSiliguri = Hind_Siliguri({
 });
 
 export const metadata: Metadata = {
-  title: "উইল্‌স সাহিত্য ক্লাব | Wills Literary Club",
+  title: "উইল্‌স সাহিত্য ক্লাব | Willes Literary Club",
   description: "উইল্‌স লিটল ফ্লাওয়ার স্কুল অ্যান্ড কলেজের অফিশিয়াল সাহিত্য ক্লাব ওয়েবসাইট।",
 };
 
@@ -35,17 +36,26 @@ export default function RootLayout({
           <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
             
             {/* ব্র্যান্ড লোগো */}
-            <Link href="/" className="flex items-center gap-2.5 group">
-              <span className="text-xl md:text-2xl group-hover:rotate-12 transition-transform duration-300">✒️</span>
-              <div className="flex flex-col">
-                <span className="font-bold text-base md:text-lg tracking-tight text-stone-950 group-hover:text-rose-900 transition-colors">
-                  উইল্‌স সাহিত্য ক্লাব
-                </span>
-                <span className="text-[10px] uppercase tracking-widest text-stone-400 font-medium -mt-0.5">
-                  Wills Literary Club
-                </span>
-              </div>
-            </Link>
+           <Link href="/" className="flex items-center gap-3 group">
+  {/* লোগো কন্টেইনার */}
+  <div className="relative w-10 h-10 md:w-11 md:h-11 transition-transform duration-300 group-hover:scale-110">
+    <Image 
+      src="/logo.png" 
+      alt="উইল্‌স সাহিত্য ক্লাব লোগো" 
+      fill 
+      className="object-contain"
+    />
+  </div>
+  
+  <div className="flex flex-col">
+    <span className="font-bold text-base md:text-lg tracking-tight text-stone-950 group-hover:text-rose-900 transition-colors">
+      উইল্‌স সাহিত্য ক্লাব
+    </span>
+    <span className="text-[10px] uppercase tracking-widest text-stone-400 font-medium -mt-0.5">
+      Wills Literary Club
+    </span>
+  </div>
+</Link>
 
             {/* ডেক্সটপ নেভিগেশন */}
             <nav className="hidden md:flex items-center gap-1 bg-stone-100 p-1 rounded-xl border border-stone-200/40">
