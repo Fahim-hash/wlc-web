@@ -8,16 +8,16 @@ export default function PanelLayout({ children }: { children: ReactNode }) {
     { name: "রানিং কমিটি", path: "/panel/running" },
     { name: "জেনারেশন - ২", path: "/panel/GEN-2" },
     { name: "জেনারেশন - ১", path: "/panel/GEN-1" },
-{ name: "শিক্ষক মডারেটর", path: "/panel/moderator" },
+    { name: "শিক্ষক মডারেটর", path: "/panel/moderator" },
   ];
 
   return (
-    <div className="min-h-screen bg-[#FDFBF7] text-gray-900 font-sans relative">
+    <div className="min-h-screen bg-[#FDFBF7] text-gray-900 font-sans relative flex flex-col overflow-hidden">
       
       {/* সুক্ষ্ম ব্যাকগ্রাউন্ড মোটিফ - সাহিত্যিক আবহ তৈরি করার জন্য */}
-      <div className="absolute inset-0 z-0 bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] [background-size:16px_16px] opacity-40"></div>
+      <div className="absolute inset-0 z-0 bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] [background-size:16px_16px] opacity-40 pointer-events-none"></div>
       
-      <div className="relative z-10 max-w-6xl mx-auto px-4 py-10">
+      <div className="relative z-10 max-w-6xl mx-auto px-4 py-10 flex-grow w-full">
         
         {/* মিনিমালিস্টিক অ্যান্ড এলিগ্যান্ট টপ হেডার */}
         <header className="flex flex-col items-center text-center mb-12 border-b border-stone-200 pb-8">
@@ -53,11 +53,12 @@ export default function PanelLayout({ children }: { children: ReactNode }) {
           </nav>
         </div>
 
-        {/* মেইন কনটেন্ট এরিয়া (যেখানে ট্রি-স্ট্রাকচার লোড হবে) */}
+        {/* মেইন কনটেন্ট এরিয়া (যেখানে ট্রি-স্ট্রাকচার লোড হবে) */}
         <div className="bg-white/60 backdrop-blur-sm rounded-3xl p-6 md:p-10 border border-stone-200/40 shadow-sm">
           {children}
         </div>
 
-    
- 
+      </div>
+    </div>
+  );
 }
