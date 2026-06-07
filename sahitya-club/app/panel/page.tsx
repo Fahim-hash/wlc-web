@@ -14,7 +14,7 @@ export default function PanelMainDashboard() {
     },
     {
       title: "জেনারেশন - ১",
-      subtitle: "GEN-1 (2024)",
+      subtitle: "GEN-1 (2024-2025)",
       desc: "ক্লাবের সম্মানিত ফাউন্ডার মেম্বার এবং প্রথম দিককার কারিগরদের ইতিহাস ও লিগ্যাসি আর্কাইভ।",
       link: "/panel/GEN-1",
       color: "from-stone-700 to-stone-850",
