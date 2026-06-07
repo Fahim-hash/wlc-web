@@ -18,7 +18,7 @@ export default function RunningCommittee() {
       {/* Header */}
       <div className="text-center mb-16">
         <span className="bg-rose-100 text-rose-800 text-xs font-bold px-4 py-1.5 rounded-full uppercase tracking-wider">
-          WSC Leadership Tree
+          WLC Leadership Tree
         </span>
         <h1 className="text-3xl md:text-5xl font-bold text-gray-900 font-serif mt-3 mb-4">
           বর্তমান কমিটি প্যানেল
