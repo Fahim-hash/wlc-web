@@ -10,13 +10,46 @@ const hindSiliguri = Hind_Siliguri({
   weight: ["300", "400", "500", "600", "700"],
 });
 
+// 🚀 SEO & Metadata Setup (Premium Style)
 export const metadata: Metadata = {
-  title: "উইল্‌স সাহিত্য ক্লাব | Wills Literary Club",
-  description: "উইল্‌স লিটল ফ্লাওয়ার স্কুল অ্যান্ড কলেজের অফিশিয়াল সাহিত্য ক্লাব ওয়েবসাইট।",
-  // [FIX] এখানে টপ বারের লোগো কনফিগারেশন যুক্ত করা হয়েছে
+  title: "উইল্‌স সাহিত্য ক্লাব | Willes Literary Club",
+  description: "উইল্‌স লিটল ফ্লাওয়ার স্কুল অ্যান্ড কলেজের অফিশিয়াল সাহিত্য ক্লাব ওয়েবসাইট। সাহিত্যের বন্ধনে, প্রতিভার সন্ধানে এগিয়ে চলেছে উইলিয়ানদের ভালোবাসার এই প্রাঙ্গণ।",
+  keywords: [
+    "উইল্‌স সাহিত্য ক্লাব",
+    "Willes Literary Club",
+    "WLFSC Literary Club",
+    "Willes Little Flower School & College",
+    "উইলিয়ান সাহিত্য",
+    "ঢাকা কলেজ সাহিত্য ক্লাব"
+  ],
+  authors: [{ name: "উইল্‌স সাহিত্য ক্লাব প্যানেল" }],
+  // 🎯 লোগো হিসেবে সরাসরি logo.png কনফিগারেশন
   icons: {
-    icon: "/logo.png",
+    icon: "/logo.png", 
+    shortcut: "/logo.png",
     apple: "/logo.png",
+  },
+  openGraph: {
+    title: "উইল্‌স সাহিত্য ক্লাব | Willes Literary Club",
+    description: "উইল্‌স লিটল ফ্লাওয়ার স্কুল অ্যান্ড কলেজের অফিশিয়াল সাহিত্য ক্লাব ওয়েবসাইট।",
+    url: "https://wlfsc-literary.vercel.app", // তোমার অরিজিনাল ইউআরএল থাকলে এখানে বসিয়ে দিও
+    siteName: "Willes Literary Club",
+    locale: "bn_BD",
+    type: "website",
+    images: [
+      {
+        url: "/logo.png",
+        width: 512,
+        height: 512,
+        alt: "উইল্‌স সাহিত্য ক্লাব লোগো প্রিভিউ",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "উইল্‌স সাহিত্য ক্লাব | Willes Literary Club",
+    description: "উইল্‌স লিটল ফ্লাওয়ার স্কুল অ্যান্ড কলেজের অফিশিয়াল সাহিত্য ক্লাব ওয়েবসাইট।",
+    images: ["/logo.png"],
   },
 };
 
@@ -28,13 +61,45 @@ export default function RootLayout({
   const navLinks = [
     { name: "হোম", path: "/" },
     { name: "আমাদের কথা", path: "/about" },
-    { name: "নবীনবরণ '২৫", path: "/nobinboron" }, // [NEW] নবীনবরণ পেজের লিংক
+    { name: "নবীনবরণ '২৫", path: "/nobinboron" },
     { name: "আর্কাইভ ও প্যানেল", path: "/panel" },
     { name: "শিক্ষক মডারেটর", path: "/panel/moderator" },
   ];
 
+  // 🧠 Structured Data (গুগল সার্চকে প্রাতিষ্ঠানিক ডেটা দেওয়ার জন্য)
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "EducationalOrganization",
+    "name": "উইল্‌স সাহিত্য ক্লাব",
+    "alternateName": "Willes Literary Club",
+    "url": "https://wlc.pro.bd/",
+    "logo": "https://wlc.pro.bd/logo.png",
+    "parentOrganization": {
+      "@type": "EducationalOrganization",
+      "name": "Willes Little Flower School & College"
+    },
+    "foundingDate": "2024",
+    "location": {
+      "@type": "Place",
+      "address": {
+        "@type": "PostalAddress",
+        "addressLocality": "Kakrail",
+        "addressRegion": "Dhaka",
+        "addressCountry": "Bangladesh"
+      }
+    },
+    "description": "উইল্‌স লিটল ফ্লাওয়ার স্কুল অ্যান্ড কলেজের শিক্ষার্থীদের সৃজনশীল লেখনী ও সাহিত্য চর্চার অফিশিয়াল প্ল্যাটফর্ম।"
+  };
+
   return (
     <html lang="bn" className="h-full">
+      <head>
+        {/* JSON-LD for Google Knowledge Graph */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        />
+      </head>
       <body className={`${hindSiliguri.className} bg-stone-50 text-stone-900 min-h-screen flex flex-col selection:bg-rose-100 selection:text-rose-900 antialiased overflow-x-hidden`}>
         
         {/* ================= GLOBAL HEADER / NAVBAR ================= */}
@@ -43,7 +108,6 @@ export default function RootLayout({
             
             {/* ব্র্যান্ড লোগো */}
             <Link href="/" className="flex items-center gap-3 group">
-              {/* লোগো কন্টেইনার */}
               <div className="relative w-10 h-10 md:w-11 md:h-11 transition-transform duration-300 group-hover:scale-110">
                 <Image 
                   src="/logo.png" 
@@ -94,7 +158,7 @@ export default function RootLayout({
           {children}
         </main>
 
-        {/* ================= GLOBAL FOOTER (FIXED) ================= */}
+        {/* ================= GLOBAL FOOTER ================= */}
         <footer className="w-full bg-white border-t border-stone-200/60 py-8 mt-auto relative z-20">
           <div className="max-w-6xl mx-auto px-4 flex flex-col md:flex-row items-center justify-between gap-4 text-center md:text-left">
             
@@ -108,7 +172,7 @@ export default function RootLayout({
             </div>
 
             <div className="text-xs italic text-stone-400 max-w-xs md:text-right">
-              "সাহিত্যের বন্ধনে, প্রতিভার সন্ধানে এগিয়ে চলেছে উইলিয়ানদের ভালোবাসার এই prangon।"
+              "সাহিত্যের বন্ধনে, প্রতিভার সন্ধানে এগিয়ে চলেছে উইলিয়ানদের ভালোবাসার এই প্রাঙ্গণ।"
             </div>
 
           </div>
