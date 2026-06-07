@@ -63,7 +63,7 @@ export default function PanelMainDashboard() {
                 Guiding Light
               </span>
               <h2 className="text-2xl md:text-3xl font-bold font-serif text-stone-50 group-hover:text-rose-300 transition-colors">
-                श्रদ্ধেয় মডারেটর প্যানেল
+                শ্রদ্ধেয় মডারেটর প্যানেল
               </h2>
               <p className="text-stone-400 text-sm md:text-base mt-2 max-w-2xl leading-relaxed">
                 উইল্‌স সাহিত্য ক্লাবের মূল অভিভাবক ও দিকনির্ধারক শিক্ষক মডারেটরদের প্রোফাইল, পরিচিতি এবং তাঁদের মূল্যবান বাণীসমূহ দেখতে এখানে প্রবেশ করুন।
