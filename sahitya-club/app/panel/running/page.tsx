@@ -2,6 +2,13 @@
 import Image from "next/image";
 
 export default function RunningCommittee() {
+  const advisors = [
+    { id: 1, name: "আরিয়ান আজমাইন মিয়ন", role: "উপদেষ্টা", batch: "SSC '24", image: "/panel/adv_1.jpg" },
+    { id: 2, name: "আইশান শান", role: "উপদেষ্টা", batch: "HSC '25", image: "/panel/adv_2.jpg" },
+    { id: 3, name: "মোল্লা সৌম্য রহমান", role: "পরামর্শদাতা", batch: "HSC '27", image: "/panel/adv_3.jpg" },
+    { id: 4, name: "তওহিদ মাহমুদ", role: "পরামর্শদাতা", batch: "HSC '27", image: "/panel/adv_4.jpg" }
+  ];
+
   const executiveMembers = [
     { id: 1, name: "এহসান আহমেদ সিয়াম", role: "সভাপতি", batch: "HSC '26", image: "/panel/1.jpg" },
     { id: 2, name: "অনন্যা হাসান বিথি", role: "সহ সভাপতি", batch: "HSC '26", image: "/panel/2.jpg" },
@@ -14,10 +21,10 @@ export default function RunningCommittee() {
     { id: 9, name: "দেওয়ান মো: রেজওয়ান", role: "নিয়ন্ত্রক (সুইড শাখা)", batch: "SSC '27", image: "/panel/9.jpg" },
     { id: 10, name: "আরিয়ান চৌধুরী", role: "সহ নিয়ন্ত্রক (বাংলা সাহিত্য)", batch: "SSC '27", image: "/panel/10.jpg" },
     { id: 11, name: "ইফতেখার জামান রোহান", role: "সহ নিয়ন্ত্রক (ইংরেজি সাহিত্য)", batch: "SSC '27", image: "/panel/11.jpg" },
-    { id: 12, name: "আলী আল-امین", role: "সহ নিয়ন্ত্রক (ধর্মীয় সাহিত্য)", batch: "SSC '29", image: "/panel/12.jpg" },
+    { id: 12, name: "আলী আল-আমীন", role: "সহ নিয়ন্ত্রক (ধর্মীয় সাহিত্য)", batch: "SSC '29", image: "/panel/12.jpg" },
     { id: 13, name: "রাফসান জাবির", role: "সহ নিয়ন্ত্রক (সুইড শাখা)", batch: "SSC '27", image: "/panel/13.jpg" },
     { id: 14, name: "আব্দুল কাইয়ুম ত্বোহা", role: "কোষাধ্যক্ষ", batch: "HSC '27", image: "/panel/14.jpg" },
-    { id: 15, name: "ফারহানা আফরোজ ইতি", role: "প্রচার-প্রচারণা বিষয়ক সম্পাদক", batch: "HSC '26", image: "/panel/15.jpg" },
+    { id: 15, name: "ফারহানা আফরোজ ইপ্তি", role: "প্রচার-প্রচারণা বিষয়ক সম্পাদক", batch: "HSC '26", image: "/panel/15.jpg" },
     { id: 16, name: "আব্দুল নূর", role: "যোগাযোগ ও ব্যবস্থাপনা বিষয়ক সম্পাদক", batch: "SSC '27", image: "/panel/16.jpg" },
     { id: 17, name: "সামিন ইয়াসির", role: "গ্রন্থাগার বিষয়ক সম্পাদক", batch: "SSC '26", image: "/panel/17.jpg" },
     { id: 18, name: "ইয়াসফা রহমান জুঁই", role: "দেয়ালিকা বিষয়ক সম্পাদক", batch: "SSC '27", image: "/panel/18.jpg" },
@@ -45,7 +52,7 @@ export default function RunningCommittee() {
           বর্তমান কমিটি প্যানেল
         </h1>
         <p className="text-gray-600 max-w-xl mx-auto text-base md:text-lg">
-          ডিপার্টমেন্টাল হায়ারার্কি বা ট্রি স্ট্রাকচারের মাধ্যমে আমাদের প্রশাসনিক ও সম্পাদনা বিভাগের বিন্যাস।
+          ডিপার্টমেন্টাল হায়ারার্কি বা ট্রি স্ট্রাকচারের মাধ্যমে আমাদের উপদেষ্টা, प्रशासनिक ও সম্পাদনা বিভাগের বিন্যাস।
         </p>
       </div>
 
@@ -58,8 +65,40 @@ export default function RunningCommittee() {
           <span className="block text-xs font-sans text-gray-400 font-normal mt-1">রানিং সেশন (২০২৬)</span>
         </div>
 
-        {/* Vertical Main Stem (Top Line) */}
-        <div className="w-0.5 h-12 bg-gray-300 relative"></div>
+        {/* Vertical Main Stem -> Connecting to Advisors */}
+        <div className="w-0.5 h-10 bg-gray-300 relative"></div>
+
+        {/* ================= ADVISORY & MENTOR PANEL ================= */}
+        <div className="w-full max-w-4xl bg-slate-50 p-6 rounded-2xl border border-slate-200/80 shadow-sm relative mb-8">
+          <div className="absolute -top-4 left-6 bg-slate-800 text-white px-5 py-1 rounded-full text-sm font-semibold font-serif shadow-sm">
+            ■ উপদেষ্টা ও পরামর্শদাতা প্যানেল
+          </div>
+          
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mt-4">
+            {advisors.map((advisor) => (
+              <div key={advisor.id} className="flex items-center gap-3 bg-white p-3 rounded-xl shadow-sm border border-gray-100 group hover:border-slate-400 transition-all">
+                {/* Avatar */}
+                <div className="relative w-12 h-12 rounded-full overflow-hidden flex-shrink-0 bg-gray-100 border-2 border-slate-200">
+                  <Image 
+                    src={advisor.image} 
+                    alt={advisor.name} 
+                    fill 
+                    className="object-cover object-top"
+                  />
+                </div>
+                {/* Info */}
+                <div>
+                  <h4 className="text-sm font-bold text-gray-900 group-hover:text-slate-900 transition-colors">{advisor.name}</h4>
+                  <p className="text-[11px] text-slate-600 font-medium">{advisor.role}</p>
+                  <span className="text-[9px] bg-slate-100 text-slate-500 font-semibold px-1.5 py-0.5 rounded mt-0.5 inline-block">{advisor.batch}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Vertical Main Stem -> Connecting to Main Branches */}
+        <div className="w-0.5 h-10 bg-gray-300 relative hidden md:block"></div>
 
         {/* The Split Branch (Horizontal Connecting Line) */}
         <div className="hidden md:flex w-full max-w-4xl justify-between relative">
@@ -74,7 +113,7 @@ export default function RunningCommittee() {
           {/* ================= BRANCH 1: ADMINISTRATIVE (প্রশাসনিক বিভাগ) ================= */}
           <div className="bg-gradient-to-b from-rose-50/50 to-transparent p-6 rounded-2xl border border-rose-100/70 shadow-sm relative">
             <div className="absolute -top-4 left-6 bg-rose-800 text-white px-5 py-1 rounded-full text-sm font-semibold font-serif shadow-sm">
-              ■ প্রশাসনিক বিভাগ
+              ■ प्रशासनिक বিভাগ
             </div>
             
             {/* Inner Branch Line */}
