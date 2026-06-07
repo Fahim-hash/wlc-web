@@ -29,14 +29,6 @@ export default function AboutLayout({ children }: { children: ReactNode }) {
             {children}
           </div>
         </div>
-
-        {/* নিচের সিগনেচার এলিমেন্ট */}
-        <div className="mt-20 flex flex-col items-center">
-          <div className="w-24 h-px bg-stone-200 mb-6"></div>
-          <p className="font-serif italic text-stone-400 text-sm tracking-widest">
-            EST. 2024 • DHAKA
-          </p>
-        </div>
       </div>
 
       {/* নিচের ডান কোণায় একটি হালকা মোটিফ */}
