@@ -74,25 +74,6 @@ export default function WillesSahityaClub() {
         </div>
       </section>
 
-      {/* 4. Footer */}
-      <footer className="bg-gray-900 text-gray-300 py-12 border-t-4 border-rose-800">
-        <div className="max-w-6xl mx-auto px-6 flex flex-col md:flex-row justify-between items-center gap-6">
-          <div className="flex items-center gap-4">
-            <div className="relative w-12 h-12 bg-white rounded-full p-1">
-              <Image src="/logo.png" alt="Logo" fill className="object-contain p-1" />
-            </div>
-            <div>
-              <h4 className="text-lg font-bold text-white font-serif">উইল্‌স সাহিত্য ক্লাব</h4>
-              <p className="text-sm text-gray-400">Dhaka, Bangladesh</p>
-            </div>
-          </div>
-          
-          <div className="text-center md:text-right text-sm text-gray-400">
-            <p>© {new Date().getFullYear()} Willes Sahitya Club. All rights reserved.</p>
-            <p className="mt-1">ESTD 2024</p>
-          </div>
-        </div>
-      </footer>
     </main>
   );
 }
