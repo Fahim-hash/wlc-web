@@ -6,8 +6,8 @@ import { ReactNode } from "react";
 export default function PanelLayout({ children }: { children: ReactNode }) {
   const links = [
     { name: "রানিং কমিটি", path: "/panel/running" },
-    { name: "জেনারেশন - ২", path: "/panel/GEN-2" },
     { name: "জেনারেশন - ১", path: "/panel/GEN-1" },
+    { name: "অস্থায়ী কার্যনির্বাহী", path: "/panel/temporary" },
     { name: "শিক্ষক মডারেটর", path: "/panel/moderator" },
   ];
 
