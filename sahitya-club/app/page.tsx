@@ -1,7 +1,15 @@
 import Image from "next/image";
+import Link from "next/link";
 
 export default function WillesSahityaClub() {
   const flashbackImages = [1, 2, 3, 4, 5, 6];
+
+  // নতুন যুক্ত করা ইভেন্ট ডেটা
+  const features = [
+    { icon: "✍️", title: "নিয়মিত সাহিত্য আসর", desc: "গল্প, কবিতা ও প্রবন্ধের আসর যেখানে সদস্যরা মুক্ত মনে তাদের লেখনী তুলে ধরে।" },
+    { icon: "🎨", title: "দেয়ালিকা ও প্রকাশনা", desc: "বিশেষ দিনগুলোতে ক্লাবের নিজস্ব সম্পাদনা প্যানেলের যৌথ উদ্যোগে দেয়ালিকা প্রকাশ।" },
+    { icon: "🏆", title: "প্রতিযোগিতা ও কুইজ", desc: "আন্তঃকলেজ সাহিত্য উৎসব, কুইজ এবং সৃজনশীল লেখালেখি প্রতিযোগিতায় অংশগ্রহণ।" }
+  ];
 
   return (
     <main className="min-h-screen bg-[#FAFAFA] text-gray-800 font-sans selection:bg-rose-200">
@@ -45,8 +53,28 @@ export default function WillesSahityaClub() {
         </p>
       </section>
 
-      {/* 3. Flashbacks / Gallery Section */}
-      <section className="bg-white py-20 border-t border-gray-100">
+      {/* [NEW] 3. Features/Activities Section */}
+      <section className="bg-stone-50 py-20 border-t border-b border-gray-200/50">
+        <div className="max-w-5xl mx-auto px-6">
+          <div className="text-center mb-16">
+            <h3 className="text-3xl font-bold text-gray-900 font-serif mb-3">আমাদের মূল কার্যক্রম</h3>
+            <p className="text-gray-500">উইলিয়ানদের সৃজনশীলতার মূল ভিত্তি</p>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {features.map((item, index) => (
+              <div key={index} className="bg-white border border-gray-200/60 rounded-2xl p-8 shadow-sm hover:shadow-md transition-all duration-300">
+                <div className="text-4xl mb-4">{item.icon}</div>
+                <h4 className="text-xl font-bold font-serif text-gray-900 mb-3">{item.title}</h4>
+                <p className="text-gray-600 text-sm leading-relaxed">{item.desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* 4. Flashbacks / Gallery Section */}
+      <section className="bg-white py-20">
         <div className="max-w-6xl mx-auto px-6">
           <div className="text-center mb-12">
             <h3 className="text-3xl font-bold text-gray-900 font-serif mb-3">স্মৃতির পাতা</h3>
@@ -71,6 +99,24 @@ export default function WillesSahityaClub() {
               </div>
             ))}
           </div>
+        </div>
+      </section>
+
+      {/* [NEW] 5. Call to Action Section */}
+      <section className="max-w-4xl mx-auto px-6 pb-24 text-center">
+        <div className="bg-rose-50 border border-rose-100 rounded-3xl p-8 md:p-12 shadow-sm">
+          <h3 className="text-2xl md:text-3xl font-bold text-gray-900 font-serif mb-4">
+            আমাদের সাংগঠনিক প্যানেল দেখতে চান?
+          </h3>
+          <p className="text-gray-600 text-sm md:text-base max-w-xl mx-auto mb-8 leading-relaxed">
+            ক্লাবের স্বপ্নযাত্রাকে বাস্তবে রূপ দিতে রানিং কমিটি এবং পূর্ববর্তী জেনারেশনের যেসকল প্যানেল মেম্বাররা নিরলসভাবে কাজ করে যাচ্ছেন, তাদের সাথে পরিচিত হোন।
+          </p>
+          <Link 
+            href="/panel" 
+            className="inline-block bg-stone-900 text-white font-semibold text-sm px-8 py-3.5 rounded-full hover:bg-rose-900 transition-colors shadow-sm"
+          >
+            অফিশিয়াল প্যানেল দেখুন 📖
+          </Link>
         </div>
       </section>
 
