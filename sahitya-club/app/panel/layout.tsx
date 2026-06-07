@@ -58,12 +58,6 @@ export default function PanelLayout({ children }: { children: ReactNode }) {
           {children}
         </div>
 
-      </div>
-      
-      {/* সিম্পল ফুটনোট */}
-      <footer className="text-center py-8 text-xs text-stone-400 font-medium">
-        <p>© {new Date().getFullYear()} Willes Sahitya Club • Dhaka, Bangladesh</p>
-      </footer>
-    </div>
+    
   );
 }
