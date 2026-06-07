@@ -17,7 +17,7 @@ export default function PanelMainDashboard() {
       subtitle: "GEN-1 (2024-2025)",
       desc: "ক্লাবের সম্মানিত ফাউন্ডার মেম্বার এবং প্রথম দিককার কারিগরদের ইতিহাস ও লিগ্যাসি আর্কাইভ।",
       link: "/panel/GEN-1",
-      color: "from-rose-905 to-stone-900",
+      color: "from-amber-700 via-amber-850 to-stone-900",
       icon: "✒️"
     },
     {
