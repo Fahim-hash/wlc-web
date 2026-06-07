@@ -113,7 +113,7 @@ export default function RunningCommittee() {
           {/* ================= BRANCH 1: ADMINISTRATIVE (প্রশাসনিক বিভাগ) ================= */}
           <div className="bg-gradient-to-b from-rose-50/50 to-transparent p-6 rounded-2xl border border-rose-100/70 shadow-sm relative">
             <div className="absolute -top-4 left-6 bg-rose-800 text-white px-5 py-1 rounded-full text-sm font-semibold font-serif shadow-sm">
-              ■ प्रशासनिक বিভাগ
+              ■ প্রশাসনিক বিভাগ
             </div>
             
             {/* Inner Branch Line */}
