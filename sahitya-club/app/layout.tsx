@@ -27,12 +27,14 @@ export default function RootLayout({
   ];
 
   return (
-    <html lang="bn">
-      <body className={`${hindSiliguri.className} bg-stone-50 text-stone-900 min-h-screen flex flex-col selection:bg-rose-100 selection:text-rose-900 antialiased`}>
+    <html lang="bn" className="h-full">
+      <body className={`${hindSiliguri.className} bg-stone-50 text-stone-900 min-h-screen flex flex-col selection:bg-rose-100 selection:text-rose-900 antialiased overflow-x-hidden`}>
         
-        <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-stone-200/60 transition-all">
+        {/* ================= GLOBAL HEADER / NAVBAR ================= */}
+        <header className="sticky top-0 z-50 w-full bg-white/80 backdrop-blur-md border-b border-stone-200/60 transition-all">
           <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
             
+            {/* ব্র্যান্ড লোগো */}
             <Link href="/" className="flex items-center gap-2.5 group">
               <span className="text-xl md:text-2xl group-hover:rotate-12 transition-transform duration-300">✒️</span>
               <div className="flex flex-col">
@@ -45,6 +47,7 @@ export default function RootLayout({
               </div>
             </Link>
 
+            {/* ডেক্সটপ নেভিগেশন */}
             <nav className="hidden md:flex items-center gap-1 bg-stone-100 p-1 rounded-xl border border-stone-200/40">
               {navLinks.map((link, idx) => (
                 <Link 
@@ -57,6 +60,7 @@ export default function RootLayout({
               ))}
             </nav>
 
+            {/* মোবাইল বাটন */}
             <div className="flex md:hidden items-center">
               <Link 
                 href="/panel" 
@@ -69,12 +73,15 @@ export default function RootLayout({
           </div>
         </header>
 
-        <main className="flex-grow">
+        {/* ================= MAIN CONTENT AREA ================= */}
+        <main className="flex-grow w-full block relative z-10">
           {children}
         </main>
 
-        <footer className="bg-white border-t border-stone-200/60 py-8 mt-20">
+        {/* ================= GLOBAL FOOTER (FIXED) ================= */}
+        <footer className="w-full bg-white border-t border-stone-200/60 py-8 mt-auto relative z-20">
           <div className="max-w-6xl mx-auto px-4 flex flex-col md:flex-row items-center justify-between gap-4 text-center md:text-left">
+            
             <div>
               <p className="text-xs font-medium text-stone-500">
                 © ২০২৬ উইল্‌স সাহিত্য ক্লাব। সর্বস্বত্ব সংরক্ষিত।
@@ -83,9 +90,11 @@ export default function RootLayout({
                 উইল্‌স লিটল ফ্লাওয়ার স্কুল অ্যান্ড কলেজ, ঢাকা।
               </p>
             </div>
+
             <div className="text-xs italic text-stone-400 max-w-xs md:text-right">
               "সাহিত্যের বন্ধনে, প্রতিভার সন্ধানে এগিয়ে চলেছে উইলিয়ানদের ভালোবাসার এই প্রাঙ্গণ।"
             </div>
+
           </div>
         </footer>
 
