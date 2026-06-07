@@ -13,20 +13,20 @@ export default function PanelMainDashboard() {
       icon: "✍️"
     },
     {
-      title: "জেনারেশন - ২",
-      subtitle: "GEN-2 (2025)",
-      desc: "দ্বিতীয় ব্যাচের কার্যনির্বাহী ও সম্পাদনা প্যানেল, যাদের হাত ধরে ক্লাবটি পেয়েছে এক নতুন মাত্রা।",
-      link: "/panel/GEN-2",
-      color: "from-stone-850 to-stone-950",
-      icon: "📜"
-    },
-    {
       title: "জেনারেশন - ১",
       subtitle: "GEN-1 (2024)",
       desc: "ক্লাবের সম্মানিত ফাউন্ডার মেম্বার এবং প্রথম দিককার কারিগরদের ইতিহাস ও লিগ্যাসি আর্কাইভ।",
       link: "/panel/GEN-1",
       color: "from-stone-700 to-stone-850",
       icon: "✒️"
+    },
+    {
+      title: "সহযোগী কার্যনির্বাহী",
+  subtitle: "INTERIM WING (2026)",
+  desc: "উইল্‌স সাহিত্য ক্লাবের বিভিন্ন সাংগঠনিক কার্যক্রমে সহায়তাকারী অস্থায়ী কার্যনির্বাহী সদস্যবৃন্দ।",
+  link: "/panel/temporary", 
+  color: "from-sky-700 to-slate-800",
+  icon: "🤝"
     }
   ];
 
