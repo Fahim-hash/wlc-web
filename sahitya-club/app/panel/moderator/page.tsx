@@ -239,9 +239,7 @@ export default function TeacherModeratorPanel() {
                   {teacher.name}
                 </h3>
                 <p className="text-sm font-medium text-stone-500 mt-1">
-                  {teacher.designation}
-                </p>
-                <p className="text-xs text-stone-400 mt-0.5">
+                  
                   {teacher.institution}
                 </p>
               </div>
