@@ -4,30 +4,30 @@ import Image from "next/image";
 export default function RunningCommittee() {
   const executiveMembers = [
    
-  { id: 1, name: "আরিয়ান আজমাইন মিয়ন", role: "উপদেষ্টা", batch: "SSC '24", image: "/panel/1.jpg" },
-  { id: 2, name: "মাইমুনা তাবাসসুম মাহিয়া", role: "সভাপতি", batch: "HSC '25", image: "/panel/2.jpg" },
-  { id: 3, name: "এহসান আহমেদ সিয়াম", role: "সহ-সভাপতি", batch: "HSC '26", image: "/panel/3.jpg" },
-  { id: 4, name: "সামিয়া সাদেক", role: "সম্পাদক", batch: "HSC '27", image: "/panel/4.jpg" },
-  { id: 5, name: "মো. শান গাজী", role: "সহ-সম্পাদক", batch: "SSC '26", image: "/panel/5.jpg" },
-  { id: 6, name: "আতিক আহরার", role: "সদস্য সচিব", batch: "HSC '27", image: "/panel/6.jpg" },
-  { id: 7, name: "তাসীন খান", role: "উপ সদস্য সচিব", batch: "SSC '26", image: "/panel/7.jpg" },
-  { id: 8, name: "তওহিদ মাহমুদ", role: "প্রচারণা সম্পাদক", batch: "HSC '27", image: "/panel/8.jpg" },
-  { id: 9, name: "আরিফুর রহমান তাহমিদ", role: "নিয়ন্ত্রক (বাংলা সাহিত্য)", batch: "SSC '26", image: "/panel/9.jpg" },
-  { id: 10, name: "মোল্লা সৌম্য রহমান", role: "নিয়ন্ত্রক (ইংরেজি সাহিত্য)", batch: "HSC '27", image: "/panel/10.jpg" },
-  { id: 11, name: "তাওসীফ মাহমুদ গুঞ্জন", role: "নিয়ন্ত্রক (ধর্মীয় সাহিত্য)", batch: "SSC '26", image: "/panel/11.jpg" },
-  { id: 12, name: "তানজুমা আক্তার স্নেহা", role: "সহ-নিয়ন্ত্রক (বাংলা সাহিত্য)", batch: "SSC '26", image: "/panel/12.jpg" },
+  { id: 1, name: "আরিয়ান আজমাইন মিয়ন", role: "উপদেষ্টা", batch: "SSC '24", image: "/panel/meyon.jpg" },
+  { id: 2, name: "মাইমুনা তাবাসসুম মাহিয়া", role: "সভাপতি", batch: "HSC '25", image: "/panel/Mahi Apu.jpg" },
+  { id: 3, name: "এহসান আহমেদ সিয়াম", role: "সহ-সভাপতি", batch: "HSC '26", image: "/panel/siam.jpg" },
+  { id: 4, name: "সামিয়া সাদেক", role: "সম্পাদক", batch: "HSC '27", image: "/panel/Samir.jpg" },
+  { id: 5, name: "মো. শান গাজী", role: "সহ-সম্পাদক", batch: "SSC '26", image: "/panel/shan.jpg" },
+  { id: 6, name: "আতিক আহরার", role: "সদস্য সচিব", batch: "HSC '27", image: "/panel/atik'.jpg" },
+  { id: 7, name: "তাসীন খান", role: "উপ সদস্য সচিব", batch: "SSC '26", image: "/panel/Taseen.jpg" },
+  { id: 8, name: "তওহিদ মাহমুদ", role: "প্রচারণা সম্পাদক", batch: "HSC '27", image: "/panel/towhid.jpg" },
+  { id: 9, name: "আরিফুর রহমান তাহমিদ", role: "নিয়ন্ত্রক (বাংলা সাহিত্য)", batch: "SSC '26", image: "/panel/tahmid.jpg" },
+  { id: 10, name: "মোল্লা সৌম্য রহমান", role: "নিয়ন্ত্রক (ইংরেজি সাহিত্য)", batch: "HSC '27", image: "/panel/shoumom.jpg" },
+  { id: 11, name: "তাওসীফ মাহমুদ গুঞ্জন", role: "নিয়ন্ত্রক (ধর্মীয় সাহিত্য)", batch: "SSC '26", image: "/panel/gunjon.jpg" },
+  { id: 12, name: "তানজুমা আক্তার স্নেহা", role: "সহ-নিয়ন্ত্রক (বাংলা সাহিত্য)", batch: "SSC '26", image: "/panel/Sneha.jpg" },
   { id: 13, name: "হাসনাত আযান", role: "সহ-নিয়ন্ত্রক (ইংরেজি সাহিত্য)", batch: "SSC '26", image: "/panel/13.jpg" },
-  { id: 14, name: "আদিবা হাসান", role: "সহ-নিয়ন্ত্রক (ধর্মীয় সাহিত্য)", batch: "SSC '26", image: "/panel/14.jpg" },
-  { id: 15, name: "ইয়ামিন উজ জামান", role: "চিত্র ও নথি সংগ্রাহক", batch: "HSC '26", image: "/panel/15.jpg" },
-  { id: 16, name: "নাজমুল সাকিব", role: "কার্যনির্বাহী প্রধান", batch: "HSC '26", image: "/panel/16.jpg" },
-  { id: 17, name: "যুক্ত প্রিয়তা", role: "কার্যনির্বাহী", batch: "SSC '26", image: "/panel/17.jpg" },
-  { id: 18, name: "অনন্যা হাসান বিথি", role: "কার্যনির্বাহী", batch: "HSC '26", image: "/panel/18.jpg" },
-  { id: 19, name: "আরিয়ান চৌধুরী", role: "কার্যনির্বাহী", batch: "SSC '27", image: "/panel/19.jpg" },
-  { id: 20, name: "সাজিদ আলম খান তামিম", role: "কার্যনির্বাহী", batch: "SSC '26", image: "/panel/20.jpg" },
-  { id: 21, name: "অয়ন মাহমুদ রাদিন", role: "কার্যনির্বাহী", batch: "SSC '26", image: "/panel/21.jpg" },
+  { id: 14, name: "আদিবা হাসান", role: "সহ-নিয়ন্ত্রক (ধর্মীয় সাহিত্য)", batch: "SSC '26", image: "/panel/Adiba.jpg" },
+  { id: 15, name: "ইয়ামিন উজ জামান", role: "চিত্র ও নথি সংগ্রাহক", batch: "HSC '26", image: "/panel/yeamin.HEIC" },
+  { id: 16, name: "নাজমুল সাকিব", role: "কার্যনির্বাহী প্রধান", batch: "HSC '26", image: "/panel/Sakib.jpg" },
+  { id: 17, name: "যুক্ত প্রিয়তা", role: "কার্যনির্বাহী", batch: "SSC '26", image: "/panel/Jukto.jpg" },
+  { id: 18, name: "অনন্যা হাসান বিথি", role: "কার্যনির্বাহী", batch: "HSC '26", image: "/panel/bithi.jpg" },
+  { id: 19, name: "আরিয়ান চৌধুরী", role: "কার্যনির্বাহী", batch: "SSC '27", image: "/panel/Ariyan.jpg" },
+  { id: 20, name: "সাজিদ আলম খান তামিম", role: "কার্যনির্বাহী", batch: "SSC '26", image: "/panel/Tamim.jpg" },
+  { id: 21, name: "অয়ন মাহমুদ রাদিন", role: "কার্যনির্বাহী", batch: "SSC '26", image: "/panel/radin.jpg" },
   { id: 22, name: "আবিদ হাসান দীপ্ত", role: "কার্যনির্বাহী", batch: "SSC '26", image: "/panel/22.jpg" },
-  { id: 23, name: "মুহতাসিম মানাফি", role: "কার্যনির্বাহী", batch: "SSC '26", image: "/panel/23.jpg" },
-  { id: 24, name: "নাফিসা সুলতানা", role: "কার্যনির্বাহী", batch: "HSC '26", image: "/panel/24.jpg" },
+  { id: 23, name: "মুহতাসিম মানাফি", role: "কার্যনির্বাহী", batch: "SSC '26", image: "/panel/manafi.jpg" },
+  { id: 24, name: "নাফিসা সুলতানা", role: "কার্যনির্বাহী", batch: "HSC '26", image: "/panel/nafisa.jpg" },
   { id: 25, name: "আব্দুল নুর", role: "কার্যনির্বাহী", batch: "SSC '27", image: "/panel/25.jpg" },
   { id: 26, name: "নামিয়া নাওয়ার", role: "কার্যনির্বাহী", batch: "HSC '27", image: "/panel/26.jpg" },
   { id: 27, name: "নাহিদ ইসলাম নয়ন", role: "কার্যনির্বাহী", batch: "SSC '26", image: "/panel/27.jpg" },
@@ -38,8 +38,8 @@ export default function RunningCommittee() {
 
   const editorialMembers = [
     
-  { id: 1, name: "আইশান শান", role: "সম্পাদক", batch: "HSC '25", image: "/panel/1.jpg" },
-  { id: 2, name: "সৈয়দ ফাহিম মুদ্দাসির", role: "সহ-সম্পাদক ", batch: "HSC '26", image: "/panel/2.jpg" }
+  { id: 1, name: "আইশান শান", role: "সম্পাদক", batch: "HSC '25", image: "/panel/shaan vhai.jpg" },
+  { id: 2, name: "সৈয়দ ফাহিম মুদ্দাসির", role: "সহ-সম্পাদক ", batch: "HSC '26", image: "/panel/Fahim.jpg" }
   ];
 
   return (
