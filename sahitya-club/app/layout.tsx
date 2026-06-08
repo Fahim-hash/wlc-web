@@ -20,7 +20,11 @@ export const metadata: Metadata = {
     "WLFSC Literary Club",
     "Willes Little Flower School & College",
     "উইলিয়ান সাহিত্য",
-    "ঢাকা কলেজ সাহিত্য ক্লাব"
+    "ঢাকা কলেজ সাহিত্য ক্লাব",
+    "Willes Sahitto Club",
+    "wlc",
+    "WLC",
+    "Wlc"
   ],
   authors: [{ name: "উইল্‌স সাহিত্য ক্লাব প্যানেল" }],
   // 🎯 লোগো হিসেবে সরাসরি logo.png কনফিগারেশন
@@ -32,7 +36,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "উইল্‌স সাহিত্য ক্লাব | Willes Literary Club",
     description: "উইল্‌স লিটল ফ্লাওয়ার স্কুল অ্যান্ড কলেজের অফিশিয়াল সাহিত্য ক্লাব ওয়েবসাইট।",
-    url: "https://wlfsc-literary.vercel.app", // তোমার অরিজিনাল ইউআরএল থাকলে এখানে বসিয়ে দিও
+    url: "https://wlc.pro.bd", // তোমার অরিজিনাল ইউআরএল থাকলে এখানে বসিয়ে দিও
     siteName: "Willes Literary Club",
     locale: "bn_BD",
     type: "website",
@@ -66,7 +70,7 @@ export default function RootLayout({
     { name: "শিক্ষক মডারেটর", path: "/panel/moderator" },
   ];
 
-  // 🧠 Structured Data (গুগল সার্চকে প্রাতিষ্ঠানিক ডেটা দেওয়ার জন্য)
+  // 🧠 Structured Data (গুগল সার্চকে প্রাতিষ্ঠানিক ডেটা দেওয়ার জন্য)
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "EducationalOrganization",
@@ -88,7 +92,7 @@ export default function RootLayout({
         "addressCountry": "Bangladesh"
       }
     },
-    "description": "উইল্‌স লিটল ফ্লাওয়ার স্কুল অ্যান্ড কলেজের শিক্ষার্থীদের সৃজনশীল লেখনী ও সাহিত্য চর্চার অফিশিয়াল প্ল্যাটফর্ম।"
+    "description": "উইল্‌স লিটল ফ্লাওয়ার স্কুল অ্যান্ড কলেজের শিক্ষার্থীদের সৃজনশীল লেখনী ও সাহিত্য চর্চার অফিশিয়াল প্ল্যাটফর্ম।"
   };
 
   return (
@@ -122,7 +126,7 @@ export default function RootLayout({
                   উইল্‌স সাহিত্য ক্লাব
                 </span>
                 <span className="text-[10px] uppercase tracking-widest text-stone-400 font-medium -mt-0.5">
-                  Wills Literary Club
+                  Willes Literary Club
                 </span>
               </div>
             </Link>
@@ -158,21 +162,79 @@ export default function RootLayout({
           {children}
         </main>
 
-        {/* ================= GLOBAL FOOTER ================= */}
-        <footer className="w-full bg-white border-t border-stone-200/60 py-8 mt-auto relative z-20">
-          <div className="max-w-6xl mx-auto px-4 flex flex-col md:flex-row items-center justify-between gap-4 text-center md:text-left">
+        {/* ================= GLOBAL FOOTER (DEVELOPER EDITION) ================= */}
+        <footer className="w-full bg-white border-t border-stone-200/60 py-10 mt-auto relative z-20">
+          <div className="max-w-6xl mx-auto px-4 grid grid-cols-1 md:grid-cols-3 gap-8 items-center text-center md:text-left">
             
-            <div>
-              <p className="text-xs font-medium text-stone-500">
+            {/* বাম অংশ: কপিরাইট ও প্রাতিষ্ঠানিক তথ্য */}
+            <div className="flex flex-col gap-1">
+              <p className="text-xs font-semibold text-stone-600">
                 © ২০২৬ উইল্‌স সাহিত্য ক্লাব। সর্বস্বত্ব সংরক্ষিত।
               </p>
-              <p className="text-[11px] text-stone-400 mt-0.5">
+              <p className="text-[11px] text-stone-400">
                 উইল্‌স লিটল ফ্লাওয়ার স্কুল অ্যান্ড কলেজ, ঢাকা।
+              </p>
+              <p className="text-[11px] italic text-stone-400 mt-2 max-w-xs mx-auto md:mx-0">
+                "সাহিত্যের বন্ধনে, প্রতিভার সন্ধানে..."
               </p>
             </div>
 
-            <div className="text-xs italic text-stone-400 max-w-xs md:text-right">
-              "সাহিত্যের বন্ধনে, প্রতিভার সন্ধানে এগিয়ে চলেছে উইলিয়ানদের ভালোবাসার এই প্রাঙ্গণ।"
+            {/* মাঝের অংশ: যোগাযোগ ও ডেভেলপার বাটন */}
+            <div className="flex flex-col items-center md:items-start gap-3">
+              <div className="flex flex-col gap-1 text-xs text-stone-500 font-medium">
+                <span className="text-stone-800 font-bold uppercase tracking-wider text-[10px]">যোগাযোগ করুন</span>
+                <a href="tel:+8801855941177" className="hover:text-rose-900 transition-colors flex items-center justify-center md:justify-start gap-1.5">
+                  📞 +৮৮০ ১৮৫৫-৯৪১১৭৭ 
+                </a>
+                <a href="mailto:contact@wlc.pro.bd" className="hover:text-rose-900 transition-colors flex items-center justify-center md:justify-start gap-1.5">
+                  ✉️ contact@wlc.pro.bd
+                </a>
+              </div>
+
+              {/* প্রিমিয়াম ডেভেলপার বাটন */}
+              <div className="mt-1">
+                <a 
+                  href="https://www.instagram.com/relaxstudio__" // তোমার ফ্রেমার বা পোর্টফোলিও লিঙ্ক এখানে বসবে
+                  target="_blank" 
+                  rel="noopener noreferrer" 
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-stone-900 hover:bg-stone-800 text-stone-100 hover:text-white rounded-lg text-[11px] font-semibold tracking-wide border border-stone-800 transition-all shadow-sm hover:scale-[1.02]"
+                >
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                  Dev: Relax Studio
+                </a>
+              </div>
+            </div>
+
+            {/* ডান অংশ: সোশ্যাল মিডিয়া পেজ লিঙ্কসমূহ */}
+            <div className="flex flex-col md:items-end gap-2">
+              <span className="text-stone-800 font-bold uppercase tracking-wider text-[10px]">আমাদের সামাজিক মাধ্যম</span>
+              <div className="flex items-center justify-center gap-3">
+                {/* ফেসবুক পেজ লিঙ্ক */}
+                <a 
+                  href="https://facebook.com/syedfahim.muddasir" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="p-2 rounded-full bg-stone-100 text-stone-600 hover:bg-blue-50 hover:text-blue-600 transition-all duration-200"
+                  title="Facebook Page"
+                >
+                  <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
+                    <path d="M9 8H7v3h2v9h3v-9h2.721L15 8h-3V6.83c0-.855.207-1.291 1.23-1.291H15V3h-2.522C9.914 3 9 4.377 9 6.57V8z"/>
+                  </svg>
+                </a>
+
+                {/* ইনস্টাগ্রাম লিঙ্ক */}
+                <a 
+                  href="https://instagram.com/mr_relax_bro" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="p-2 rounded-full bg-stone-100 text-stone-600 hover:bg-pink-50 hover:text-pink-600 transition-all duration-200"
+                  title="Instagram Page"
+                >
+                  <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
+                    <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.051.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/>
+                  </svg>
+                </a>
+              </div>
             </div>
 
           </div>
