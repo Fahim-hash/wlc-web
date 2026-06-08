@@ -12,7 +12,7 @@ export default function TeacherModeratorPanel() {
     designation: "সহকারী শিক্ষক, বি.এম (দিবা শাখা)",
     institution: "উইল্‌স লিটল ফ্লাওয়ার স্কুল অ্যান্ড কলেজ",
     speech: "সাহিত্যচর্চা মানুষের মনের সংকীর্ণতা দূর করে চেতনাকে শাণিত করে। শিক্ষার্থীদের ভেতরের সুপ্ত প্রতিভাকে বিকশিত করার এই মহৎ যাত্রায় যুক্ত থাকতে পেরে আমি আনন্দিত।",
-    image: "/panel/Atik Sir.jpg",
+    image: "/panel/Atiksir.jpg",
   },
   {
     id: 102,
