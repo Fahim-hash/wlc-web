@@ -52,7 +52,7 @@ export default function TeacherModeratorPanel() {
   },
   {
     id: 106,
-    name: "শাইরফুল ইসলাম",
+    name: "শরীফুল ইসলাম",
     role: "সদস্য (বাংলা সাহিত্য)",
     designation: "সহকারী শিক্ষক, বি.এম (দিবা শাখা)",
     institution: "উইল্‌স লিটল ফ্লাওয়ার স্কুল অ্যান্ড কলেজ",
