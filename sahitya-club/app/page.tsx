@@ -1,10 +1,23 @@
 import Image from "next/image";
 import Link from "next/link";
+import fs from "fs";
+import path from "path";
 
 export default function WillesSahityaClub() {
-  const flashbackImages = [1, 2, 3, 4, 5, 6];
+  // ১. public/pic ফোল্ডার থেকে ছবি রিড করার লজিক
+  const picDirectory = path.join(process.cwd(), "public", "pic");
+  let flashbackImages: string[] = [];
 
-  // নতুন যুক্ত করা ইভেন্ট ডেটা
+  try {
+    const files = fs.readdirSync(picDirectory);
+    flashbackImages = files.filter((file) => {
+      const ext = path.extname(file).toLowerCase();
+      return ext === ".png" || ext === ".jpg" || ext === ".jpeg";
+    });
+  } catch (error) {
+    console.error("public/pic ফোল্ডারটি খুঁজে পাওয়া যায়নি বা খালি:", error);
+  }
+
   const features = [
     { icon: "✍️", title: "নিয়মিত সাহিত্য আসর", desc: "গল্প, কবিতা ও প্রবন্ধের আসর যেখানে সদস্যরা মুক্ত মনে তাদের লেখনী তুলে ধরে।" },
     { icon: "🎨", title: "দেয়ালিকা ও প্রকাশনা", desc: "বিশেষ দিনগুলোতে ক্লাবের নিজস্ব সম্পাদনা প্যানেলের যৌথ উদ্যোগে দেয়ালিকা প্রকাশ।" },
@@ -53,7 +66,7 @@ export default function WillesSahityaClub() {
         </p>
       </section>
 
-      {/* [NEW] 3. Features/Activities Section */}
+      {/* 3. Features/Activities Section */}
       <section className="bg-stone-50 py-20 border-t border-b border-gray-200/50">
         <div className="max-w-5xl mx-auto px-6">
           <div className="text-center mb-16">
@@ -81,28 +94,50 @@ export default function WillesSahityaClub() {
             <p className="text-gray-500">আমাদের সাম্প্রতিক কার্যক্রমের কিছু মুহূর্ত</p>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-            {flashbackImages.map((num) => (
-              <div 
-                key={num} 
-                className="relative group aspect-square overflow-hidden rounded-xl shadow-sm hover:shadow-md transition-all duration-300 bg-gray-100"
-              >
-                <Image
-                  src={`/album/${num}.jpg`}
-                  alt={`Club Activity Flashback ${num}`}
-                  fill
-                  className="object-cover transition-transform duration-500 group-hover:scale-110"
-                />
-                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
-                  <span className="text-white font-medium drop-shadow-md">মুহূর্ত {num}</span>
-                </div>
+          {flashbackImages.length === 0 ? (
+            <div className="text-center py-12 bg-stone-50 rounded-xl border border-gray-200/60">
+              <p className="text-gray-400 italic text-sm">কোনো ছবি পাওয়া যায়নি। public/pic ফোল্ডারে ছবি রাখুন।</p>
+            </div>
+          ) : (
+            <>
+              {/* হোমপেজে শুধুমাত্র প্রথম ৬টি ছবি দেখাবে */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+                {flashbackImages.slice(0, 6).map((fileName, idx) => (
+                  <div 
+                    key={idx} 
+                    className="relative group aspect-square overflow-hidden rounded-xl shadow-sm hover:shadow-md transition-all duration-300 bg-gray-100"
+                  >
+                    <Image
+                      src={`/pic/${fileName}`}
+                      alt={`Club Activity Flashback ${idx + 1}`}
+                      fill
+                      sizes="(max-w-768px) 100vw, 33vw"
+                      className="object-cover transition-transform duration-500 group-hover:scale-110"
+                    />
+                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
+                      <span className="text-white font-medium drop-shadow-md">
+                        মুহূর্ত {idx + 1}
+                      </span>
+                    </div>
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
+
+              {/* 🎯 [FIX] এই বাটনটি এখন সবসময় থাকবে এবং সরাসরি /album পেজে নিয়ে যাবে */}
+              <div className="text-center mt-12">
+                <Link
+                  href="/album"
+                  className="inline-flex items-center gap-2 bg-stone-100 hover:bg-rose-50 text-stone-800 hover:text-rose-950 font-semibold text-sm px-6 py-3 rounded-full border border-stone-200 shadow-sm transition-all duration-250"
+                >
+                  সব ছবি দেখুন (অ্যালবাম) ➔
+                </Link>
+              </div>
+            </>
+          )}
         </div>
       </section>
 
-      {/* [NEW] 5. Call to Action Section */}
+      {/* 5. Call to Action Section */}
       <section className="max-w-4xl mx-auto px-6 pb-24 text-center">
         <div className="bg-rose-50 border border-rose-100 rounded-3xl p-8 md:p-12 shadow-sm">
           <h3 className="text-2xl md:text-3xl font-bold text-gray-900 font-serif mb-4">
