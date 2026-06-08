@@ -38,7 +38,7 @@ export default function RunningCommittee() {
 
   const editorialMembers = [
     
-  { id: 1, name: "আইশান শান", role: "সম্পাদক", batch: "HSC '25", image: "/panel/shaan vhai.jpg" },
+  { id: 1, name: "আইশান শান", role: "সম্পাদক", batch: "HSC '25", image: "/panel/shaan vai.jpg" },
   { id: 2, name: "সৈয়দ ফাহিম মুদ্দাসির", role: "সহ-সম্পাদক ", batch: "HSC '26", image: "/panel/Fahim.jpg" }
   ];
 
