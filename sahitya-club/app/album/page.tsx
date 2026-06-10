@@ -11,7 +11,7 @@ export const metadata: Metadata = {
   description: "উইল্‌স লিটল ফ্লাওয়ার স্কুল অ্যান্ড কলেজের অফিশিয়াল সাহিত্য ক্লাব-এর বিভিন্ন আয়োজন ও সোনালী মুহূর্তের ছবিঘর।",
 };
 
-// 🎯 টেলিগ্রাম চ্যানেল থেকে রিয়েল-টাইম ছবি ফেচ করার ফাংশন (ক্যাশ-প্রুফ ও ডিলিট ফিল্টারসহ)
+// 🎯 টেলিগ্রাম চ্যানেল থেকে অনুমোদিত (👍 বা ✔️ রিঅ্যাকশন পাওয়া) ছবি ও ডকুমেন্ট ফেচ করার ফাংশন
 async function getTelegramImages(): Promise<string[]> {
   try {
     const botToken = process.env.TELEGRAM_BOT_TOKEN;
@@ -34,22 +34,37 @@ async function getTelegramImages(): Promise<string[]> {
     const telegramImages: string[] = [];
 
     for (const update of data.result) {
-      const document = update.channel_post?.document;
-      const photoArray = update.channel_post?.photo;
+      // টেলিগ্রামের রিঅ্যাকশন মূলত আপডেট টাইপের ওপর ভিত্তি করে ভিন্ন ভিন্ন অবজেক্টে আসতে পারে
+      const channelPost = update.channel_post || update.edited_channel_post;
+      if (!channelPost) continue;
 
+      // 🔍 রিঅ্যাকশন ফিল্টার লজিক (সাধারণ পোস্ট এবং ডকুমেন্ট পোস্ট উভয়ের জন্যই)
+      const reactions = channelPost.reactions?.current_reactions || [];
+      
+      // আমরা চেক করব 👍 (thumbsup) অথবা ✔️ (checkmark) রিঅ্যাকশন আছে কি না
+      const isApproved = reactions.some((r: any) => 
+        r.reaction?.emoji === "👍" || r.reaction?.emoji === "✔️"
+      );
+
+      // 🛑 যদি অনুমোদিত রিঅ্যাকশন না থাকে, তবে এই ফাইল বা ছবি ওয়েবসাইটে দেখাবে না
+      if (!isApproved) continue;
+
+      const document = channelPost.document;
+      const photoArray = channelPost.photo;
       let fileId = "";
 
-      // ওয়েবসাইট বা ম্যানuয়ালি ফাইল/ডকুমেন্ট আকারে পাঠানো ছবি চেক
-      if (document && document.mime_type.startsWith("image/")) {
+      // 📁 কন্ডিশন ১: যদি ছবিটি "Document" (ফাইল) হিসেবে আপলোড করা হয়
+      if (document && document.mime_type && document.mime_type.startsWith("image/")) {
         fileId = document.file_id;
       } 
-      // সরাসরি মেসেজে ছবি আকারে পাঠানো ফাইল চেক (ম্যানুয়াল আপলোড)
+      // 🌐 কন্ডিশন ২: যদি সরাসরি মেসেজে সাধারণ ছবি আকারে পাঠানো হয়
       else if (photoArray && photoArray.length > 0) {
-        fileId = photoArray[photoArray.length - 1].file_id; // হাই কোয়ালিটি ছবি
+        fileId = photoArray[photoArray.length - 1].file_id; // হাই কোয়ালিটি ইমেজ আইডি
       }
 
+      // যদি কোনো ভ্যালিড ফাইল আইডি পাওয়া যায়, তবে সেটার ডিরেক্ট ইউআরএল তৈরি করব
       if (fileId) {
-        // ২. ফাইলটির আইডি দিয়ে মেইন পাথ রিড করার চেষ্টা করা
+        // ২. ফাইলটি এখনো টেলিগ্রাম ক্লাউডে লাইভ আছে কি না ভেরিফাই করা
         const fileRes = await fetch(`https://api.telegram.org/bot${botToken}/getFile?file_id=${fileId}`, {
           cache: "no-store",
           next: { revalidate: 0 },
@@ -57,25 +72,24 @@ async function getTelegramImages(): Promise<string[]> {
         });
         const fileData = await fileRes.json();
 
-        // 🔥 ম্যাজিক ট্রিক: যদি ফাইলটি টেলিগ্রাম চ্যানেল থেকে ডিলিট হয়ে যায়, তবে ok ভ্যালু false আসবে।
-        // সে ক্ষেত্রে কোডটি এটিকে স্কিপ (continue) করবে, যার ফলে ডিলিট হওয়া ছবি ওয়েবসাইটে আর শো করবে না।
+        // যদি ফাইলটি ডিলিট হয়ে গিয়ে থাকে, তবে স্কিপ করবে
         if (!fileData.ok || !fileData.result.file_path) {
           continue; 
         }
 
         const directUrl = `https://api.telegram.org/file/bot${botToken}/${fileData.result.file_path}`;
-        telegramImages.unshift(directUrl); // নতুন ছবি সবার আগে দেখাবে
+        telegramImages.unshift(directUrl); // নতুন ছবি বা ডকুমেন্ট সবার আগে পুশ হবে
       }
     }
     return telegramImages;
   } catch (error) {
-    console.error("টেলিগ্রাম থেকে ছবি আনতে ব্যর্থ:", error);
+    console.error("টেলিগ্রাম থেকে ডেটা আনতে ব্যর্থ:", error);
     return [];
   }
 }
 
 export default async function AlbumPage() {
-  // ১. public/pic ফোল্ডার থেকে লোকাল ছবিগুলো রিড করা
+  // ১. public/pic ফোল্ডার থেকে লোকাল ছবি রিড
   const picDirectory = path.join(process.cwd(), "public", "pic");
   let localImages: string[] = [];
 
@@ -91,10 +105,10 @@ export default async function AlbumPage() {
     console.error("public/pic ফোল্ডার রিড করতে সমস্যা:", error);
   }
 
-  // ২. টেলিগ্রাম চ্যানেল থেকে লাইভ ছবিগুলো নিয়ে আসা
+  // ২. টেলিগ্রাম থেকে শুধুমাত্র রিঅ্যাকশন পাওয়া লাইভ ছবি ও ডকুমেন্টগুলো আনা
   const telegramImages = await getTelegramImages();
 
-  // ৩. দুই সোর্সের মোট ছবির কাউন্ট
+  // ৩. মোট ছবির সংখ্যা গণনা
   const totalImagesCount = localImages.length + telegramImages.length;
 
   return (
@@ -116,13 +130,13 @@ export default async function AlbumPage() {
         {totalImagesCount === 0 ? (
           <div className="text-center py-20 bg-white rounded-2xl border border-stone-200/60 shadow-sm">
             <p className="text-stone-400 italic text-sm">
-              এখনো কোনো ছবি আপলোড বা যুক্ত করা হয়নি।
+              এখনো কোনো অনুমোদিত ছবি বা ডকুমেন্ট অ্যালবামে যুক্ত করা হয়নি।
             </p>
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
             
-            {/* 🌐 পার্ট ১: টেলিগ্রাম চ্যানেল থেকে আসা রিয়েল-টাইম লাইভ ছবিগুলো */}
+            {/* 🌐 পার্ট ১: টেলিগ্রাম থেকে লাইভ অ্যাপ্রুভড ছবি ও ডকুমেন্টস */}
             {telegramImages.map((url, index) => (
               <div 
                 key={`tg-${index}`} 
@@ -136,9 +150,8 @@ export default async function AlbumPage() {
                     loading="lazy"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-stone-950/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                  {/* ক্লাউড লাইভ ব্যাজ */}
                   <span className="absolute top-3 right-3 bg-emerald-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-md shadow-sm">
-                    Live
+                    Approved 👍
                   </span>
                 </div>
                 <div className="p-4 bg-white">
@@ -149,7 +162,7 @@ export default async function AlbumPage() {
               </div>
             ))}
 
-            {/* 📁 পার্ট ২: তোমার লোকাল public/pic ফোল্ডারের ছবিগুলো */}
+            {/* 📁 পার্ট ২: লোকাল public/pic ফোল্ডারের ছবিগুলো */}
             {localImages.map((fileName, index) => (
               <div 
                 key={`local-${index}`} 
