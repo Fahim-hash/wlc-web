@@ -11,19 +11,24 @@ export const metadata: Metadata = {
   description: "উইল্‌স লিটল ফ্লাওয়ার স্কুল অ্যান্ড কলেজের অফিশিয়াল সাহিত্য ক্লাব-এর বিভিন্ন আয়োজন ও সোনালী মুহূর্তের ছবিঘর।",
 };
 
-// 🎯 টেলিগ্রাম চ্যানেল থেকে রিয়েল-টাইম ছবি ফেচ করার ফাংশন
+// 🎯 টেলিগ্রাম চ্যানেল থেকে রিয়েল-টাইম ছবি ফেচ করার ফাংশন (ক্যাশ-প্রুফ ও ডিলিট ফিল্টারসহ)
 async function getTelegramImages(): Promise<string[]> {
   try {
     const botToken = process.env.TELEGRAM_BOT_TOKEN;
-    
     if (!botToken) return [];
 
-    // টেলিগ্রামের লেটেস্ট আপডেটস ফেচ করা (ক্যাশিং এড়াতে no-store ব্যবহার করা হয়েছে)
+    // ১. টেলিগ্রামের লেটেস্ট আপডেটস ফেচ করা (সব রকমের ক্যাশ হার্ড-ব্লক করা হয়েছে)
     const res = await fetch(`https://api.telegram.org/bot${botToken}/getUpdates?offset=-100`, {
-      cache: "no-store"
+      cache: "no-store",
+      next: { revalidate: 0 },
+      headers: {
+        "Cache-Control": "no-cache, no-store, must-revalidate",
+        "Pragma": "no-cache",
+        "Expires": "0",
+      },
     });
+    
     const data = await res.json();
-
     if (!data.ok) return [];
 
     const telegramImages: string[] = [];
@@ -34,7 +39,7 @@ async function getTelegramImages(): Promise<string[]> {
 
       let fileId = "";
 
-      // ওয়েবসাইট বা ম্যানুয়ালি ফাইল/ডকুমেন্ট আকারে পাঠানো ছবি চেক
+      // ওয়েবসাইট বা ম্যানuয়ালি ফাইল/ডকুমেন্ট আকারে পাঠানো ছবি চেক
       if (document && document.mime_type.startsWith("image/")) {
         fileId = document.file_id;
       } 
@@ -44,15 +49,22 @@ async function getTelegramImages(): Promise<string[]> {
       }
 
       if (fileId) {
+        // ২. ফাইলটির আইডি দিয়ে মেইন পাথ রিড করার চেষ্টা করা
         const fileRes = await fetch(`https://api.telegram.org/bot${botToken}/getFile?file_id=${fileId}`, {
-          cache: "no-store"
+          cache: "no-store",
+          next: { revalidate: 0 },
+          headers: { "Cache-Control": "no-cache, no-store" }
         });
         const fileData = await fileRes.json();
 
-        if (fileData.ok && fileData.result.file_path) {
-          const directUrl = `https://api.telegram.org/file/bot${botToken}/${fileData.result.file_path}`;
-          telegramImages.unshift(directUrl); // নতুন ছবি সবার আগে দেখাবে
+        // 🔥 ম্যাজিক ট্রিক: যদি ফাইলটি টেলিগ্রাম চ্যানেল থেকে ডিলিট হয়ে যায়, তবে ok ভ্যালু false আসবে।
+        // সে ক্ষেত্রে কোডটি এটিকে স্কিপ (continue) করবে, যার ফলে ডিলিট হওয়া ছবি ওয়েবসাইটে আর শো করবে না।
+        if (!fileData.ok || !fileData.result.file_path) {
+          continue; 
         }
+
+        const directUrl = `https://api.telegram.org/file/bot${botToken}/${fileData.result.file_path}`;
+        telegramImages.unshift(directUrl); // নতুন ছবি সবার আগে দেখাবে
       }
     }
     return telegramImages;
@@ -79,10 +91,10 @@ export default async function AlbumPage() {
     console.error("public/pic ফোল্ডার রিড করতে সমস্যা:", error);
   }
 
-  // ২. টেলিগ্রাম চ্যানেল থেকে ক্লাউড ছবিগুলো নিয়ে আসা
+  // ২. টেলিগ্রাম চ্যানেল থেকে লাইভ ছবিগুলো নিয়ে আসা
   const telegramImages = await getTelegramImages();
 
-  // ৩. দুই সোর্সের ছবি একসাথে কম্বাইন করা (টেলিগ্রামের ছবি আগে দেখাবে)
+  // ৩. দুই সোর্সের মোট ছবির কাউন্ট
   const totalImagesCount = localImages.length + telegramImages.length;
 
   return (
@@ -110,7 +122,7 @@ export default async function AlbumPage() {
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
             
-            {/* 🌐 পার্ট ১: টেলিগ্রাম চ্যানেল থেকে আসা রিয়েল-টাইম ছবিগুলো */}
+            {/* 🌐 পার্ট ১: টেলিগ্রাম চ্যানেল থেকে আসা রিয়েল-টাইম লাইভ ছবিগুলো */}
             {telegramImages.map((url, index) => (
               <div 
                 key={`tg-${index}`} 
@@ -124,7 +136,7 @@ export default async function AlbumPage() {
                     loading="lazy"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-stone-950/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                  {/* ক্লাউড ব্যাজ */}
+                  {/* ক্লাউড লাইভ ব্যাজ */}
                   <span className="absolute top-3 right-3 bg-emerald-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-md shadow-sm">
                     Live
                   </span>
