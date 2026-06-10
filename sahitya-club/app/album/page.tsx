@@ -5,7 +5,6 @@ import fs from "fs";
 import path from "path";
 import { Metadata } from "next";
 
-// 🚀 এই পেজের জন্য প্রিমিয়াম এসইও সেটআপ
 export const metadata: Metadata = {
   title: "ফটো অ্যালবাম ও গ্যালারি | উইল্‌স সাহিত্য ক্লাব",
   description: "উইল্‌স লিটল ফ্লাওয়ার স্কুল অ্যান্ড কলেজের অফিশিয়াল সাহিত্য ক্লাব-এর বিভিন্ন আয়োজন ও সোনালী মুহূর্তের ছবিঘর।",
@@ -17,79 +16,119 @@ async function getTelegramImages(): Promise<string[]> {
     const botToken = process.env.TELEGRAM_BOT_TOKEN;
     if (!botToken) return [];
 
-    // ১. টেলিগ্রামের লেটেস্ট আপডেটস ফেচ করা (সব রকমের ক্যাশ হার্ড-ব্লক করা হয়েছে)
-    const res = await fetch(`https://api.telegram.org/bot${botToken}/getUpdates?offset=-100`, {
-      cache: "no-store",
-      next: { revalidate: 0 },
-      headers: {
-        "Cache-Control": "no-cache, no-store, must-revalidate",
-        "Pragma": "no-cache",
-        "Expires": "0",
-      },
-    });
+    // 🛠️ টেলিগ্রামকে বাধ্য করা হচ্ছে যাতে সে মেসেজ, এডিট এবং রিঅ্যাকশন কাউন্টের সব আপডেট পাঠায়
+    const allowedUpdates = JSON.stringify([
+      "message", 
+      "edited_message", 
+      "channel_post", 
+      "edited_channel_post", 
+      "message_reaction", 
+      "message_reaction_count"
+    ]);
+
+    const res = await fetch(
+      `https://api.telegram.org/bot${botToken}/getUpdates?offset=-100&allowed_updates=${encodeURIComponent(allowedUpdates)}`,
+      {
+        cache: "no-store",
+        next: { revalidate: 0 },
+        headers: {
+          "Cache-Control": "no-cache, no-store, must-revalidate",
+          "Pragma": "no-cache",
+          "Expires": "0",
+        },
+      }
+    );
     
     const data = await res.json();
     if (!data.ok) return [];
 
-    const telegramImages: string[] = [];
+    // একই ফাইল আইডি বা মেসেজ ডুপ্লিকেট হওয়া আটকাতে ম্যাপ ব্যবহার করা হলো
+    const validImagesMap = new Map<number, string>();
 
+    // ১. প্রথমে পুরো আপডেটের লুপ চালিয়ে মেসেজের আইডি ও তাদের ফাইল আইডিগুলো ম্যাপ করে নেব
     for (const update of data.result) {
-      // টেলিগ্রামের রিঅ্যাকশন মূলত আপডেট টাইপের ওপর ভিত্তি করে ভিন্ন ভিন্ন অবজেক্টে আসতে পারে
-      const channelPost = update.channel_post || update.edited_channel_post;
-      if (!channelPost) continue;
+      const post = update.channel_post || update.edited_channel_post;
+      if (!post) continue;
 
-      // 🔍 রিঅ্যাকশন ফিল্টার লজিক (সাধারণ পোস্ট এবং ডকুমেন্ট পোস্ট উভয়ের জন্যই)
-      const reactions = channelPost.reactions?.current_reactions || [];
-      
-      // আমরা চেক করব 👍 (thumbsup) অথবা ✔️ (checkmark) রিঅ্যাকশন আছে কি না
-      const isApproved = reactions.some((r: any) => 
-        r.reaction?.emoji === "👍" || r.reaction?.emoji === "✔️"
-      );
-
-      // 🛑 যদি অনুমোদিত রিঅ্যাকশন না থাকে, তবে এই ফাইল বা ছবি ওয়েবসাইটে দেখাবে না
-      if (!isApproved) continue;
-
-      const document = channelPost.document;
-      const photoArray = channelPost.photo;
+      const messageId = post.message_id;
+      const document = post.document;
+      const photoArray = post.photo;
       let fileId = "";
 
-      // 📁 কন্ডিশন ১: যদি ছবিটি "Document" (ফাইল) হিসেবে আপলোড করা হয়
+      // 📁 ফাইল/ডকুমেন্ট হিসেবে আপলোড করা ছবি হ্যান্ডেল করা
       if (document && document.mime_type && document.mime_type.startsWith("image/")) {
         fileId = document.file_id;
       } 
-      // 🌐 কন্ডিশন ২: যদি সরাসরি মেসেজে সাধারণ ছবি আকারে পাঠানো হয়
+      // 🌐 সরাসরি ইমেজ আকারে আপলোড করা ছবি হ্যান্ডেল করা
       else if (photoArray && photoArray.length > 0) {
-        fileId = photoArray[photoArray.length - 1].file_id; // হাই কোয়ালিটি ইমেজ আইডি
+        fileId = photoArray[photoArray.length - 1].file_id;
       }
 
-      // যদি কোনো ভ্যালিড ফাইল আইডি পাওয়া যায়, তবে সেটার ডিরেক্ট ইউআরএল তৈরি করব
       if (fileId) {
-        // ২. ফাইলটি এখনো টেলিগ্রাম ক্লাউডে লাইভ আছে কি না ভেরিফাই করা
-        const fileRes = await fetch(`https://api.telegram.org/bot${botToken}/getFile?file_id=${fileId}`, {
-          cache: "no-store",
-          next: { revalidate: 0 },
-          headers: { "Cache-Control": "no-cache, no-store" }
-        });
-        const fileData = await fileRes.json();
-
-        // যদি ফাইলটি ডিলিট হয়ে গিয়ে থাকে, তবে স্কিপ করবে
-        if (!fileData.ok || !fileData.result.file_path) {
-          continue; 
-        }
-
-        const directUrl = `https://api.telegram.org/file/bot${botToken}/${fileData.result.file_path}`;
-        telegramImages.unshift(directUrl); // নতুন ছবি বা ডকুমেন্ট সবার আগে পুশ হবে
+        // মেসেজ আইডির বিপরীতে ফাইল আইডি সেভ করে রাখছি
+        validImagesMap.set(messageId, fileId);
       }
     }
-    return telegramImages;
+
+    const approvedUrls: string[] = [];
+
+    // ২. এবার দ্বিতীয় ধাপে চেক করব কোন কোন মেসেজ আইডিতে 👍 বা ✔️ রিঅ্যাকশন পড়েছে
+    for (const update of data.result) {
+      let targetMessageId = null;
+      let hasTargetReaction = false;
+
+      // কন্ডিশন A: সরাসরি পোস্টের অবজেক্ট থেকে রিঅ্যাকশন চেক
+      const post = update.channel_post || update.edited_channel_post;
+      if (post) {
+        targetMessageId = post.message_id;
+        const reactions = post.reactions?.current_reactions || [];
+        hasTargetReaction = reactions.some((r: any) => 
+          r.reaction?.emoji === "👍" || r.reaction?.emoji === "✔️"
+        );
+      }
+
+      // কন্ডিশন B: আলাদা রিঅ্যাকশন ইভেন্ট (message_reaction_count) অবজেক্ট থেকে চেক
+      const reactionCountUpdate = update.message_reaction_count;
+      if (reactionCountUpdate) {
+        targetMessageId = reactionCountUpdate.message_id;
+        const reactions = reactionCountUpdate.reactions || [];
+        hasTargetReaction = reactions.some((r: any) => 
+          r.type === "emoji" && (r.emoji === "👍" || r.emoji === "✔️")
+        );
+      }
+
+      // যদি অ্যাপ্রুভড রিঅ্যাকশন থাকে এবং আমাদের কাছে সেই মেসেজের ফাইল আইডি সেভ করা থাকে
+      if (hasTargetReaction && targetMessageId && validImagesMap.has(targetMessageId)) {
+        const fileId = validImagesMap.get(targetMessageId);
+
+        if (fileId) {
+          // ৩. টেলিগ্রাম থেকে মেইন ফাইল পাথ নিয়ে ডিরেক্ট ইউআরএল তৈরি করা
+          const fileRes = await fetch(`https://api.telegram.org/bot${botToken}/getFile?file_id=${fileId}`, {
+            cache: "no-store",
+            next: { revalidate: 0 }
+          });
+          const fileData = await fileRes.json();
+
+          if (fileData.ok && fileData.result.file_path) {
+            const directUrl = `https://api.telegram.org/file/bot${botToken}/${fileData.result.file_path}`;
+            // ডুপ্লিকেট ইউআরএল পুশ হওয়া ঠেকাতে চেক
+            if (!approvedUrls.includes(directUrl)) {
+              approvedUrls.unshift(directUrl);
+            }
+          }
+        }
+      }
+    }
+
+    return approvedUrls;
   } catch (error) {
-    console.error("টেলিগ্রাম থেকে ডেটা আনতে ব্যর্থ:", error);
+    console.error("টেলিগ্রাম ইমেজ ফেচিং এরর:", error);
     return [];
   }
 }
 
 export default async function AlbumPage() {
-  // ১. public/pic ফোল্ডার থেকে লোকাল ছবি রিড
+  // ১. public/pic ফোল্ডার থেকে লোকাল ছবি রিড করা
   const picDirectory = path.join(process.cwd(), "public", "pic");
   let localImages: string[] = [];
 
@@ -105,10 +144,10 @@ export default async function AlbumPage() {
     console.error("public/pic ফোল্ডার রিড করতে সমস্যা:", error);
   }
 
-  // ২. টেলিগ্রাম থেকে শুধুমাত্র রিঅ্যাকশন পাওয়া লাইভ ছবি ও ডকুমেন্টগুলো আনা
+  // ২. টেলিগ্রাম থেকে রিঅ্যাকশন ফিল্টারড লাইভ ছবি ও ডকুমেন্ট নিয়ে আসা
   const telegramImages = await getTelegramImages();
 
-  // ৩. মোট ছবির সংখ্যা গণনা
+  // ৩. মোট ছবির কাউন্ট
   const totalImagesCount = localImages.length + telegramImages.length;
 
   return (
