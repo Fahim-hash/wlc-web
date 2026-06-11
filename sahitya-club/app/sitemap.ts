@@ -2,15 +2,24 @@
 import { MetadataRoute } from 'next';
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const baseUrl = 'https://wlc.pro.bd'; // তোমার অরিজিনাল ডোমেইন বা ভার্সেল লিংক
+  const baseUrl = 'https://wlc.pro.bd';
 
-  // তোমার সাইটের সব কটি সচল রাউটের লিস্ট
-  const routes = ['', '/about', '/nobinboron', '/panel', '/panel/moderator', '/panel/GEN-1', '/panel/running'];
+  // আপনার সাইটের সব সচল রাউটের লিস্ট
+  const routes = [
+    '', 
+    '/about',  
+    '/register', 
+    '/nobinboron', 
+    '/panel', 
+    '/panel/moderator', 
+    '/panel/GEN-1', 
+    '/panel/running'
+  ];
 
   return routes.map((route) => ({
     url: `${baseUrl}${route}`,
-    lastModified: new Date().toISOString().split('T')[0], // আজকের ডেট জেনারেট করবে
-    changeFrequency: route === '' ? 'weekly' : 'monthly',
-    priority: route === '' ? 1.0 : 0.8, // হোমপেজকে সর্বোচ্চ প্রায়োরিটি (১.০) দেওয়া হয়েছে
+    lastModified: new Date(), // Next.js এটি অটোমেটিক ISO ফরমেটে কনভার্ট করবে
+    changeFrequency: route === '' ? 'daily' : 'weekly', // হোমপেজ বেশি আপডেট হয় বলে daily দিতে পারেন
+    priority: route === '' ? 1.0 : (route.startsWith('/panel') ? 0.8 : 0.6), // প্যানেল পেজগুলো গুরুত্বপূর্ণ বলে ০.৮
   }));
 }
