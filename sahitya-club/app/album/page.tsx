@@ -5,6 +5,9 @@ import fs from "fs";
 import path from "path";
 import { Metadata } from "next";
 
+export const dynamic = "force-dynamic";
+
+
 export const metadata: Metadata = {
   title: "ফটো অ্যালবাম ও গ্যালারি | উইল্‌স সাহিত্য ক্লাব",
   description: "উইল্‌স লিটল ফ্লাওয়ার স্কুল অ্যান্ড কলেজের অফিশিয়াল সাহিত্য ক্লাব-এর বিভিন্ন আয়োজন ও সোনালী মুহূর্তের ছবিঘর।",
