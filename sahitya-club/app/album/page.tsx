@@ -1,85 +1,58 @@
 // app/album/page.tsx
-import React from "react";
+"use client";
+
+import React, { useState, useEffect } from "react";
 import Image from "next/image";
-import fs from "fs";
-import path from "path";
-import { Metadata } from "next";
 
-export const dynamic = "force-dynamic";
+export default function AlbumPage() {
+  const [telegramImages, setTelegramImages] = useState<string[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
 
-export const metadata: Metadata = {
-  title: "ফটো অ্যালবাম ও গ্যালারি | উইল্‌স সাহিত্য ক্লাব",
-  description: "উইল্‌স লিটল ফ্লাওয়ার স্কুল অ্যান্ড কলেজের অফিশিয়াল সাহিত্য ক্লাব-এর বিভিন্ন আয়োজন ও সোনালী মুহূর্তের ছবিঘর।",
-};
+  // 📁 লোকাল ছবির লিস্ট (যেহেতু ইউজারের ব্রাউজার সরাসরি সার্ভারের fs রিড করতে পারে না, 
+  // তাই লোকাল ছবিগুলো এখানে একটা অ্যারেতে ডিফাইন করে দেওয়া হলো)
+  const localImages: string[] = [
+    // তোমার public/pic ফোল্ডারে যে ছবিগুলো আছে, সেগুলোর নাম এখানে বসাতে পারো (যেমন: "pic1.jpg", "pic2.png")
+    // যদি লোকাল ছবি না থাকে, তবে এই অ্যারেটি খালি [] রাখতে পারো
+  ];
 
-// 🎯 সেফ স্ক্র্যাপার ফাংশন (কোনো এরর আসলে ক্র্যাশ করবে না)
-async function getTelegramImages(): Promise<string[]> {
-  const images: string[] = [];
-  try {
-    const channelUsername = "wlcweb";
-    
-    // ১. টাইমআউট সেট করার জন্য AbortController ব্যবহার (যাতে রিকোয়েস্ট আটকে না থাকে)
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 5000); // ৫ সেকেন্ড পর রিকোয়েস্ট ড্রপ করবে
+  useEffect(() => {
+    async function fetchTelegramImages() {
+      try {
+        const channelUsername = "wlcweb";
+        // অল্টারনেটিভ ফ্রি কর্স প্রক্সি ব্যবহার করা হয়েছে যাতে ব্রাউজার থেকে টেলিগ্রামের ডাটা ডিরেক্ট ব্লক না হয়
+        const response = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(`https://t.me/s/${channelUsername}`)}`);
+        
+        if (!response.ok) return;
+        
+        const data = await response.json();
+        const html = data.contents;
+        const images: string[] = [];
 
-    const response = await fetch(`https://t.me/s/${channelUsername}`, {
-      cache: "no-store",
-      signal: controller.signal,
-      headers: {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36"
-      }
-    });
+        // টেলিগ্রামের ব্যাকগ্রাউন্ড ইমেজ রেগুলার এক্সপ্রেশন
+        const regex = /background-image:\s*url\s*\(\s*['"]?([^'")]+)['"]?\s*\)/gi;
+        let match;
 
-    clearTimeout(timeoutId);
-
-    if (!response.ok) {
-      console.warn("টেলিগ্রাম পেজ রেসপন্স করেনি, স্ট্যাটাস:", response.status);
-      return [];
-    }
-
-    const html = await response.text();
-
-    // ২. ব্যাকগ্রাউন্ড ইমেজের জন্য রেগুলার এক্সপ্রেশন
-    const regex = /background-image:\s*url\s*\(\s*['"]?([^'")]+)['"]?\s*\)/gi;
-    let match;
-
-    while ((match = regex.exec(html)) !== null) {
-      const imageUrl = match[1];
-      if (imageUrl.includes("cdn") || imageUrl.includes("telegram.org/file")) {
-        if (!images.includes(imageUrl)) {
-          images.unshift(imageUrl);
+        while ((match = regex.exec(html)) !== null) {
+          const imageUrl = match[1];
+          if (imageUrl.includes("cdn") || imageUrl.includes("telegram.org/file")) {
+            if (!images.includes(imageUrl)) {
+              images.unshift(imageUrl); // লেটেস্ট ছবি আগে দেখাবে
+            }
+          }
         }
+
+        setTelegramImages(images);
+      } catch (error) {
+        console.error("টেলিগ্রাম থেকে ছবি লোড করতে সমস্যা হয়েছে:", error);
+      } finally {
+        setLoading(false);
       }
     }
 
-    return images;
-  } catch (error) {
-    // যেকোনো নেটওয়ার্ক বা কর্স এরর এখানে হ্যান্ডেল হবে, সাইট ক্র্যাশ করবে না
-    console.error("টেলিগ্রাম থেকে ডাটা আনা যায়নি (সেফ মোড সক্রিয়):", error);
-    return [];
-  }
-}
+    fetchTelegramImages();
+  }, []);
 
-export default async function AlbumPage() {
-  // ১. লোকাল public/pic ফোল্ডার থেকে ছবি রিড করা
-  const picDirectory = path.join(process.cwd(), "public", "pic");
-  let localImages: string[] = [];
-
-  try {
-    if (fs.existsSync(picDirectory)) {
-      const files = fs.readdirSync(picDirectory);
-      localImages = files.filter((file) => {
-        const ext = path.extname(file).toLowerCase();
-        return ext === ".png" || ext === ".jpg" || ext === ".jpeg";
-      });
-    }
-  } catch (error) {
-    console.error("লোকাল pic ফোল্ডার রিড করতে সমস্যা:", error);
-  }
-
-  // ২. লাইভ টেলিগ্রাম ছবি (এরর আসলে খালি অ্যারে রিটার্ন করবে, সাইট ফাটবে না)
-  const telegramImages = await getTelegramImages();
-  const totalImagesCount = localImages.length + telegramImages.length;
+  const totalCount = localImages.length + telegramImages.length;
 
   return (
     <div className="w-full bg-stone-50 py-12 min-h-screen">
@@ -96,8 +69,13 @@ export default async function AlbumPage() {
           <div className="w-16 h-1 bg-rose-800 mx-auto mt-4 rounded-full"></div>
         </div>
 
-        {/* ইমেজ গ্রিড */}
-        {totalImagesCount === 0 ? (
+        {/* লোডিং স্টেট */}
+        {loading ? (
+          <div className="text-center py-20">
+            <div className="inline-block animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-rose-800 mb-2"></div>
+            <p className="text-stone-500 text-sm">অ্যালবাম লোড হচ্ছে, দয়া করে অপেক্ষা করুন...</p>
+          </div>
+        ) : totalCount === 0 ? (
           <div className="text-center py-20 bg-white rounded-2xl border border-stone-200/60 shadow-sm">
             <p className="text-stone-400 italic text-sm">কোনো ছবি পাওয়া যায়নি।</p>
           </div>
@@ -105,7 +83,7 @@ export default async function AlbumPage() {
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
             
             {/* 🌐 টেলিগ্রাম ক্লাউড ইমেজ পার্ট */}
-            {telegramImages.length > 0 && telegramImages.map((url, index) => (
+            {telegramImages.map((url, index) => (
               <div key={`tg-${index}`} className="group relative bg-white border border-stone-200/60 rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300">
                 <div className="relative aspect-video w-full bg-stone-100 overflow-hidden">
                   <img 
@@ -131,14 +109,14 @@ export default async function AlbumPage() {
                   <Image 
                     src={`/pic/${fileName}`} 
                     alt="WLC Local" 
-                    fill 
-                    sizes="(max-w-768px) 100vw, (max-w-1200px) 50vw, 33vw"
-                    className="object-cover transition-transform duration-500 group-hover:scale-105" 
+                    width={500}
+                    height={300}
+                    className="object-cover w-full h-full transition-transform duration-500 group-hover:scale-105" 
                   />
                 </div>
                 <div className="p-4 bg-white">
                   <p className="text-xs font-medium text-stone-400 truncate uppercase tracking-wider">
-                    {fileName.split('.')[0].replace(/[-_]/g, ' ')}
+                    {fileName.split('.')[0]}
                   </p>
                 </div>
               </div>
