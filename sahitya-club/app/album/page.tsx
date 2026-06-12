@@ -5,7 +5,6 @@ import fs from "fs";
 import path from "path";
 import { Metadata } from "next";
 
-// Vercel বা অন্য কোথাও যেন পেজটি ক্যাশ হয়ে না থাকে, সেজন্য ডাইনামিক রেন্ডারিং ফোর্স করা হলো
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
@@ -13,43 +12,50 @@ export const metadata: Metadata = {
   description: "উইল্‌স লিটল ফ্লাওয়ার স্কুল অ্যান্ড কলেজের অফিশিয়াল সাহিত্য ক্লাব-এর বিভিন্ন আয়োজন ও সোনালী মুহূর্তের ছবিঘর।",
 };
 
-// 🎯 টেলিগ্রাম পাবলিক চ্যানেল স্ক্র্যাপ করার আলটিমেট ও পার্মানেন্ট ফাংশন
+// 🎯 সেফ স্ক্র্যাপার ফাংশন (কোনো এরর আসলে ক্র্যাশ করবে না)
 async function getTelegramImages(): Promise<string[]> {
+  const images: string[] = [];
   try {
-    const channelUsername = "wlcweb"; // তোমার চ্যানেলের সঠিক ইউজারনেম
+    const channelUsername = "wlcweb";
+    
+    // ১. টাইমআউট সেট করার জন্য AbortController ব্যবহার (যাতে রিকোয়েস্ট আটকে না থাকে)
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 5000); // ৫ সেকেন্ড পর রিকোয়েস্ট ড্রপ করবে
+
     const response = await fetch(`https://t.me/s/${channelUsername}`, {
-      next: { revalidate: 0 },
+      cache: "no-store",
+      signal: controller.signal,
       headers: {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36"
       }
     });
 
+    clearTimeout(timeoutId);
+
     if (!response.ok) {
-      console.error("টেলিগ্রাম পেজ লোড করতে ব্যর্থ হয়েছে");
+      console.warn("টেলিগ্রাম পেজ রেসপন্স করেনি, স্ট্যাটাস:", response.status);
       return [];
     }
 
     const html = await response.text();
-    const images: string[] = [];
 
-    // টেলিগ্রামের পাবলিক ওয়েবসাইটের ব্যাকগ্রাউন্ড ইমেজের ইউআরএল এক্সট্র্যাক্ট করার রেগুলার এক্সপ্রেশন
+    // ২. ব্যাকগ্রাউন্ড ইমেজের জন্য রেগুলার এক্সপ্রেশন
     const regex = /background-image:\s*url\s*\(\s*['"]?([^'")]+)['"]?\s*\)/gi;
     let match;
 
     while ((match = regex.exec(html)) !== null) {
       const imageUrl = match[1];
-      
-      // শুধুমাত্র আসল ছবিগুলোর লিংক ফিল্টার করা হচ্ছে (ছোট প্রোফাইল পিকচার বা ইমোজি বাদে)
       if (imageUrl.includes("cdn") || imageUrl.includes("telegram.org/file")) {
         if (!images.includes(imageUrl)) {
-          images.unshift(imageUrl); // নতুন ছবিগুলোকে গ্যালারির সবার আগে দেখানোর জন্য unshift
+          images.unshift(imageUrl);
         }
       }
     }
 
     return images;
   } catch (error) {
-    console.error("টেলিগ্রাম স্ক্র্যাপিং করার সময় এরর হয়েছে:", error);
+    // যেকোনো নেটওয়ার্ক বা কর্স এরর এখানে হ্যান্ডেল হবে, সাইট ক্র্যাশ করবে না
+    console.error("টেলিগ্রাম থেকে ডাটা আনা যায়নি (সেফ মোড সক্রিয়):", error);
     return [];
   }
 }
@@ -71,10 +77,8 @@ export default async function AlbumPage() {
     console.error("লোকাল pic ফোল্ডার রিড করতে সমস্যা:", error);
   }
 
-  // ২. লাইভ টেলিগ্রাম স্ক্র্যাপড ছবি নিয়ে আসা
+  // ২. লাইভ টেলিগ্রাম ছবি (এরর আসলে খালি অ্যারে রিটার্ন করবে, সাইট ফাটবে না)
   const telegramImages = await getTelegramImages();
-  
-  // ৩. টোটাল ছবির সংখ্যা হিসাব করা
   const totalImagesCount = localImages.length + telegramImages.length;
 
   return (
@@ -92,52 +96,41 @@ export default async function AlbumPage() {
           <div className="w-16 h-1 bg-rose-800 mx-auto mt-4 rounded-full"></div>
         </div>
 
-        {/* ইমেজ গ্রিড লেআউট */}
+        {/* ইমেজ গ্রিড */}
         {totalImagesCount === 0 ? (
           <div className="text-center py-20 bg-white rounded-2xl border border-stone-200/60 shadow-sm">
-            <p className="text-stone-400 italic text-sm">
-              এখনো কোনো ছবি অ্যালবামে যুক্ত করা হয়নি।
-            </p>
+            <p className="text-stone-400 italic text-sm">কোনো ছবি পাওয়া যায়নি।</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
             
-            {/* 🌐 পার্ট ১: টেলিগ্রাম চ্যানেল থেকে আসা ছবিসমূহ */}
-            {telegramImages.map((url, index) => (
-              <div 
-                key={`tg-${index}`} 
-                className="group relative bg-white border border-stone-200/60 rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300"
-              >
+            {/* 🌐 টেলিগ্রাম ক্লাউড ইমেজ পার্ট */}
+            {telegramImages.length > 0 && telegramImages.map((url, index) => (
+              <div key={`tg-${index}`} className="group relative bg-white border border-stone-200/60 rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300">
                 <div className="relative aspect-video w-full bg-stone-100 overflow-hidden">
                   <img 
                     src={url} 
-                    alt={`Willes Literary Club Moment - Cloud ${index + 1}`} 
+                    alt="WLC Cloud Moment" 
                     className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" 
-                    loading="lazy" 
+                    loading="lazy"
                     onError={(e) => {
-                      // কোনো কারণে কোনো ছবির লিংক ব্রোকেন হলে কার্ডটি স্বয়ংক্রিয়ভাবে হাইড হয়ে যাবে
                       e.currentTarget.parentElement?.parentElement?.remove();
                     }}
                   />
                 </div>
                 <div className="p-4 bg-white">
-                  <p className="text-xs font-medium text-stone-400 truncate uppercase tracking-wider">
-                    WLC Cloud Moment
-                  </p>
+                  <p className="text-xs font-medium text-stone-400 truncate uppercase tracking-wider">WLC Cloud Moment</p>
                 </div>
               </div>
             ))}
 
-            {/* 📁 পার্ট ২: লোকাল public/pic ফোল্ডারের ছবিসমূহ */}
+            {/* 📁 লোকাল ইমেজ পার্ট */}
             {localImages.map((fileName, index) => (
-              <div 
-                key={`local-${index}`} 
-                className="group relative bg-white border border-stone-200/60 rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300"
-              >
+              <div key={`local-${index}`} className="group relative bg-white border border-stone-200/60 rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300">
                 <div className="relative aspect-video w-full bg-stone-100 overflow-hidden">
                   <Image 
                     src={`/pic/${fileName}`} 
-                    alt={`Willes Literary Club Moment - Local ${index + 1}`} 
+                    alt="WLC Local" 
                     fill 
                     sizes="(max-w-768px) 100vw, (max-w-1200px) 50vw, 33vw"
                     className="object-cover transition-transform duration-500 group-hover:scale-105" 
