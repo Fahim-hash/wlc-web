@@ -43,17 +43,7 @@ export default function AchievementsPage() {
   return (
     <main className="min-h-screen bg-[#FAFAFA] text-gray-800 font-sans selection:bg-rose-200 pb-20">
       
-      {/* 🧭 মিনিমাল নেভিগেশন বার */}
-      <nav className="w-full bg-white border-b border-gray-200/80 px-6 py-4 sticky top-0 z-50 shadow-sm backdrop-blur-md bg-white/90">
-        <div className="max-w-6xl mx-auto flex items-center justify-between">
-          <Link href="/" className="font-serif font-bold text-xl text-stone-900 hover:text-rose-700 transition-colors">
-            উইল্‌স সাহিত্য ক্লাব
-          </Link>
-          <Link href="/" className="text-sm font-semibold bg-stone-900 text-white px-4 py-2 rounded-full hover:bg-rose-900 transition-colors">
-            🏠 হোমপেজ
-          </Link>
-        </div>
-      </nav>
+      
 
       {/* 🎭 হেডার সেকশন */}
       <section className="bg-white border-b border-gray-200 py-16 px-6 text-center relative overflow-hidden">
