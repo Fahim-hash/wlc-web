@@ -1,41 +1,13 @@
 // app/page.tsx
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React from "react";
 import Image from "next/image";
 import Link from "next/link";
 
 export default function WillesSahityaClub() {
-  // অ্যানিমেশন স্টেট: 
-  // 'initial' -> 'line' -> 'show_first' (Logo+WLFSC) -> 'show_second' (Logo+RelaxStudio)
-  const [animationStep, setAnimationStep] = useState<"initial" | "line" | "show_first" | "show_second">("initial");
-
-  // ফ্লাশব্যাক ইমেজের ডামি ডাটা (হোমপেজের গ্যালারির জন্য তোমার pic ফোল্ডারের ছবির নামগুলো এখানে বসাতে পারো)
+  // হোমপেজের গ্যালারির জন্য তোমার pic ফোল্ডারের ছবির নামগুলো এখানে বসিয়ে দেবে
   const flashbackImages: string[] = []; 
-
-  useEffect(() => {
-    // ১. সাইট ওপেন হওয়ার সাথে সাথে ডট থেকে লাইন হবে (০.৬ সেকেন্ড পর)
-    const timer1 = setTimeout(() => setAnimationStep("line"), 600);
-    
-    // ২. লাইনের দুই পাশ থেকে প্রথম সেট (Logo + WLFSC) বের হবে (১.২ সেকেন্ড পর)
-    const timer2 = setTimeout(() => setAnimationStep("show_first"), 1200);
-
-    return () => {
-      clearTimeout(timer1);
-      clearTimeout(timer2);
-    };
-  }, []); // 👈 এখানে টাইপোটা একদম ফিক্সড!
-
-  // ৩. লুপ মেকানিজম: প্রথম সেট এবং দ্বিতীয় সেটের মধ্যে ৪ সেকেন্ডের নিখুঁত অদলবদল
-  useEffect(() => {
-    if (animationStep === "show_first" || animationStep === "show_second") {
-      const loopTimer = setTimeout(() => {
-        setAnimationStep((current) => (current === "show_first" ? "show_second" : "show_first"));
-      }, 4000); // ঠিক ৪ সেকেন্ড পর পর লুপ চেঞ্জ হবে
-
-      return () => clearTimeout(loopTimer);
-    }
-  }, [animationStep]);
 
   const features = [
     { icon: "✍️", title: "নিয়মিত সাহিত্য আসর", desc: "গল্প, কবিতা ও প্রবন্ধের আসর যেখানে সদস্যরা মুক্ত মনে তাদের লেখনী তুলে ধরে।" },
@@ -46,33 +18,76 @@ export default function WillesSahityaClub() {
   return (
     <main className="min-h-screen bg-[#FAFAFA] text-gray-800 font-sans selection:bg-rose-200 overflow-x-hidden">
       
-      {/* 🛠️ প্রিমিয়াম ও আল্ট্রা-স্মুথ সিএসএস ট্রানজিশন ইফেক্টস */}
+      {/* 🎬 ১০০% পারফেক্ট ও মোবাইল ফ্রেন্ডলি সিএসএস অ্যানিমেশন ইঞ্জিন */}
       <style dangerouslySetInnerHTML={{__html: `
-        .transition-all-custom {
-          transition: all 0.8s cubic-bezier(0.25, 1, 0.5, 1);
+        /* ১. মাঝখানের ব্ল্যাক লাইনের মেইন অ্যানিমেশন (০ থেকে ৪ সেকেন্ড) */
+        @keyframes lineTimeline {
+          0% { width: 0px; height: 0px; border-radius: 50%; transform: rotate(0deg); }
+          15% { width: 8px; height: 8px; border-radius: 50%; transform: rotate(0deg); }
+          30% { width: 50px; height: 2px; border-radius: 0px; transform: rotate(0deg); }
+          85% { width: 50px; height: 2px; border-radius: 0px; transform: rotate(0deg); }
+          100% { width: 20px; height: 2px; border-radius: 0px; transform: rotate(45deg); }
         }
-        .line-glow {
-          box-shadow: 0 0 8px rgba(0,0,0,0.1);
+
+        /* ২. বাম পাশের লোগোর এন্ট্রি */
+        @keyframes logoLeftIn {
+          0% { transform: translateX(30px); opacity: 0; scale: 0.8; }
+          35% { transform: translateX(30px); opacity: 0; scale: 0.8; }
+          50% { transform: translateX(0); opacity: 1; scale: 1; }
+          100% { transform: translateX(0); opacity: 1; scale: 1; }
         }
+
+        /* ৩. ডান পাশের WLFSC লোগোর এন্ট্রি ও ফেইড আউট */
+        @keyframes logoWlfscTimeline {
+          0% { transform: translateX(-30px); opacity: 0; scale: 0.8; }
+          35% { transform: translateX(-30px); opacity: 0; scale: 0.8; }
+          50% { transform: translateX(0); opacity: 1; scale: 1; }
+          85% { transform: translateX(0); opacity: 1; scale: 1; }
+          100% { transform: translateX(-15px); opacity: 0; scale: 0.8; }
+        }
+
+        /* ৪. ডান পাশের RelaxStudio লোগোর ফেইড ইন (৪ সেকেন্ড পর) */
+        @keyframes logoRelaxTimeline {
+          0% { transform: translateX(15px); opacity: 0; scale: 0.8; }
+          85% { transform: translateX(15px); opacity: 0; scale: 0.8; }
+          100% { transform: translateX(0); opacity: 1; scale: 1; }
+        }
+
+        /* ৫. ইনফিনিটি লুপ মাস্টার অ্যানিমেশন (প্রথম ৪ সেকেন্ডের ইন্ট্রো শেষ হওয়ার পর চলবে) */
+        @keyframes lineLoop {
+          0%, 45% { transform: rotate(45deg); width: 20px; }
+          50%, 95% { transform: rotate(0deg); width: 50px; }
+          100% { transform: rotate(45deg); width: 20px; }
+        }
+        @keyframes wlfscLoop {
+          0%, 45% { opacity: 0; transform: scale(0.8) translateX(-15px); }
+          50%, 95% { opacity: 1; transform: scale(1) translateX(0); }
+          100% { opacity: 0; transform: scale(0.8) translateX(-15px); }
+        }
+        @keyframes relaxLoop {
+          0%, 45% { opacity: 1; transform: scale(1) translateX(0); }
+          50%, 95% { opacity: 0; transform: scale(0.8) translateX(15px); }
+          100% { opacity: 1; transform: scale(1) translateX(0); }
+        }
+
+        /* অ্যানিমেশন ক্লাসগুলো কল করা */
+        .sync-line { animation: lineTimeline 4s cubic-bezier(0.25, 1, 0.5, 1) forwards, lineLoop 8s ease-in-out 4s infinite; }
+        .sync-logo-left { animation: logoLeftIn 4s cubic-bezier(0.25, 1, 0.5, 1) forwards; }
+        .sync-wlfsc { animation: logoWlfscTimeline 4s cubic-bezier(0.25, 1, 0.5, 1) forwards, wlfscLoop 8s ease-in-out 4s infinite; }
+        .sync-relax { animation: logoRelaxTimeline 4s cubic-bezier(0.25, 1, 0.5, 1) forwards, relaxLoop 8s ease-in-out 4s infinite; }
       `}} />
 
       {/* 1. Hero Section */}
-      <section className="relative flex flex-col items-center justify-center min-h-[85vh] px-6 text-center bg-white border-b border-gray-200 shadow-sm">
+      <section className="relative flex flex-col items-center justify-center min-h-[80vh] px-4 text-center bg-white border-b border-gray-200 shadow-sm">
         <div className="absolute inset-0 z-0 opacity-5 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-gray-900 via-gray-100 to-white"></div>
 
-        <div className="relative z-10 flex flex-col items-center">
+        <div className="relative z-10 flex flex-col items-center w-full max-w-sm sm:max-w-md mx-auto">
           
-          {/* 🎬 সিনেমাটিক অ্যানিমেশন কন্টেইনার */}
-          <div className="relative flex items-center justify-center w-full h-36 md:h-44 mb-8">
+          {/* 🎬 ফুল রেসপন্সিভ ও ফ্লেক্স-বেসড লোগো কন্টেইনার (মোবাইলেও ভাঙবে না) */}
+          <div className="flex items-center justify-center gap-4 w-full h-24 sm:h-32 mb-6">
             
-            {/* ⬅️ বাম পাশের লোগো (logo.png) - এটি সবসময় ফিক্সড থাকবে */}
-            <div 
-              className={`absolute transition-all-custom w-16 h-16 md:w-20 md:h-20 drop-shadow-sm ${
-                animationStep === "initial" || animationStep === "line"
-                  ? "right-[50%] translate-x-[50%] opacity-0 scale-75"
-                  : "right-[calc(50%+45px)] translate-x-0 opacity-1 scale-100"
-              }`}
-            >
+            {/* ⬅️ বাম পাশের লোগো (logo.png) */}
+            <div className="sync-logo-left relative w-16 h-16 sm:w-20 sm:h-20 drop-shadow-sm flex-shrink-0">
               <Image 
                 src="/logo.png" 
                 alt="উইল্‌স সাহিত্য ক্লাব Logo" 
@@ -82,30 +97,16 @@ export default function WillesSahityaClub() {
               />
             </div>
 
-            {/* ⬛ মাঝখানের কুচকুচে কালো ম্যাজিক লাইন ও ডট */}
-            <div className="absolute flex items-center justify-center z-20">
-              <div 
-                className="bg-stone-950 transition-all-custom line-glow" 
-                style={{ 
-                  width: animationStep === "initial" ? "8px" : animationStep === "line" || animationStep === "show_first" ? "56px" : "20px", 
-                  height: animationStep === "initial" ? "8px" : animationStep === "line" || animationStep === "show_first" ? "2px" : "2px",
-                  borderRadius: animationStep === "initial" ? "50%" : "0px",
-                  transform: animationStep === "show_second" ? "rotate(45deg)" : "rotate(0deg)"
-                }}
-              ></div>
+            {/* ⬛ মাঝখানের কুচকুচে কালো হরিজন্টাল মিনিমালিস্ট লাইন */}
+            <div className="flex items-center justify-center w-14 flex-shrink-0">
+              <div className="sync-line bg-stone-950 h-[2px]" style={{ width: '0px' }}></div>
             </div>
 
-            {/* ➡️ ডান পাশের লোগো মডিউল (WLFSC ও RelaxStudio লুপ) */}
-            <div className="absolute left-[calc(50%+45px)] w-16 h-16 md:w-20 md:h-20 flex items-center justify-center">
+            {/* ➡️ ডান পাশের লোগো কন্টেইনার (WLFSC ও RelaxStudio লুপ জোড়া) */}
+            <div className="relative w-16 h-16 sm:w-20 sm:h-20 flex-shrink-0">
               
               {/* ১. WLFSC Logo */}
-              <div 
-                className={`absolute inset-0 transition-all-custom ${
-                  animationStep === "show_first" 
-                    ? "opacity-1 transform scale-100 pointer-events-auto" 
-                    : "opacity-0 transform scale-90 pointer-events-none -translate-x-4"
-                }`}
-              >
+              <div className="sync-wlfsc absolute inset-0 w-full h-full">
                 <Image 
                   src="/wlfsc.png" 
                   alt="WLFSC Logo" 
@@ -116,13 +117,7 @@ export default function WillesSahityaClub() {
               </div>
 
               {/* ২. RelaxStudio Logo */}
-              <div 
-                className={`absolute inset-0 transition-all-custom ${
-                  animationStep === "show_second" 
-                    ? "opacity-1 transform scale-100 pointer-events-auto" 
-                    : "opacity-0 transform scale-90 pointer-events-none translate-x-4"
-                }`}
-              >
+              <div className="sync-relax absolute inset-0 w-full h-full opacity-0">
                 <Image 
                   src="/relaxstudio.png" 
                   alt="RelaxStudio Logo" 
