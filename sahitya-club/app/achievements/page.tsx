@@ -138,7 +138,7 @@ export default function AchievementsPage() {
             আমাদের ক্লাবের সদস্য হিসেবে যোগ দিয়ে তোমার সৃজনশীল লেখনী ও প্রতিভাকে মেলে ধরো আন্তর্জাতিক বা জাতীয় মঞ্চে।
           </p>
           <Link 
-            href="/registration" 
+            href="/register" 
             className="inline-block bg-white text-stone-950 font-semibold text-sm px-6 py-2.5 rounded-full hover:bg-rose-50 transition-colors relative z-10 shadow-sm"
           >
             আজই মেম্বারশিপ নাও ✒️
