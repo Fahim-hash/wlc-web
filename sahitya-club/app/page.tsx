@@ -1,24 +1,42 @@
+// app/page.tsx
+"use client";
+
+import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import fs from "fs";
-import path from "path";
 
 export default function WillesSahityaClub() {
-  // ১. public/pic ফোল্ডার থেকে ছবি রিড করার লজিক
-  const picDirectory = path.join(process.cwd(), "public", "pic");
-  let flashbackImages: string[] = [];
+  // অ্যানিমেশন স্টেট: 
+  // 'initial' -> 'line' -> 'show_first' (Logo+WLFSC) -> 'show_second' (Logo+RelaxStudio)
+  const [animationStep, setAnimationStep] = useState<"initial" | "line" | "show_first" | "show_second">("initial");
 
-  try {
-    if (fs.existsSync(picDirectory)) {
-      const files = fs.readdirSync(picDirectory);
-      flashbackImages = files.filter((file) => {
-        const ext = path.extname(file).toLowerCase();
-        return ext === ".png" || ext === ".jpg" || ext === ".jpeg";
-      });
+  // ফ্লাশব্যাক ইমেজের ডামি ডাটা (যেহেতু ক্লায়েন্ট কম্পোনেন্ট সরাসরি fs রিড করতে পারে না, 
+  // তাই হোমপেজের গ্যালারির জন্য তোমার pic ফোল্ডারের ছবির নামগুলো এখানে বসিয়ে দেবে)
+  const flashbackImages: string[] = []; 
+
+  useEffect(() => {
+    // ১. সাইট ওপেন হওয়ার সাথে সাথে ডট থেকে লাইন হবে (০.৬ সেকেন্ড পর)
+    const timer1 = setTimeout(() => setAnimationStep("line"), 600);
+    
+    // ২. লাইনের দুই পাশ থেকে প্রথম সেট (Logo + WLFSC) বের হবে (১.২ সেকেন্ড পর)
+    const timer2 = setTimeout(() => setAnimationStep("show_first"), 1200);
+
+    return () => {
+      clearTimeout(timer1);
+      clearTimeout(timer2);
+    };
+  } hash, []);
+
+  // ৩. লুপ মেকানিজম: প্রথম সেট এবং দ্বিতীয় সেটের মধ্যে ৪ সেকেন্ডের নিখুঁত অদলবদল
+  useEffect(() => {
+    if (animationStep === "show_first" || animationStep === "show_second") {
+      const loopTimer = setTimeout(() => {
+        setAnimationStep((current) => (current === "show_first" ? "show_second" : "show_first"));
+      }, 4000); // ঠিক ৪ সেকেন্ড পর পর লুপ চেঞ্জ হবে
+
+      return () => clearTimeout(loopTimer);
     }
-  } catch (error) {
-    console.error("public/pic ফোল্ডারটি খুঁজে পাওয়া যায়নি বা খালি:", error);
-  }
+  }, [animationStep]);
 
   const features = [
     { icon: "✍️", title: "নিয়মিত সাহিত্য আসর", desc: "গল্প, কবিতা ও প্রবন্ধের আসর যেখানে সদস্যরা মুক্ত মনে তাদের লেখনী তুলে ধরে।" },
@@ -29,44 +47,14 @@ export default function WillesSahityaClub() {
   return (
     <main className="min-h-screen bg-[#FAFAFA] text-gray-800 font-sans selection:bg-rose-200 overflow-x-hidden">
       
-      {/* 🛠️ অ্যানিমেশনের জন্য কাস্টম কি-ফ্রেম স্টাইল ইনজেকশন */}
+      {/* 🛠️ প্রিমিয়াম ও আল্ট্রা-স্মুথ সিএসএস ট্রানজিশন ইফেক্টস */}
       <style dangerouslySetInnerHTML={{__html: `
-        @keyframes introDot {
-          0% { transform: scale(0); opacity: 0; }
-          100% { transform: scale(1); opacity: 1; }
+        .transition-all-custom {
+          transition: all 0.8s cubic-bezier(0.25, 1, 0.5, 1);
         }
-        @keyframes expandLine {
-          0% { width: 8px; height: 8px; border-radius: 50%; }
-          100% { width: 64px; height: 2px; border-radius: 0px; }
+        .line-glow {
+          box-shadow: 0 0 8px rgba(0,0,0,0.1);
         }
-        @keyframes transformX {
-          0% { transform: rotate(0deg); width: 64px; background-color: #e11d48; }
-          100% { transform: rotate(45deg); width: 24px; background-color: #1c1917; }
-        }
-        @keyframes slideLeft {
-          0% { transform: translateX(20px); opacity: 0; }
-          100% { transform: translateX(0); opacity: 1; }
-        }
-        @keyframes slideRight {
-          0% { transform: translateX(-20px); opacity: 0; }
-          100% { transform: translateX(0); opacity: 1; }
-        }
-        @keyframes fadeOutWlfsc {
-          0% { opacity: 1; transform: scale(1); }
-          100% { opacity: 0; transform: scale(0.8); pointer-events: none; }
-        }
-        @keyframes fadeInRelax {
-          0% { opacity: 0; transform: scale(0.8); }
-          100% { opacity: 1; transform: scale(1); }
-        }
-
-        .animate-dot { animation: introDot 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards; }
-        .animate-line { animation: expandLine 0.5s cubic-bezier(0.76, 0, 0.24, 1) 0.8s forwards; }
-        .animate-line-x { animation: transformX 0.6s cubic-bezier(0.76, 0, 0.24, 1) 3.5s forwards; }
-        .animate-logo-left { animation: slideLeft 0.6s cubic-bezier(0.16, 1, 0.3, 1) 1.4s forwards; }
-        .animate-logo-right { animation: slideRight 0.6s cubic-bezier(0.16, 1, 0.3, 1) 1.4s forwards; }
-        .animate-wlfsc-out { animation: fadeOutWlfsc 0.5s cubic-bezier(0.16, 1, 0.3, 1) 3.5s forwards; }
-        .animate-relax-in { animation: fadeInRelax 0.5s cubic-bezier(0.16, 1, 0.3, 1) 3.8s forwards; }
       `}} />
 
       {/* 1. Hero Section */}
@@ -75,11 +63,17 @@ export default function WillesSahityaClub() {
 
         <div className="relative z-10 flex flex-col items-center">
           
-          {/* 🎬 আলতিমেট মাল্টি-লোগো অ্যানিমেশন কন্টেইনার */}
+          {/* 🎬 সিনেমাটিক অ্যানিমেশন কন্টেইনার */}
           <div className="relative flex items-center justify-center w-full h-36 md:h-44 mb-8">
             
-            {/* বাম পাশের লোগো (logo.png) */}
-            <div className="absolute right-[calc(50%+45px)] opacity-0 animate-logo-left w-16 h-16 md:w-20 md:h-20 drop-shadow-sm">
+            {/* ⬅️ বাম পাশের লোগো (logo.png) - এটি সবসময় ফিক্সড থাকবে */}
+            <div 
+              className={`absolute transition-all-custom w-16 h-16 md:w-20 md:h-20 drop-shadow-sm ${
+                animationStep === "initial" || animationStep === "line"
+                  ? "right-[50%] translate-x-[50%] opacity-0 scale-75"
+                  : "right-[calc(50%+45px)] translate-x-0 opacity-1 scale-100"
+              }`}
+            >
               <Image 
                 src="/logo.png" 
                 alt="উইল্‌স সাহিত্য ক্লাব Logo" 
@@ -89,16 +83,30 @@ export default function WillesSahityaClub() {
               />
             </div>
 
-            {/* মাঝখানের ম্যাজিক লাইন ও ডট */}
+            {/* ⬛ মাঝখানের কুচকুচে কালো ম্যাজিক লাইন ও ডট */}
             <div className="absolute flex items-center justify-center z-20">
-              <div className="bg-rose-600 animate-dot animate-line animate-line-x" style={{ width: '0px', height: '0px' }}></div>
+              <div 
+                className="bg-stone-950 transition-all-custom line-glow" 
+                style={{ 
+                  width: animationStep === "initial" ? "8px" : animationStep === "line" || animationStep === "show_first" ? "56px" : "20px", 
+                  height: animationStep === "initial" ? "8px" : animationStep === "line" || animationStep === "show_first" ? "2px" : "2px",
+                  borderRadius: animationStep === "initial" ? "50%" : "0px",
+                  transform: animationStep === "show_second" ? "rotate(45deg)" : "rotate(0deg)"
+                }}
+              ></div>
             </div>
 
-            {/* ডান পাশের লোগো মডিউল (WLFSC ও RelaxStudio জোড়া) */}
+            {/* ➡️ ডান পাশের লোগো মডিউল (WLFSC ও RelaxStudio লুপ) */}
             <div className="absolute left-[calc(50%+45px)] w-16 h-16 md:w-20 md:h-20 flex items-center justify-center">
               
-              {/* প্রথমে যে WLFSC লোগোটা বের হবে */}
-              <div className="absolute inset-0 opacity-0 animate-logo-right animate-wlfsc-out">
+              {/* ১. WLFSC Logo */}
+              <div 
+                className={`absolute inset-0 transition-all-custom ${
+                  animationStep === "show_first" 
+                    ? "opacity-1 transform scale-100 pointer-events-auto" 
+                    : "opacity-0 transform scale-90 pointer-events-none -translate-x-4"
+                }`}
+              >
                 <Image 
                   src="/wlfsc.png" 
                   alt="WLFSC Logo" 
@@ -108,8 +116,14 @@ export default function WillesSahityaClub() {
                 />
               </div>
 
-              {/* ৩.৫ সেকেন্ড পর ক্রশ হওয়ার সাথে সাথে যেটা ফেইড-ইন হবে */}
-              <div className="absolute inset-0 opacity-0 animate-relax-in">
+              {/* ২. RelaxStudio Logo (লুপে সেকেন্ড পার্ট হিসেবে ৪ সেকেন্ড পর আসবে) */}
+              <div 
+                className={`absolute inset-0 transition-all-custom ${
+                  animationStep === "show_second" 
+                    ? "opacity-1 transform scale-100 pointer-events-auto" 
+                    : "opacity-0 transform scale-90 pointer-events-none translate-x-4"
+                }`}
+              >
                 <Image 
                   src="/relaxstudio.png" 
                   alt="RelaxStudio Logo" 
@@ -147,7 +161,7 @@ export default function WillesSahityaClub() {
         </p>
       </section>
 
-      {/* 3. Features/Activities Section */}
+      {/* 3. Features Section */}
       <section className="bg-stone-50 py-20 border-t border-b border-gray-200/50">
         <div className="max-w-5xl mx-auto px-6">
           <div className="text-center mb-16">
@@ -167,7 +181,7 @@ export default function WillesSahityaClub() {
         </div>
       </section>
 
-      {/* 4. Flashbacks / Gallery Section */}
+      {/* 4. Flashbacks Section */}
       <section className="bg-white py-20">
         <div className="max-w-6xl mx-auto px-6">
           <div className="text-center mb-12">
@@ -183,10 +197,7 @@ export default function WillesSahityaClub() {
             <>
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
                 {flashbackImages.slice(0, 6).map((fileName, idx) => (
-                  <div 
-                    key={idx} 
-                    className="relative group aspect-square overflow-hidden rounded-xl shadow-sm hover:shadow-md transition-all duration-300 bg-gray-100"
-                  >
+                  <div key={idx} className="relative group aspect-square overflow-hidden rounded-xl shadow-sm hover:shadow-md transition-all duration-300 bg-gray-100">
                     <Image
                       src={`/pic/${fileName}`}
                       alt={`Club Activity Flashback ${idx + 1}`}
@@ -195,9 +206,7 @@ export default function WillesSahityaClub() {
                       className="object-cover transition-transform duration-500 group-hover:scale-110"
                     />
                     <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
-                      <span className="text-white font-medium drop-shadow-md">
-                        মুহূর্ত {idx + 1}
-                      </span>
+                      <span className="text-white font-medium drop-shadow-md">মুহূর্ত {idx + 1}</span>
                     </div>
                   </div>
                 ))}
