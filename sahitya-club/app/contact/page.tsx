@@ -12,14 +12,36 @@ export default function ContactPage() {
     message: ""
   });
   const [submitted, setSubmitted] = useState(false);
+  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // এখানে পরবর্তীতে ব্যাকএন্ড বা ইমেইল এপিআই কানেক্ট করতে পারবে
-    console.log("Form Submitted:", formData);
-    setSubmitted(true);
-    setTimeout(() => setSubmitted(false), 5000);
-    setFormData({ name: "", email: "", subject: "", message: "" });
+    setLoading(true);
+
+    try {
+      // 🚀 Formspree এন্ডপয়েন্টে ডেটা পাঠানো হচ্ছে
+      const response = await fetch("https://formspree.io/f/maqzajoz", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Accept": "application/json"
+        },
+        body: JSON.stringify(formData),
+      });
+
+      if (response.ok) {
+        setSubmitted(true);
+        setFormData({ name: "", email: "", subject: "", message: "" });
+        // ৫ সেকেন্ড পর সাকসেস মেসেজটি হাইড হবে
+        setTimeout(() => setSubmitted(false), 5000);
+      } else {
+        alert("কোথাও কোনো সমস্যা হয়েছে! দয়া করে আবার চেষ্টা করুন।");
+      }
+    } catch (error) {
+      alert("নেটওয়ার্ক সমস্যা! আবার চেষ্টা করুন।");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -29,7 +51,17 @@ export default function ContactPage() {
   return (
     <main className="min-h-screen bg-[#FAFAFA] text-gray-800 font-sans selection:bg-rose-200 pb-20">
       
-      
+      {/* 🧭 মিনিমাল নেভিগেশন বার */}
+      <nav className="w-full bg-white border-b border-gray-200/80 px-6 py-4 sticky top-0 z-50 shadow-sm backdrop-blur-md bg-white/90">
+        <div className="max-w-6xl mx-auto flex items-center justify-between">
+          <Link href="/" className="font-serif font-bold text-xl text-stone-900 hover:text-rose-700 transition-colors">
+            উইল্‌স সাহিত্য ক্লাব
+          </Link>
+          <Link href="/" className="text-sm font-semibold bg-stone-900 text-white px-4 py-2 rounded-full hover:bg-rose-900 transition-colors">
+            🏠 হোমপেজ
+          </Link>
+        </div>
+      </nav>
 
       {/* 🎭 হেডার সেকশন */}
       <section className="bg-white border-b border-gray-200 py-16 px-6 text-center relative overflow-hidden">
@@ -47,15 +79,15 @@ export default function ContactPage() {
         </div>
       </section>
 
-      {/* 📬 মেইন কন্টেন্ট গ্রিড (পিসিতে পাশাপাশি, মোবাইলে নিচে নিচে) */}
+      {/* 📬 মেইন কন্টেন্ট গ্রিড */}
       <section className="max-w-6xl mx-auto px-6 mt-16 grid grid-cols-1 lg:grid-cols-12 gap-12">
         
-        {/* ⬅️ বাম পাশ: সোশ্যাল মিডিয়া ও কুইক অ্যাকশন কার্ডস (৪ কলাম) */}
+        {/* ⬅️ বাম পাশ: সোশ্যাল মিডিয়া ও কুইক অ্যাকশন কার্ডস */}
         <div className="lg:col-span-5 space-y-6">
           <h2 className="text-2xl font-bold font-serif text-gray-900 mb-2">কুইক কানেক্ট</h2>
           <p className="text-gray-500 text-sm mb-6">আমাদের অফিশিয়াল সোশ্যাল হ্যান্ডেল এবং প্ল্যাটফর্মসমূহ।</p>
 
-          {/* ১. ফেসবুক কমিউনিটি কার্ড */}
+          {/* ১. ফেসবুক গ্রুপ */}
           <a 
             href="https://facebook.com" 
             target="_blank" 
@@ -73,7 +105,7 @@ export default function ContactPage() {
             </div>
           </a>
 
-          {/* ২. অফিশিয়াল মেইল কার্ড */}
+          {/* ২. ইমেইল */}
           <a 
             href="mailto:contact@wlc.pro.bd"
             className="block bg-white border border-gray-200 p-6 rounded-2xl shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-300 group"
@@ -89,7 +121,7 @@ export default function ContactPage() {
             </div>
           </a>
 
-          {/* ৩. ক্যাম্পাস লোকেশন কার্ড */}
+          {/* ৩. ক্যাম্পাস লোকেশন */}
           <div className="bg-white border border-gray-200 p-6 rounded-2xl shadow-sm">
             <div className="flex items-center gap-4">
               <div className="w-12 h-12 bg-stone-100 text-stone-700 rounded-xl flex items-center justify-center text-xl">
@@ -106,7 +138,7 @@ export default function ContactPage() {
           </div>
         </div>
 
-        {/* ➡️ ডান পাশ: ইন্টারঅ্যাক্টিভ মেসেজ বক্স / ফর্ম (৭ কলাম) */}
+        {/* ➡️ ডান পাশ: ইন্টারঅ্যাক্টিভ মেসেজ বক্স */}
         <div className="lg:col-span-7 bg-white border border-gray-200/80 rounded-3xl p-8 shadow-sm">
           <h2 className="text-2xl font-bold font-serif text-gray-900 mb-2">সরাসরি ইনবক্স করুন</h2>
           <p className="text-gray-500 text-sm mb-8">নিচের ফর্মটি পূরণ করে আপনার বার্তাটি আমাদের কাছে পাঠিয়ে দিন।</p>
@@ -174,9 +206,10 @@ export default function ContactPage() {
 
               <button 
                 type="submit"
-                className="w-full bg-stone-950 text-white font-semibold text-sm py-4 rounded-xl hover:bg-rose-900 transition-colors shadow-sm tracking-wide"
+                disabled={loading}
+                className="w-full bg-stone-950 text-white font-semibold text-sm py-4 rounded-xl hover:bg-rose-900 transition-colors shadow-sm tracking-wide disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                বার্তা পাঠান ✉️
+                {loading ? "পাঠানো হচ্ছে..." : "বার্তা পাঠান ✉️"}
               </button>
             </form>
           )}
