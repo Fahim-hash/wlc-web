@@ -10,8 +10,7 @@ export default function WillesSahityaClub() {
   // 'initial' -> 'line' -> 'show_first' (Logo+WLFSC) -> 'show_second' (Logo+RelaxStudio)
   const [animationStep, setAnimationStep] = useState<"initial" | "line" | "show_first" | "show_second">("initial");
 
-  // ফ্লাশব্যাক ইমেজের ডামি ডাটা (যেহেতু ক্লায়েন্ট কম্পোনেন্ট সরাসরি fs রিড করতে পারে না, 
-  // তাই হোমপেজের গ্যালারির জন্য তোমার pic ফোল্ডারের ছবির নামগুলো এখানে বসিয়ে দেবে)
+  // ফ্লাশব্যাক ইমেজের ডামি ডাটা (হোমপেজের গ্যালারির জন্য তোমার pic ফোল্ডারের ছবির নামগুলো এখানে বসাতে পারো)
   const flashbackImages: string[] = []; 
 
   useEffect(() => {
@@ -25,7 +24,7 @@ export default function WillesSahityaClub() {
       clearTimeout(timer1);
       clearTimeout(timer2);
     };
-  } hash, []);
+  }, []); // 👈 এখানে টাইপোটা একদম ফিক্সড!
 
   // ৩. লুপ মেকানিজম: প্রথম সেট এবং দ্বিতীয় সেটের মধ্যে ৪ সেকেন্ডের নিখুঁত অদলবদল
   useEffect(() => {
@@ -116,7 +115,7 @@ export default function WillesSahityaClub() {
                 />
               </div>
 
-              {/* ২. RelaxStudio Logo (লুপে সেকেন্ড পার্ট হিসেবে ৪ সেকেন্ড পর আসবে) */}
+              {/* ২. RelaxStudio Logo */}
               <div 
                 className={`absolute inset-0 transition-all-custom ${
                   animationStep === "show_second" 
