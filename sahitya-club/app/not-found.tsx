@@ -8,15 +8,14 @@ export default function NotFound() {
     <main className="min-h-screen bg-[#FAFAFA] flex items-center justify-center p-6 text-gray-800 font-sans">
       <div className="max-w-md w-full text-center space-y-6">
         
-        {/* টপ আইকন বা আর্ট */}
-        <div className="relative justify-center flex">
-          <span className="text-6xl animate-pulse">✒️</span>
-          <div className="absolute -bottom-2 text-[10px] font-mono tracking-widest text-gray-400 uppercase">
+        {/* টপ লেবেল */}
+        <div className="relative justify-center flex py-2">
+          <div className="text-[10px] font-mono tracking-widest text-gray-400 uppercase">
             Page Not Found
           </div>
         </div>
 
-        {/* তোমার দেওয়া ওড়াধোড়া এরর মেসেজ */}
+        {/* এরর মেসেজ */}
         <div className="space-y-3">
           <h1 className="text-2xl font-bold font-serif text-gray-950">
             ভুল ঠিকানা!
@@ -36,10 +35,8 @@ export default function NotFound() {
           </Link>
         </div>
 
-        {/* ফুটার ব্র্যান্ডিং */}
-        <div className="text-[10px] text-gray-400 pt-6 border-t border-gray-200">
-          Willes Little Flower School & College Literature Club
-        </div>
+        {/* মিনিমাল ডিভাইডার */}
+        <div className="w-12 h-[1px] bg-gray-200 mx-auto pt-4"></div>
 
       </div>
     </main>
