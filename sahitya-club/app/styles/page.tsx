@@ -2,6 +2,7 @@
 "use client";
 
 import React from "react";
+import Image from "next/image";
 
 export default function StyleGuidePage() {
   const colors = [
@@ -18,7 +19,7 @@ export default function StyleGuidePage() {
       
       {/* 🔮 হেডার */}
       <header className="border-b border-gray-200 pb-8 mb-12">
-        <span className="text-rose-700 text-xs font-bold uppercase tracking-widest bg-rose-50 px-3 py-1 rounded-full border border-rose-100">
+        <span className="text-rose-700 text-sm font-bold uppercase tracking-widest bg-rose-50 px-3 py-1 rounded-full border border-rose-100">
           Design System
         </span>
         <h1 className="text-4xl font-bold font-serif text-gray-900 mt-3 mb-2">Style Guide & UI Tokens</h1>
@@ -82,6 +83,54 @@ export default function StyleGuidePage() {
               রেজিস্ট্রেশন চলছে
             </span>
           </div>
+        </div>
+      </section>
+
+      {/* 🏷️ ৪. লোগো ও ব্র্যান্ডিং */}
+      <section className="mb-16">
+        <h2 className="text-xl font-bold font-serif text-gray-900 mb-6 border-l-4 border-rose-800 pl-3">
+          ৪. লোগো ও ব্র্যান্ডিং (Logos & Asset)
+        </h2>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+          
+          {/* ক্লাবের অফিশিয়াল লোগো */}
+          <div className="bg-white border border-gray-200 rounded-3xl p-6 shadow-sm flex flex-col items-center justify-center text-center">
+            <span className="text-[10px] font-mono text-gray-400 mb-4 self-start">Path: /logo.png</span>
+            <div className="relative w-36 h-36 mb-4 bg-[#FAFAFA] rounded-2xl p-4 border border-gray-100 flex items-center justify-center group hover:border-rose-200 transition-colors">
+              <Image 
+                src="/logo.png" 
+                alt="WLC Club Logo"
+                width={120}
+                height={120}
+                className="object-contain"
+                priority
+              />
+            </div>
+            <p className="text-sm font-bold text-gray-800">উইলস সাহিত্য ক্লাব লোগো</p>
+            <p className="text-[11px] text-gray-400 mt-1 leading-relaxed">
+              নেভিগেশন বার, ব্র্যান্ডিং এলিমেন্ট এবং মেইন ডক্সের জন্য ব্যবহৃত প্রাথমিক অ্যাসেট।
+            </p>
+          </div>
+
+          {/* মাদার ইনস্টিটিউশন (স্কুলের) লোগো */}
+          <div className="bg-white border border-gray-200 rounded-3xl p-6 shadow-sm flex flex-col items-center justify-center text-center">
+            <span className="text-[10px] font-mono text-gray-400 mb-4 self-start">Path: /wlfsc.png</span>
+            <div className="relative w-36 h-36 mb-4 bg-[#FAFAFA] rounded-2xl p-4 border border-gray-100 flex items-center justify-center group hover:border-rose-200 transition-colors">
+              <Image 
+                src="/wlfsc.png" 
+                alt="WLFSC School Logo"
+                width={120}
+                height={120}
+                className="object-contain"
+                priority
+              />
+            </div>
+            <p className="text-sm font-bold text-gray-800">WLFSC অফিশিয়াল মনোগ্রাম</p>
+            <p className="text-[11px] text-gray-400 mt-1 leading-relaxed">
+              মাদার ইনস্টিটিউশন বা প্রাতিষ্ঠানিক পরিচয় এবং ফুটার সেকশনের ক্রেডিটে ব্যবহারের জন্য।
+            </p>
+          </div>
+
         </div>
       </section>
 
