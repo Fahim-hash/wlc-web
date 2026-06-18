@@ -2,8 +2,8 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { db } from "../../lib/firebase"; // 👈 ২ ধাপ পেছনে গিয়ে রুট lib ফোল্ডারের সঠিক রিলেটিভ পাথ
-import { collection, query, where, getDocs, doc, updateDoc, deleteDoc } from "firebase/firestore";
+import { db } from "@/lib/firebase"; // 👈 রুট অ্যালিয়াস ব্যবহার করলাম যাতে পাথ নিয়ে কোনো প্যারা না থাকে
+import { collection, query, where, getDocs, doc, updateDoc, deleteDoc } from "firebase/firestore/lite"; // 👈 ফায়ারস্টোর লাইট মডিউল (সবচেয়ে ইম্পর্ট্যান্ট ফিক্স!)
 
 interface Writing {
   id: string;
@@ -24,13 +24,11 @@ export default function ControlHubPage() {
 
   // 🛡️ কড়া সিকিউরিটি ট্রিকস: কনসোল ও ইনস্পেক্ট লক করা
   useEffect(() => {
-    if (!isAuthenticated) return; // শুধু লগইন হওয়ার পর এই প্রোটেকশন চালু হবে
+    if (!isAuthenticated) return;
 
-    // ১. রাইট ক্লিক লক
     const handleContextMenu = (e: MouseEvent) => e.preventDefault();
     document.addEventListener("contextmenu", handleContextMenu);
 
-    // ২. F12, Ctrl+Shift+I, Ctrl+Shift+J, Ctrl+U শর্টকাট লক
     const handleKeyDown = (e: KeyboardEvent) => {
       if (
         e.key === "F12" ||
@@ -42,7 +40,6 @@ export default function ControlHubPage() {
     };
     window.addEventListener("keydown", handleKeyDown);
 
-    // ৩. কনসোল ফ্রিজার (কেউ জোর করে কনসোল খুললে ব্রাউজার পজ হয়ে যাবে)
     const interval = setInterval(() => {
       (() => { debugger; })();
     }, 100);
@@ -87,7 +84,7 @@ export default function ControlHubPage() {
       setWritings(pendingList);
     } catch (err: any) {
       console.error("Error fetching data:", err);
-    } finally {
+    } finaly {
       setLoading(false);
     }
   };
@@ -120,7 +117,6 @@ export default function ControlHubPage() {
     }
   };
 
-  // 🔐 লগইন স্ক্রিন UI
   if (!isAuthenticated) {
     return (
       <main className="min-h-screen bg-stone-950 flex items-center justify-center p-6">
@@ -152,7 +148,6 @@ export default function ControlHubPage() {
     );
   }
 
-  // 👑 মেইন ড্যাশবোর্ড UI
   return (
     <main className="min-h-screen bg-[#FAFAFA] text-gray-800 p-6 md:p-12 max-w-5xl mx-auto">
       <header className="border-b border-gray-200 pb-6 mb-10 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
