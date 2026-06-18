@@ -1,15 +1,15 @@
 // app/api/writing/submit/route.ts
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { db } from "../../../../lib/firebase"; // 👈 আমাদের তৈরি করা সেন্ট্রাল ফায়ারবেস কানেকশন
-import { collection, addDoc } from "firebase/firestore"; // 👈 ফায়ারস্টোরে ডাটা এড করার মেথড
+import { db } from "@/lib/firebase"; // 👈 সেন্ট্রাল ফায়ারবেস কানেকশন
+import { collection, addDoc } from "firebase/firestore/lite"; // 👈 ফায়ারস্টোর লাইট মডিউল (lib/firebase এর সাথে সিঙ্ক করা)
 
 // ১. Zod দিয়ে কঠোর ডেটা ভ্যালিডেশন স্কিমা (XSS Injection ডিফেন্স)
 const submitSchema = z.object({
   title: z.string().min(2, "শিরোনাম খুব ছোট").max(100, "শিরোনাম ১০০ ক্যারেক্টারের বেশি হতে পারবে না").trim(),
   category: z.enum(["poetry", "story", "essay"]),
   content: z.string().min(10, "লেখা খুব ছোট").max(5000, "লেখা ৫০০০ ক্যারেক্টারের বেশি হতে পারবে না").trim(),
-  penName: z.string().max(50, "ছদ্মনাম ৫০ ক্যারেক্টারের বেশি হতে পারবে না").trim().default("অজ্ঞাতনামা"), // খালি থাকলে ডিফল্ট ভ্যালু
+  penName: z.string().max(50, "ছদ্মনাম ৫০ ক্যারেক্টারের বেশি হতে পারবে না").trim().default("অজ্ঞাতনামা"),
 });
 
 export async function POST(request: Request) {
@@ -36,17 +36,16 @@ export async function POST(request: Request) {
     // 🇧🇩 পিওর বাংলাদেশ টাইমজোন ডেট (YYYY-MM-DD)
     const today = new Date().toLocaleDateString("en-CA", { timeZone: "Asia/Dhaka" });
 
-    // 🔥 ফায়ারবেস ফায়ারস্টোর অপারেশন (এখানেই আসল ম্যাজিক হচ্ছে ভাই)
-    // এটি ফায়ারবেসে 'writings' নামে কালেকশন তৈরি করবে (যদি না থাকে) এবং ডাটা পুশ করবে
+    // 🔥 ফায়ারবেস ফায়ারস্টোর অপারেশন
     const docRef = await addDoc(collection(db, "writings"), {
       title: cleanedData.title,
       category: cleanedData.category,
       content: cleanedData.content,
       penName: cleanedData.penName,
-      status: "pending", // 👈 মডারেশনের জন্য প্রথমে 'pending' থাকবে, যা তুমি /controlhub থেকে অ্যাপ্রুভ করবে
+      status: "pending", 
       date: today,
       createdAt: new Date(),
-      userIp: request.headers.get("x-forwarded-for") || "unknown" // ট্র্যাকিং আইপি
+      userIp: request.headers.get("x-forwarded-for") || "unknown"
     });
 
     console.log("Document successfully written with ID to Firebase:", docRef.id);
