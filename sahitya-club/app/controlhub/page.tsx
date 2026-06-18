@@ -84,7 +84,7 @@ export default function ControlHubPage() {
       setWritings(pendingList);
     } catch (err: any) {
       console.error("Error fetching data:", err);
-    } finaly {
+    } finally {
       setLoading(false);
     }
   };
