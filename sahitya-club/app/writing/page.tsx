@@ -2,9 +2,11 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
+import { db } from "@/lib/firebase"; // 👈 সেন্ট্রাল ফায়ারবেস কানেকশন
+import { collection, query, where, getDocs, orderBy } from "firebase/firestore/lite"; // 👈 ফায়ারস্টোর লাইট মডিউল
 
 interface Writing {
-  _id: string;
+  id: string; // 👈 ফায়ারবেসের আইডি 'id' হয়, '_id' না ভাই
   title: string;
   category: string;
   content: string;
@@ -16,25 +18,44 @@ export default function ApprovedWritingsPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    async function fetchWritings() {
+    async function fetchApprovedWritings() {
       try {
-        const res = await fetch("/api/writing/approved");
-        if (res.ok) {
-          const data = await res.json();
-          setWritings(data);
-        }
+        // 🔥 সরাসরি ফায়ারবেস থেকে শুধু 'approved' স্ট্যাটাসের লেখাগুলো তুলে আনা হচ্ছে
+        // সাথে 'createdAt' দিয়ে সর্ট করা হচ্ছে যাতে নতুন লেখা আগে দেখায়
+        const q = query(
+          collection(db, "writings"), 
+          where("status", "==", "approved"),
+          orderBy("createdAt", "desc")
+        );
+        
+        const querySnapshot = await getDocs(q);
+        const approvedList: Writing[] = [];
+        
+        querySnapshot.forEach((doc) => {
+          const data = doc.data();
+          approvedList.push({
+            id: doc.id,
+            title: data.title,
+            category: data.category,
+            content: data.content,
+            penName: data.penName,
+          });
+        });
+
+        setWritings(approvedList);
       } catch (err) {
-        console.error("Failed to load writings", err);
+        console.error("Failed to load writings from Firebase:", err);
       } finally {
         setLoading(false);
       }
     }
-    fetchWritings();
+    
+    fetchApprovedWritings();
   }, []);
 
   return (
     <main className="min-h-screen bg-[#FAFAFA] text-gray-800 font-sans p-6 md:p-12 max-w-4xl mx-auto">
-      
+
       <header className="border-b border-gray-200 pb-6 mb-10 text-center md:text-left">
         <h1 className="text-3xl font-bold font-serif text-gray-900">নির্বাচিত সাহিত্যকর্ম ✒️</h1>
         <p className="text-gray-500 text-sm mt-2">অ্যাডমিন প্যানেল দ্বারা অনুমোদিত শিক্ষার্থীদের সৃজনশীল লেখালেখি।</p>
@@ -49,7 +70,7 @@ export default function ApprovedWritingsPage() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {writings.map((post) => (
-            <div key={post._id} className="bg-white border border-gray-200 rounded-3xl p-6 shadow-sm flex flex-col justify-between hover:border-rose-200 transition-all duration-300">
+            <div key={post.id} className="bg-white border border-gray-200 rounded-3xl p-6 shadow-sm flex flex-col justify-between hover:border-rose-200 transition-all duration-300">
               <div>
                 <div className="flex items-center justify-between mb-4">
                   <span className="text-[10px] font-bold uppercase tracking-wider bg-rose-50 border border-rose-100 text-rose-800 px-2.5 py-1 rounded-full">
