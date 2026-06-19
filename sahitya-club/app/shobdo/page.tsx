@@ -3,7 +3,8 @@
 
 import React, { useEffect, useState } from "react";
 import { db } from "@/lib/firebase";
-import { collection, query, where, getDocs, orderBy, limit } from "firebase/firestore";
+import { collection, query, where, getDocs, orderBy, limit } from "firebase/firestore/lite";
+
 
 interface WordData {
   id: string;
