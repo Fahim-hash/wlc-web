@@ -3,14 +3,15 @@
 
 import React, { useEffect, useState } from "react";
 import { db } from "@/lib/firebase"; // 👈 সেন্ট্রাল ফায়ারবেস কানেকশন
-import { collection, query, where, getDocs, orderBy } from "firebase/firestore/lite"; // 👈 ফায়ারস্টোর লাইট মডিউল
+import { collection, query, where, getDocs } from "firebase/firestore/lite"; // 👈 orderBy সরিয়ে নিলাম ক্লায়েন্ট-সাইড সেফটির জন্য
 
 interface Writing {
-  id: string; // 👈 ফায়ারবেসের আইডি 'id' হয়, '_id' না ভাই
+  id: string; 
   title: string;
   category: string;
   content: string;
   penName?: string;
+  createdAt?: any; // 👈 সর্টিং ট্র্যাকিংয়ের জন্য রাখলাম
 }
 
 export default function ApprovedWritingsPage() {
@@ -20,17 +21,15 @@ export default function ApprovedWritingsPage() {
   useEffect(() => {
     async function fetchApprovedWritings() {
       try {
-        // 🔥 সরাসরি ফায়ারবেস থেকে শুধু 'approved' স্ট্যাটাসের লেখাগুলো তুলে আনা হচ্ছে
-        // সাথে 'createdAt' দিয়ে সর্ট করা হচ্ছে যাতে নতুন লেখা আগে দেখায়
+        // 🔥 Composite Index এরর এড়াতে কুয়েরি একদম সিম্পল রাখলাম
         const q = query(
           collection(db, "writings"), 
-          where("status", "==", "approved"),
-          orderBy("createdAt", "desc")
+          where("status", "==", "approved")
         );
-        
+
         const querySnapshot = await getDocs(q);
         const approvedList: Writing[] = [];
-        
+
         querySnapshot.forEach((doc) => {
           const data = doc.data();
           approvedList.push({
@@ -39,7 +38,18 @@ export default function ApprovedWritingsPage() {
             category: data.category,
             content: data.content,
             penName: data.penName,
+            createdAt: data.createdAt || null, // যদি ফিল্ড না থাকে তাহলে নাল
           });
+        });
+
+        // ⚡ ক্লায়েন্ট সাইড সর্টিং ট্রিকস: (নতুন লেখা সবার আগে আসবে, যদি createdAt ফিল্ড ডাটাতে থাকে)
+        approvedList.sort((a, b) => {
+          if (!a.createdAt) return 1;
+          if (!b.createdAt) return -1;
+          // ফায়ারস্টোর লাইট অবজেক্ট বা সেকেন্ডস চেক
+          const timeA = a.createdAt.seconds || new Date(a.createdAt).getTime() || 0;
+          const timeB = b.createdAt.seconds || new Date(b.createdAt).getTime() || 0;
+          return timeB - timeA; 
         });
 
         setWritings(approvedList);
@@ -49,7 +59,7 @@ export default function ApprovedWritingsPage() {
         setLoading(false);
       }
     }
-    
+
     fetchApprovedWritings();
   }, []);
 
