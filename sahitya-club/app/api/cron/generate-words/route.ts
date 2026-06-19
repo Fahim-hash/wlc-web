@@ -2,7 +2,6 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/firebase";
 import { collection, writeBatch, doc } from "firebase/firestore/lite"; 
-import { GoogleGenerativeAI } from "@google/generative-ai"; 
 
 export async function GET(request: Request) {
   // ১. সিকিউরিটি চেক
@@ -19,38 +18,37 @@ export async function GET(request: Request) {
   }
 
   try {
-    const ai = new GoogleGenerativeAI(apiKey);
-    
-    // 🤖 অল-টাইম স্টেবল এবং বাঘা মডেল gemini-1.5-pro সেট করা হলো ভাই
-    const model = ai.getGenerativeModel({
-      model: "gemini-1.5-pro", 
-      generationConfig: {
-        responseMimeType: "application/json",
-      },
-    });
-
-    // কড়া এবং নিখুঁত প্রম্পট
     const prompt = `Generate exactly 50 unique, beautiful, and sophisticated Bengali literary words with their meanings, an example sentence, and 3 wrong options for an MCQ quiz. 
-    You must return ONLY a raw JSON array. No markdown, no \`\`\`json blocks, no explanations.
+    Return ONLY a valid JSON array. Do NOT wrap it in markdown blocks.
     Format: [{"word": "...", "meaning": "...", "sentence": "...", "options": ["correct_meaning", "wrong1", "wrong2", "wrong3"]}]`;
-    
-    // কন্টেন্ট জেনারেট করা
-    const result = await model.generateContent({
-      contents: [{ role: "user", parts: [{ text: prompt }] }],
+
+    // 🤖 তোমার এপিআই কীতে ১০০% সাপোর্ট করা "gemini-pro" মডেল ব্যবহার করা হলো
+    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${apiKey}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ 
+        contents: [{ parts: [{ text: prompt }] }] 
+      })
     });
 
-    const rawJsonText = result.response.text();
-    
-    if (!rawJsonText) {
-      return NextResponse.json({ error: "AI returned empty text" }, { status: 500 });
+    const aiData = await response.json();
+
+    // 🛡️ কড়া সেফটি চেক
+    if (!aiData.candidates || !aiData.candidates[0] || !aiData.candidates[0].content || !aiData.candidates[0].content.parts[0]) {
+      console.error("Gemini raw error:", aiData);
+      return NextResponse.json({ error: "AI failed to generate content", raw: aiData }, { status: 500 });
     }
 
-    const wordList = JSON.parse(rawJsonText);
+    let rawText = aiData.candidates[0].content.parts[0].text;
+
+    // 🔥 ম্যাজিক ফিক্স: এআই যদি ফাও হিসেবে ```json বা ``` জুড়ে দেয়, সেটাকে কেটে বাদ দিয়ে পিওর JSON বানানো হচ্ছে
+    rawText = rawText.replace(/```json/gi, "").replace(/```/g, "").trim();
+
+    // এবার আর কোনোভাবেই পার্সিং এরর খাবে না
+    const wordList = JSON.parse(rawText);
 
     // 🔥 ফায়ারবেসে ব্যাচ আপলোড
     const batch = writeBatch(db);
-    
-    // 🇧🇩 পিওর বাংলাদেশ টাইমজোন ডেট (YYYY-MM-DD)
     const today = new Date().toLocaleDateString("en-CA", { timeZone: "Asia/Dhaka" });
 
     wordList.forEach((item: any) => {
@@ -73,7 +71,7 @@ export async function GET(request: Request) {
     });
 
   } catch (error: any) {
-    console.error("SDK Cron Error:", error);
+    console.error("Cron Error:", error);
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }
