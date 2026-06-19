@@ -4,6 +4,7 @@
 import React, { useEffect, useState } from "react";
 import { db } from "@/lib/firebase";
 import { collection, query, where, getDocs } from "firebase/firestore";
+import { FiBookOpen, FiChevronDown, FiChevronUp, FiCompass, FiLayers } from "react-icons/fi";
 
 interface WordQuiz {
   id: string;
@@ -13,161 +14,181 @@ interface WordQuiz {
   options: string[];
 }
 
-export default function ShobdoPage() {
-  const [quizzes, setQuizzes] = useState<WordQuiz[]>([]);
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [selectedOption, setSelectedOption] = useState<string | null>(null);
-  const [isCorrect, setIsCorrect] = useState<boolean | null>(null);
+export default function PremiumLexiconListing() {
+  const [words, setWords] = useState<WordQuiz[]>([]);
+  const [expandedId, setExpandedId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
-  const [score, setScore] = useState(0);
 
   useEffect(() => {
-    const fetchTodayWords = async () => {
+    const fetchTodayArchive = async () => {
       try {
-        const today = new Date().toISOString().split('T')[0];
+        const today = new Date().toLocaleDateString("en-CA", { timeZone: "Asia/Dhaka" });
         const q = query(collection(db, "daily_words"), where("date", "==", today));
         const querySnapshot = await getDocs(q);
-        
+
         const list: WordQuiz[] = [];
         querySnapshot.forEach((doc) => {
           const data = doc.data();
-          // অপশনগুলো সাফল (Shuffle) করে নেওয়া
-          const shuffledOptions = [...data.options].sort(() => Math.random() - 0.5);
           list.push({
             id: doc.id,
             word: data.word,
             meaning: data.meaning,
             sentence: data.sentence,
-            options: shuffledOptions
+            options: data.options || [],
           });
         });
-        setQuizzes(list);
+        
+        // Primary alphabetical sorting for a cleaner archive layout
+        setWords(list.sort((a, b) => a.word.localeCompare(b.word)));
       } catch (err) {
-        console.error(err);
+        console.error("Repository tracking anomaly:", err);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchTodayWords();
+    fetchTodayArchive();
   }, []);
 
-  const handleOptionClick = (option: string) => {
-    if (selectedOption) return; // একবার সিলেক্ট করলে আর চেঞ্জ করা যাবে না
-    setSelectedOption(option);
-    
-    const currentQuiz = quizzes[currentIndex];
-    if (option === currentQuiz.meaning) {
-      setIsCorrect(true);
-      setScore(score + 1);
-    } else {
-      setIsCorrect(false);
-    }
-  };
-
-  const handleNext = () => {
-    setSelectedOption(null);
-    setIsCorrect(null);
-    setCurrentIndex(currentIndex + 1);
+  const toggleExpand = (id: string) => {
+    setExpandedId(expandedId === id ? null : id);
   };
 
   if (loading) {
-    return <main className="min-h-screen bg-[#FAFAFA] flex items-center justify-center font-mono text-xs text-gray-400">আজকের শব্দভাণ্ডার লোড হচ্ছে ভাই...</main>;
-  }
-
-  if (quizzes.length === 0) {
     return (
-      <main className="min-h-screen bg-[#FAFAFA] flex items-center justify-center p-6 text-center">
-        <div className="max-w-sm space-y-3">
-          <span className="text-4xl">⏳</span>
-          <h1 className="text-xl font-bold font-serif">আজকের শব্দ এখনো আসেনি!</h1>
-          <p className="text-xs text-gray-500">AI প্রসেসিং চলছে ভাই, একটু পরে আবার ঢোকার ট্রাই করো।</p>
-        </div>
+      <main className="min-h-screen bg-[#09090b] flex flex-col items-center justify-center font-sans tracking-widest text-[10px] uppercase text-zinc-500 gap-3">
+        <span className="w-4 h-4 border border-t-transparent border-zinc-500 rounded-full animate-spin"></span>
+        Parsing Daily Lexicon Archives...
       </main>
     );
   }
 
-  // কুইজ শেষ হলে স্কোরবোর্ড দেখাবে
-  if (currentIndex >= quizzes.length) {
+  if (words.length === 0) {
     return (
-      <main className="min-h-screen bg-[#FAFAFA] flex items-center justify-center p-6 text-center">
-        <div className="max-w-sm bg-white border border-gray-200 rounded-3xl p-8 shadow-sm space-y-6">
-          <span className="text-5xl">🎉</span>
-          <h1 className="text-2xl font-bold font-serif text-gray-950">সব শব্দ শেষ!</h1>
-          <p className="text-sm text-gray-600">আজকের শব্দার্থ লড়াইয়ে তোমার স্কোর: <strong className="text-rose-600 text-lg">{score}/{quizzes.length}</strong></p>
-          <button onClick={() => window.location.href = '/'} className="w-full bg-stone-950 text-white text-xs font-semibold py-3.5 rounded-xl hover:bg-rose-900 transition-colors">
-            বৈঠকখানায় ফিরে যাও
-          </button>
+      <main className="min-h-screen bg-[#09090b] flex items-center justify-center p-6 text-center antialiased">
+        <div className="max-w-sm space-y-4 border border-zinc-900 bg-[#0e0e11] p-8 rounded-2xl shadow-xl">
+          <span className="text-2xl text-amber-500/60 font-light font-serif">⏳</span>
+          <h1 className="text-lg font-light tracking-wide text-zinc-200">Index Unavailable</h1>
+          <p className="text-[11px] text-zinc-500 leading-relaxed font-medium">The architectural log has not compiled today's vocabulary stream. Please re-initialize shortly.</p>
         </div>
       </main>
     );
   }
-
-  const currentQuiz = quizzes[currentIndex];
 
   return (
-    <main className="min-h-screen bg-[#FAFAFA] text-gray-800 p-6 flex flex-col items-center justify-center">
-      <div className="max-w-md w-full bg-white border border-gray-200 rounded-3xl p-6 md:p-8 shadow-sm space-y-6">
+    <main className="min-h-screen bg-[#09090b] text-zinc-100 p-4 md:p-8 flex flex-col items-center antialiased select-none">
+      <div className="max-w-2xl w-full space-y-6 my-4">
         
-        {/* প্রোগ্রেস বার */}
-        <div className="flex justify-between items-center text-[10px] font-mono text-gray-400 uppercase tracking-wider">
-          <span>শব্দ প্রহর: {currentIndex + 1}/{quizzes.length}</span>
-          <span>স্কোর: {score}</span>
-        </div>
-
-        {/* মেইন শব্দ */}
-        <div className="text-center py-4 space-y-2">
-          <span className="text-xs text-rose-600 bg-rose-50 px-2.5 py-1 rounded-full font-serif border border-rose-100 font-medium">আজকের শব্দার্থ</span>
-          <h2 className="text-4xl font-extrabold font-serif text-gray-950 tracking-wide pt-2">{currentQuiz.word}</h2>
-        </div>
-
-        {/* MCQ অপশনসমূহ */}
-        <div className="space-y-3">
-          {currentQuiz.options.map((option, idx) => {
-            let btnStyle = "bg-stone-50 border-gray-200 hover:border-stone-900";
-            
-            if (selectedOption) {
-              if (option === currentQuiz.meaning) {
-                btnStyle = "bg-emerald-50 border-emerald-500 text-emerald-700 font-bold";
-              } else if (selectedOption === option && option !== currentQuiz.meaning) {
-                btnStyle = "bg-rose-50 border-rose-500 text-rose-700 font-bold";
-              } else {
-                btnStyle = "bg-stone-50 border-gray-100 text-gray-300 opacity-60";
-              }
-            }
-
-            return (
-              <button
-                key={idx}
-                disabled={selectedOption !== null}
-                onClick={() => handleOptionClick(option)}
-                className={`w-full text-left p-4 rounded-2xl border text-sm transition-all duration-200 flex items-center justify-between ${btnStyle}`}
-              >
-                <span>{option}</span>
-                {selectedOption && option === currentQuiz.meaning && <span>✓</span>}
-                {selectedOption && selectedOption === option && option !== currentQuiz.meaning && <span>✕</span>}
-              </button>
-            );
-          })}
-        </div>
-
-        {/* সঠিক উত্তরের পর ব্যাখ্যা/বাক্য প্রয়োগ */}
-        {selectedOption && (
-          <div className="bg-stone-50 border border-stone-100 p-4 rounded-2xl animate-fadeIn space-y-1">
-            <span className="text-[10px] uppercase font-mono font-bold text-gray-400">বাক্যে প্রয়োগ:</span>
-            <p className="text-xs italic text-gray-600 leading-relaxed">"{currentQuiz.sentence}"</p>
+        {/* Editorial Executive Header */}
+        <header className="bg-[#0e0e11] border border-zinc-900/80 rounded-2xl p-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 shadow-xl">
+          <div className="space-y-1">
+            <div className="flex items-center gap-2">
+              <span className="w-1.5 h-1.5 rounded-full bg-amber-400/70 animate-pulse"></span>
+              <p className="text-[9px] uppercase tracking-[0.25em] text-zinc-500 font-bold">Linguistic Compendium</p>
+            </div>
+            <h1 className="text-2xl font-light tracking-wide text-zinc-200 font-serif italic">Sahitya <span className="text-zinc-400 font-sans not-italic text-xl">Archive</span></h1>
           </div>
-        )}
+          
+          <div className="flex items-center gap-3 bg-[#050507] border border-zinc-900 px-4 py-2.5 rounded-xl font-mono text-left">
+            <FiLayers className="w-4 h-4 text-zinc-600" />
+            <div>
+              <p className="text-[8px] uppercase tracking-widest text-zinc-500 font-medium">Daily Database Capacity</p>
+              <p className="text-sm font-semibold text-zinc-200">{words.length} Dynamic Units</p>
+            </div>
+          </div>
+        </header>
 
-        {/* নেক্সট বাটন */}
-        {selectedOption && (
-          <button
-            onClick={handleNext}
-            className="w-full bg-stone-950 text-white text-xs font-semibold py-3.5 rounded-xl hover:bg-rose-900 transition-colors flex items-center justify-center gap-1"
-          >
-            পরবর্তী শব্দ ➔
-          </button>
-        )}
+        {/* Master Registry Stream */}
+        <section className="bg-[#0e0e11] border border-zinc-900/80 rounded-2xl shadow-2xl overflow-hidden p-2 space-y-1">
+          <div className="px-4 py-3 border-b border-zinc-900/60 flex items-center justify-between text-zinc-500 text-[10px] font-mono uppercase tracking-wider">
+            <span>Vocabulary Registry</span>
+            <span>Action View</span>
+          </div>
+
+          <div className="divide-y divide-zinc-900/40 max-h-[70vh] overflow-y-auto pr-1 custom-scrollbar space-y-1">
+            {words.map((item, index) => {
+              const isExpanded = expandedId === item.id;
+              return (
+                <div 
+                  key={item.id} 
+                  className={`rounded-xl transition-all duration-300 border ${
+                    isExpanded 
+                      ? 'bg-[#050507] border-zinc-800 shadow-inner' 
+                      : 'bg-transparent border-transparent hover:bg-zinc-900/30'
+                  }`}
+                >
+                  {/* Word Header Trigger */}
+                  <div 
+                    onClick={() => toggleExpand(item.id)}
+                    className="w-full px-4 py-4 flex items-center justify-between cursor-pointer group"
+                  >
+                    <div className="flex items-center gap-4">
+                      <span className="text-[10px] font-mono text-zinc-600 group-hover:text-zinc-400 transition-colors">
+                        {String(index + 1).padStart(3, '0')}
+                      </span>
+                      <h3 className="text-base font-medium tracking-wide text-zinc-300 font-serif italic group-hover:text-zinc-100 transition-colors">
+                        {item.word}
+                      </h3>
+                    </div>
+                    <div className="text-zinc-600 group-hover:text-zinc-400 transition-colors">
+                      {isExpanded ? <FiChevronUp className="w-4 h-4" /> : <FiChevronDown className="w-4 h-4" />}
+                    </div>
+                  </div>
+
+                  {/* Contextual Dropdown Accordion Panel */}
+                  {isExpanded && (
+                    <div className="px-4 pb-5 pt-1 text-xs text-zinc-400 space-y-4 border-t border-zinc-900/40 animate-in fade-in slide-in-from-top-1 duration-200">
+                      
+                      {/* Literal Definition */}
+                      <div className="space-y-1">
+                        <span className="text-[9px] font-mono text-zinc-600 uppercase tracking-widest block">Core Structural Definition</span>
+                        <p className="text-zinc-200 text-sm font-medium pl-1">{item.meaning}</p>
+                      </div>
+
+                      {/* Linguistic Options / Synonyms Array */}
+                      {item.options.length > 0 && (
+                        <div className="space-y-1.5">
+                          <span className="text-[9px] font-mono text-zinc-600 uppercase tracking-widest block">Structural Distractor Matrices</span>
+                          <div className="flex flex-wrap gap-1.5 pt-0.5">
+                            {item.options.map((opt, oIdx) => (
+                              <span 
+                                key={oIdx} 
+                                className={`px-2.5 py-1 text-[11px] rounded-lg border font-medium ${
+                                  opt === item.meaning 
+                                    ? 'bg-emerald-500/5 border-emerald-500/20 text-emerald-400' 
+                                    : 'bg-zinc-900/60 border-zinc-800 text-zinc-500'
+                                }`}
+                              >
+                                {opt}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Organic Sentence Paradigm */}
+                      {item.sentence && (
+                        <div className="bg-[#09090b] border border-zinc-900 p-3.5 rounded-xl space-y-1 flex gap-2 items-start">
+                          <FiCompass className="w-3.5 h-3.5 text-zinc-600 mt-0.5 shrink-0" />
+                          <div className="space-y-1">
+                            <span className="text-[9px] font-mono text-zinc-600 uppercase tracking-widest block">Linguistic Paradigm Application</span>
+                            <p className="text-zinc-400 italic font-serif leading-relaxed">"{item.sentence}"</p>
+                          </div>
+                        </div>
+                      )}
+
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </section>
+
+        {/* Global Footer Controls */}
+        <footer className="text-center text-[10px] font-mono tracking-widest text-zinc-600 pt-2 flex justify-center items-center gap-1.5">
+          <FiBookOpen className="w-3 h-3" /> Consolidated Lexicon Framework • 2026 Registry 
+        </footer>
 
       </div>
     </main>
