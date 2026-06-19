@@ -21,51 +21,52 @@ export async function GET(request: Request) {
 
   const groq = new Groq({ apiKey });
   
-  // Daily target config: 10 batches x 10 words = 100 unique words per 24 hours
+  // কুইজ অপশন না থাকায় এখন একবারে ২৫টা করে মাত্র ৪টি ব্যাচেই ১০০টা শব্দ নিখুঁতভাবে আসবে!
   const totalTarget = 100; 
-  const batchSize = 10;
+  const batchSize = 25;
   const iterations = totalTarget / batchSize;
   
   let dailyMasterWordList: any[] = [];
   const today = new Date().toLocaleDateString("en-CA", { timeZone: "Asia/Dhaka" });
 
   try {
-    // Strategic iterative parsing to bypass prompt token limit and guarantee 100 words
     for (let i = 0; i < iterations; i++) {
-      const prompt = `Generate exactly ${batchSize} unique, beautiful, and sophisticated Bengali literary words for a premium vocabulary evaluation platform. These must be completely distinct from typical everyday vocabulary.
+      const prompt = `Generate exactly ${batchSize} unique, beautiful, and sophisticated Bengali literary words for a premium vocabulary archive. These must be rare and rich words, completely distinct from daily casual conversation.
       
       For each word, provide:
-      1. Correct primary meaning in Bengali.
-      2. An elegant contextual example sentence applying the word organically.
-      3. An array of 4 options containing the correct meaning along with 3 contextual but highly challenging incorrect alternatives (distractors).
+      1. Correct primary meaning (meaning) in beautiful Bengali.
+      2. An elegant contextual example sentence (sentence) applying the word organically.
 
-      Ensure absolute structural uniformity. Do NOT duplicate words across this batch. Return ONLY a valid raw JSON array matching the target layout perfectly with no markdown block identifiers or backticks.
+      Ensure absolute structural uniformity. Do NOT duplicate words. 
+      Return a valid JSON object containing a "words" key which holds the array of items. No markdown wrappers or backticks.
 
       Target Structure:
-      [
-        {
-          "word": "শব্দ",
-          "meaning": "সঠিক অর্থ",
-          "sentence": "বাক্যে প্রয়োগের উদাহরণ।",
-          "options": ["সঠিক অর্থ", "ভুল অর্থ ১", "ভুল অর্থ ২", "ভুল অর্থ ৩"]
-        }
-      ]`;
+      {
+        "words": [
+          {
+            "word": "অনির্বাণ",
+            "meaning": "যা কখনো নেভে না বা যা চিরকাল জ্বলছে",
+            "sentence": "শহীদদের স্মৃতি এদেশের মানুষের হৃদয়ে অনির্বাণ হয়ে থাকবে।"
+          }
+        ]
+      }`;
 
       const chatCompletion = await groq.chat.completions.create({
         messages: [{ role: 'user', content: prompt }],
-        model: 'llama-3.3-70b-specdec',
-        temperature: 0.7,
+        model: 'llama-3.3-70b-versatile', 
+        temperature: 0.65,
         response_format: { type: "json_object" }
       });
 
-      const responseText = chatCompletion.choices[0]?.message?.content?.trim() || "[]";
+      const responseText = chatCompletion.choices[0]?.message?.content?.trim() || "{}";
       
       let parsedBatch = [];
       try {
         const cleanJson = JSON.parse(responseText);
-        parsedBatch = Array.isArray(cleanJson) ? cleanJson : (cleanJson.words || cleanJson.data || []);
+        parsedBatch = cleanJson.words || cleanJson.data || (Array.isArray(cleanJson) ? cleanJson : []);
+        console.log(`✓ ব্যাচ ${i + 1} জেনারেট হয়েছে। শব্দ সংখ্যা: ${parsedBatch.length} টি`);
       } catch (parseError) {
-        console.error(`Parsing failure on iteration stream ${i + 1}. Reallocating resource...`);
+        console.error(`✕ Parsing failure on iteration stream ${i + 1}.`);
         continue; 
       }
 
@@ -76,18 +77,17 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: "Generation Anomaly. Compiled repository is empty." }, { status: 500 });
     }
 
-    // 3. Database Sync & Firestore Batch Write (Max 500 items per batch)
+    // 3. Database Sync & Firestore Batch Write
     const batch = writeBatch(db);
 
     dailyMasterWordList.forEach((item: any) => {
-      if (item.word && item.meaning && Array.isArray(item.options)) {
+      if (item.word && item.meaning) {
         const docRef = doc(collection(db, "daily_words"));
         batch.set(docRef, {
-          word: item.word,
-          meaning: item.meaning,
-          sentence: item.sentence || "",
-          options: item.options,
-          date: today, // Hardcoded standard date template: YYYY-MM-DD (Asia/Dhaka)
+          word: item.word.trim(),
+          meaning: item.meaning.trim(),
+          sentence: item.sentence ? item.sentence.trim() : "",
+          date: today, 
           createdAt: new Date()
         });
       }
@@ -97,7 +97,7 @@ export async function GET(request: Request) {
 
     return NextResponse.json({ 
       success: true, 
-      message: `Successfully populated and synchronized ${dailyMasterWordList.length} premium entities for date cycle: ${today}.` 
+      message: `Successfully saved ${dailyMasterWordList.length} literary words for date cycle: ${today}.` 
     });
 
   } catch (error: any) {
