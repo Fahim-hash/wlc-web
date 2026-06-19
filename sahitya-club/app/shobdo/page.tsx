@@ -3,51 +3,85 @@
 
 import React, { useEffect, useState } from "react";
 import { db } from "@/lib/firebase";
-import { collection, query, where, getDocs } from "firebase/firestore";
-import { FiBookOpen, FiChevronDown, FiChevronUp, FiCompass, FiLayers } from "react-icons/fi";
+import { collection, query, where, getDocs, orderBy, limit } from "firebase/firestore";
 
-interface WordQuiz {
+interface WordData {
   id: string;
   word: string;
   meaning: string;
   sentence: string;
-  options: string[];
+  date: string;
 }
 
-export default function PremiumLexiconListing() {
-  const [words, setWords] = useState<WordQuiz[]>([]);
+export default function ShobdoListPage() {
+  const [words, setWords] = useState<WordData[]>([]);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [debugDate, setDebugDate] = useState("");
 
   useEffect(() => {
-    const fetchTodayArchive = async () => {
+    const fetchTodayWords = async () => {
       try {
-        const today = new Date().toLocaleDateString("en-CA", { timeZone: "Asia/Dhaka" });
-        const q = query(collection(db, "daily_words"), where("date", "==", today));
-        const querySnapshot = await getDocs(q);
+        // ঢাকা টাইমজোনে আজকের ডেট জেনারেট
+        const todayStr = new Date().toLocaleDateString("en-CA", { timeZone: "Asia/Dhaka" });
+        setDebugDate(todayStr);
+        
+        console.log("🔍 ফ্রন্টএন্ড এই ডেট দিয়ে ফায়ারবেসে খুঁজছে:", todayStr);
 
-        const list: WordQuiz[] = [];
+        // সেফটি কুয়েরি: আজকের ডেটের সাথে মিলিয়ে সর্বোচ্চ ১৫০টা শব্দ টানবে
+        const q = query(
+          collection(db, "daily_words"), 
+          where("date", "==", todayStr)
+        );
+        
+        const querySnapshot = await getDocs(q);
+        const list: WordData[] = [];
+
         querySnapshot.forEach((doc) => {
           const data = doc.data();
           list.push({
             id: doc.id,
             word: data.word,
             meaning: data.meaning,
-            sentence: data.sentence,
-            options: data.options || [],
+            sentence: data.sentence || "",
+            date: data.date
           });
         });
-        
-        // Primary alphabetical sorting for a cleaner archive layout
+
+        // 💡 ডিবগ ট্রিক: যদি আজকের ডেটে শব্দ না পায়, তবে লেটেস্ট যেকোনো শব্দ তুলে দেখাবে (যাতে ব্লাঙ্ক না থাকে)
+        if (list.length === 0) {
+          console.warn("⚠️ আজকের ডেটে কোনো শব্দ পাওয়া যায়নি! ব্যাকআপ কুয়েরি রান হচ্ছে...");
+          
+          const backupQ = query(
+            collection(db, "daily_words"),
+            orderBy("createdAt", "desc"),
+            limit(100)
+          );
+          const backupSnapshot = await getDocs(backupQ);
+          
+          backupSnapshot.forEach((doc) => {
+            const data = doc.data();
+            list.push({
+              id: doc.id,
+              word: data.word,
+              meaning: data.meaning,
+              sentence: data.sentence || "",
+              date: data.date
+            });
+            console.log(`फায়ারবেসে থাকা ডেটার আসল ডেট ফরম্যাট -> [${data.word}]: ${data.date}`);
+          });
+        }
+
+        // বাংলা বর্ণমালা অনুযায়ী সাজানো
         setWords(list.sort((a, b) => a.word.localeCompare(b.word)));
       } catch (err) {
-        console.error("Repository tracking anomaly:", err);
+        console.error("✕ Firebase fetch error:", err);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchTodayArchive();
+    fetchTodayWords();
   }, []);
 
   const toggleExpand = (id: string) => {
@@ -55,140 +89,93 @@ export default function PremiumLexiconListing() {
   };
 
   if (loading) {
-    return (
-      <main className="min-h-screen bg-[#09090b] flex flex-col items-center justify-center font-sans tracking-widest text-[10px] uppercase text-zinc-500 gap-3">
-        <span className="w-4 h-4 border border-t-transparent border-zinc-500 rounded-full animate-spin"></span>
-        Parsing Daily Lexicon Archives...
-      </main>
-    );
+    return <main className="min-h-screen bg-[#FAFAFA] flex items-center justify-center font-mono text-xs text-gray-400">শব্দকোষ লোড হচ্ছে ভাই...</main>;
   }
 
   if (words.length === 0) {
     return (
-      <main className="min-h-screen bg-[#09090b] flex items-center justify-center p-6 text-center antialiased">
-        <div className="max-w-sm space-y-4 border border-zinc-900 bg-[#0e0e11] p-8 rounded-2xl shadow-xl">
-          <span className="text-2xl text-amber-500/60 font-light font-serif">⏳</span>
-          <h1 className="text-lg font-light tracking-wide text-zinc-200">Index Unavailable</h1>
-          <p className="text-[11px] text-zinc-500 leading-relaxed font-medium">The architectural log has not compiled today's vocabulary stream. Please re-initialize shortly.</p>
+      <main className="min-h-screen bg-[#FAFAFA] flex items-center justify-center p-6 text-center">
+        <div className="max-w-sm space-y-3">
+          <span className="text-4xl">⏳</span>
+          <h1 className="text-xl font-bold font-serif">কোনো শব্দ পাওয়া যায়নি!</h1>
+          <p className="text-xs text-gray-500">আপনার ফ্রন্টএন্ড ট্রাই করছে: <code className="bg-gray-200 px-1 rounded">{debugDate}</code></p>
+          <p className="text-[11px] text-rose-500">ভাই, ব্রাউজারে Right Click -> Inspect -> Console ট্যাব চেক করুন, আসল জটলা ওখানে প্রিন্ট হয়েছে।</p>
         </div>
       </main>
     );
   }
 
   return (
-    <main className="min-h-screen bg-[#09090b] text-zinc-100 p-4 md:p-8 flex flex-col items-center antialiased select-none">
-      <div className="max-w-2xl w-full space-y-6 my-4">
+    <main className="min-h-screen bg-[#FAFAFA] text-gray-800 p-4 md:p-8 flex flex-col items-center justify-start">
+      <div className="max-w-xl w-full space-y-6 my-4">
         
-        {/* Editorial Executive Header */}
-        <header className="bg-[#0e0e11] border border-zinc-900/80 rounded-2xl p-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 shadow-xl">
+        {/* হেডার */}
+        <div className="bg-white border border-gray-200 rounded-3xl p-6 shadow-sm flex items-center justify-between">
           <div className="space-y-1">
-            <div className="flex items-center gap-2">
-              <span className="w-1.5 h-1.5 rounded-full bg-amber-400/70 animate-pulse"></span>
-              <p className="text-[9px] uppercase tracking-[0.25em] text-zinc-500 font-bold">Linguistic Compendium</p>
-            </div>
-            <h1 className="text-2xl font-light tracking-wide text-zinc-200 font-serif italic">Sahitya <span className="text-zinc-400 font-sans not-italic text-xl">Archive</span></h1>
+            <span className="text-[10px] uppercase font-mono font-bold tracking-wider text-rose-600 bg-rose-50 px-2.5 py-1 rounded-full border border-rose-100">
+              আজকের অভিধান ({words[0]?.date || debugDate})
+            </span>
+            <h1 className="text-2xl font-extrabold font-serif text-gray-950 pt-1">সাহিত্য ক্লাব শব্দকোষ</h1>
           </div>
-          
-          <div className="flex items-center gap-3 bg-[#050507] border border-zinc-900 px-4 py-2.5 rounded-xl font-mono text-left">
-            <FiLayers className="w-4 h-4 text-zinc-600" />
-            <div>
-              <p className="text-[8px] uppercase tracking-widest text-zinc-500 font-medium">Daily Database Capacity</p>
-              <p className="text-sm font-semibold text-zinc-200">{words.length} Dynamic Units</p>
-            </div>
+          <div className="text-right">
+            <span className="text-xs font-mono text-gray-400 block">মোট শব্দ</span>
+            <strong className="text-xl font-serif text-gray-950">{words.length} টি</strong>
           </div>
-        </header>
+        </div>
 
-        {/* Master Registry Stream */}
-        <section className="bg-[#0e0e11] border border-zinc-900/80 rounded-2xl shadow-2xl overflow-hidden p-2 space-y-1">
-          <div className="px-4 py-3 border-b border-zinc-900/60 flex items-center justify-between text-zinc-500 text-[10px] font-mono uppercase tracking-wider">
-            <span>Vocabulary Registry</span>
-            <span>Action View</span>
-          </div>
-
-          <div className="divide-y divide-zinc-900/40 max-h-[70vh] overflow-y-auto pr-1 custom-scrollbar space-y-1">
-            {words.map((item, index) => {
-              const isExpanded = expandedId === item.id;
-              return (
+        {/* শব্দ তালিকা */}
+        <div className="bg-white border border-gray-200 rounded-3xl p-4 shadow-sm space-y-2 max-h-[75vh] overflow-y-auto">
+          {words.map((item, index) => {
+            const isExpanded = expandedId === item.id;
+            return (
+              <div 
+                key={item.id} 
+                className={`rounded-2xl transition-all duration-200 border ${
+                  isExpanded ? 'bg-stone-50 border-stone-300' : 'bg-white border-transparent hover:bg-stone-50/50'
+                }`}
+              >
+                {/* শব্দ রো */}
                 <div 
-                  key={item.id} 
-                  className={`rounded-xl transition-all duration-300 border ${
-                    isExpanded 
-                      ? 'bg-[#050507] border-zinc-800 shadow-inner' 
-                      : 'bg-transparent border-transparent hover:bg-zinc-900/30'
-                  }`}
+                  onClick={() => toggleExpand(item.id)}
+                  className="w-full p-4 flex items-center justify-between cursor-pointer select-none"
                 >
-                  {/* Word Header Trigger */}
-                  <div 
-                    onClick={() => toggleExpand(item.id)}
-                    className="w-full px-4 py-4 flex items-center justify-between cursor-pointer group"
-                  >
-                    <div className="flex items-center gap-4">
-                      <span className="text-[10px] font-mono text-zinc-600 group-hover:text-zinc-400 transition-colors">
-                        {String(index + 1).padStart(3, '0')}
-                      </span>
-                      <h3 className="text-base font-medium tracking-wide text-zinc-300 font-serif italic group-hover:text-zinc-100 transition-colors">
-                        {item.word}
-                      </h3>
-                    </div>
-                    <div className="text-zinc-600 group-hover:text-zinc-400 transition-colors">
-                      {isExpanded ? <FiChevronUp className="w-4 h-4" /> : <FiChevronDown className="w-4 h-4" />}
-                    </div>
+                  <div className="flex items-center gap-3">
+                    <span className="text-xs font-mono text-gray-400">
+                      {String(index + 1).padStart(2, '0')}.
+                    </span>
+                    <h2 className="text-lg font-bold font-serif text-gray-950">
+                      {item.word}
+                    </h2>
                   </div>
-
-                  {/* Contextual Dropdown Accordion Panel */}
-                  {isExpanded && (
-                    <div className="px-4 pb-5 pt-1 text-xs text-zinc-400 space-y-4 border-t border-zinc-900/40 animate-in fade-in slide-in-from-top-1 duration-200">
-                      
-                      {/* Literal Definition */}
-                      <div className="space-y-1">
-                        <span className="text-[9px] font-mono text-zinc-600 uppercase tracking-widest block">Core Structural Definition</span>
-                        <p className="text-zinc-200 text-sm font-medium pl-1">{item.meaning}</p>
-                      </div>
-
-                      {/* Linguistic Options / Synonyms Array */}
-                      {item.options.length > 0 && (
-                        <div className="space-y-1.5">
-                          <span className="text-[9px] font-mono text-zinc-600 uppercase tracking-widest block">Structural Distractor Matrices</span>
-                          <div className="flex flex-wrap gap-1.5 pt-0.5">
-                            {item.options.map((opt, oIdx) => (
-                              <span 
-                                key={oIdx} 
-                                className={`px-2.5 py-1 text-[11px] rounded-lg border font-medium ${
-                                  opt === item.meaning 
-                                    ? 'bg-emerald-500/5 border-emerald-500/20 text-emerald-400' 
-                                    : 'bg-zinc-900/60 border-zinc-800 text-zinc-500'
-                                }`}
-                              >
-                                {opt}
-                              </span>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-
-                      {/* Organic Sentence Paradigm */}
-                      {item.sentence && (
-                        <div className="bg-[#09090b] border border-zinc-900 p-3.5 rounded-xl space-y-1 flex gap-2 items-start">
-                          <FiCompass className="w-3.5 h-3.5 text-zinc-600 mt-0.5 shrink-0" />
-                          <div className="space-y-1">
-                            <span className="text-[9px] font-mono text-zinc-600 uppercase tracking-widest block">Linguistic Paradigm Application</span>
-                            <p className="text-zinc-400 italic font-serif leading-relaxed">"{item.sentence}"</p>
-                          </div>
-                        </div>
-                      )}
-
-                    </div>
-                  )}
+                  <span className="text-gray-400 text-xs">{isExpanded ? "▲" : "▼"}</span>
                 </div>
-              );
-            })}
-          </div>
-        </section>
 
-        {/* Global Footer Controls */}
-        <footer className="text-center text-[10px] font-mono tracking-widest text-zinc-600 pt-2 flex justify-center items-center gap-1.5">
-          <FiBookOpen className="w-3 h-3" /> Consolidated Lexicon Framework • 2026 Registry 
-        </footer>
+                {/* বিবরণী */}
+                {isExpanded && (
+                  <div className="px-4 pb-5 pt-2 space-y-3 border-t border-stone-200/60 animate-fadeIn text-sm">
+                    <div className="space-y-1">
+                      <span className="text-[10px] uppercase font-mono font-bold text-gray-400 block">শব্দার্থ:</span>
+                      <p className="text-gray-900 font-serif text-base font-medium pl-0.5">
+                        {item.meaning}
+                      </p>
+                    </div>
+
+                    {item.sentence && (
+                      <div className="bg-white border border-stone-200 p-3.5 rounded-xl space-y-1">
+                        <span className="text-[10px] uppercase font-mono font-bold text-zinc-400 block">বাক্যে প্রয়োগ:</span>
+                        <p className="text-xs italic text-gray-600 leading-relaxed font-serif">"{item.sentence}"</p>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+
+        <p className="text-center text-[10px] font-mono text-gray-400 uppercase tracking-widest">
+          বৈঠকখানা শব্দকোষ ফ্রেমওয়ার্ক • ২০২৬
+        </p>
 
       </div>
     </main>
