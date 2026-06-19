@@ -22,13 +22,13 @@ export default function ShobdoListPage() {
   useEffect(() => {
     const fetchTodayWords = async () => {
       try {
-        // ঢাকা টাইমজোনে আজকের ডেট জেনারেট
+        // ঢাকা টাইমজোনে আজকের ডেট জেনারেট (YYYY-MM-DD format)
         const todayStr = new Date().toLocaleDateString("en-CA", { timeZone: "Asia/Dhaka" });
         setDebugDate(todayStr);
         
         console.log("🔍 ফ্রন্টএন্ড এই ডেট দিয়ে ফায়ারবেসে খুঁজছে:", todayStr);
 
-        // সেফটি কুয়েরি: আজকের ডেটের সাথে মিলিয়ে সর্বোচ্চ ১৫০টা শব্দ টানবে
+        // সেফটি কুয়েরি: আজকের ডেটের সাথে মিলিয়ে শব্দ টানবে
         const q = query(
           collection(db, "daily_words"), 
           where("date", "==", todayStr)
@@ -48,7 +48,7 @@ export default function ShobdoListPage() {
           });
         });
 
-        // 💡 ডিবগ ট্রিক: যদি আজকের ডেটে শব্দ না পায়, তবে লেটেস্ট যেকোনো শব্দ তুলে দেখাবে (যাতে ব্লাঙ্ক না থাকে)
+        // 💡 ডিবগ ট্রিক: যদি আজকের ডেটে শব্দ না পায়, তবে ব্যাকআপ হিসেবে লেটেস্ট শব্দগুলো তুলে দেখাবে
         if (list.length === 0) {
           console.warn("⚠️ আজকের ডেটে কোনো শব্দ পাওয়া যায়নি! ব্যাকআপ কুয়েরি রান হচ্ছে...");
           
@@ -68,11 +68,11 @@ export default function ShobdoListPage() {
               sentence: data.sentence || "",
               date: data.date
             });
-            console.log(`फায়ারবেসে থাকা ডেটার আসল ডেট ফরম্যাট -> [${data.word}]: ${data.date}`);
+            console.log(`ফায়ারবেসে থাকা ডেটার আসল ডেট ফরম্যাট -> [${data.word}]: ${data.date}`);
           });
         }
 
-        // বাংলা বর্ণমালা অনুযায়ী সাজানো
+        // বাংলা वर्णमाला অনুযায়ী সিরিয়াল করে সাজানো
         setWords(list.sort((a, b) => a.word.localeCompare(b.word)));
       } catch (err) {
         console.error("✕ Firebase fetch error:", err);
@@ -89,7 +89,11 @@ export default function ShobdoListPage() {
   };
 
   if (loading) {
-    return <main className="min-h-screen bg-[#FAFAFA] flex items-center justify-center font-mono text-xs text-gray-400">শব্দকোষ লোড হচ্ছে ভাই...</main>;
+    return (
+      <main className="min-h-screen bg-[#FAFAFA] flex items-center justify-center font-mono text-xs text-gray-400">
+        শব্দকোষ লোড হচ্ছে ভাই...
+      </main>
+    );
   }
 
   if (words.length === 0) {
@@ -99,7 +103,7 @@ export default function ShobdoListPage() {
           <span className="text-4xl">⏳</span>
           <h1 className="text-xl font-bold font-serif">কোনো শব্দ পাওয়া যায়নি!</h1>
           <p className="text-xs text-gray-500">আপনার ফ্রন্টএন্ড ট্রাই করছে: <code className="bg-gray-200 px-1 rounded">{debugDate}</code></p>
-          <p className="text-[11px] text-rose-500">ভাই, ব্রাউজারে Right Click -> Inspect -> Console ট্যাব চেক করুন, আসল জটলা ওখানে প্রিন্ট হয়েছে।</p>
+          <p className="text-[11px] text-rose-500">ভাই, ব্রাউজারে Right Click {"->"} Inspect {"->"} Console ট্যাব চেক করুন, আসল জটলা ওখানে প্রিন্ট হয়েছে।</p>
         </div>
       </main>
     );
