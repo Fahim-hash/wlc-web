@@ -2,210 +2,182 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { db } from "@/lib/firebase"; // 👈 রুট অ্যালিয়াস ব্যবহার করলাম যাতে পাথ নিয়ে কোনো প্যারা না থাকে
-import { collection, query, where, getDocs, doc, updateDoc, deleteDoc } from "firebase/firestore/lite"; // 👈 ফায়ারস্টোর লাইট মডিউল (সবচেয়ে ইম্পর্ট্যান্ট ফিক্স!)
-
-interface Writing {
-  id: string;
-  title: string;
-  category: string;
-  content: string;
-  penName: string;
-}
+import useRouter  from "next/navigation"; // রাউটিংয়ের জন্য
+import { ShieldCheck, LayoutDashboard, LogOut, FileText, PlusCircle, Lock, ArrowRight } from "lucide-react";
 
 export default function ControlHubPage() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [password, setPassword] = useState("");
-  const [passError, setPassError] = useState("");
+  const [gatewayPassword, setGatewayPassword] = useState("");
+  const [gatewayError, setGatewayError] = useState("");
+  const [authLoading, setAuthLoading] = useState(false);
 
-  const [writings, setWritings] = useState<Writing[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [actionLoading, setActionLoading] = useState<string | null>(null);
+  const [activeAdmin, setActiveAdmin] = useState<string | null>(null);
+  const [adminUid, setAdminUid] = useState("");
+  const [adminPin, setAdminPin] = useState("");
+  const [adminError, setAdminError] = useState("");
 
-  // 🛡️ কড়া সিকিউরিটি ট্রিকস: কনসোল ও ইনস্পেক্ট লক করা
+  // ১ লেয়ার ও ২ লেয়ার সেশন ক্যাশ চেক
   useEffect(() => {
-    if (!isAuthenticated) return;
-
-    const handleContextMenu = (e: MouseEvent) => e.preventDefault();
-    document.addEventListener("contextmenu", handleContextMenu);
-
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (
-        e.key === "F12" ||
-        (e.ctrlKey && e.shiftKey && (e.key === "I" || e.key === "J" || e.key === "C")) ||
-        (e.ctrlKey && e.key === "u")
-      ) {
-        e.preventDefault();
-      }
-    };
-    window.addEventListener("keydown", handleKeyDown);
-
-    const interval = setInterval(() => {
-      (() => { debugger; })();
-    }, 100);
-
-    return () => {
-      document.removeEventListener("contextmenu", handleContextMenu);
-      window.removeEventListener("keydown", handleKeyDown);
-      clearInterval(interval);
-    };
-  }, [isAuthenticated]);
-
-  // 🔑 গেটওয়ে পাসওয়ার্ড চেক
-  const handleLogin = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (password === "WLC_Control_2026") { 
+    const cachedGate = localStorage.getItem("wlc_gate_session");
+    const cachedAdmin = localStorage.getItem("wlc_admin_active");
+    if (cachedGate === "session_valid_2026_authorized") {
       setIsAuthenticated(true);
-      setPassError("");
-      fetchPendingWritings();
-    } else {
-      setPassError("ভুল পাসওয়ার্ড ভাই! প্রবেশাধিকার সংরক্ষিত।");
     }
-  };
+    if (cachedAdmin) {
+      setActiveAdmin(cachedAdmin);
+    }
+  }, []);
 
-  // 🔄 ফায়ারবেস থেকে পেন্ডিং লেখাগুলো পুল করা
-  const fetchPendingWritings = async () => {
-    setLoading(true);
+  // ১ম লেয়ার: গেটওয়ে এপিআই চেক
+  const handleGatewayLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setAuthLoading(true);
+    setGatewayError("");
     try {
-      const q = query(collection(db, "writings"), where("status", "==", "pending"));
-      const querySnapshot = await getDocs(q);
-      const pendingList: Writing[] = [];
-      
-      querySnapshot.forEach((doc) => {
-        const data = doc.data();
-        pendingList.push({
-          id: doc.id,
-          title: data.title,
-          category: data.category,
-          content: data.content,
-          penName: data.penName || "অজ্ঞাতনামা",
-        });
+      const res = await fetch("/api/controlhub-auth", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ gatewayKey: gatewayPassword }),
       });
-      setWritings(pendingList);
-    } catch (err: any) {
-      console.error("Error fetching data:", err);
+      const data = await res.json();
+      if (data.success) {
+        setIsAuthenticated(true);
+        localStorage.setItem("wlc_gate_session", data.token);
+      } else {
+        setGatewayError(data.message || "ভুল গেটওয়ে অ্যাক্সেস কি!");
+      }
+    } catch {
+      setGatewayError("নেটওয়ার্ক ভেরিফিকেশন ফেইল্ড!");
     } finally {
-      setLoading(false);
+      setAuthLoading(false);
     }
   };
 
-  // ✅ Approve লজিক
-  const handleApprove = async (id: string) => {
-    setActionLoading(id);
-    try {
-      const docRef = doc(db, "writings", id);
-      await updateDoc(docRef, { status: "approved" });
-      setWritings(writings.filter((w) => w.id !== id));
-    } catch (err) {
-      alert("Approve করতে সমস্যা হয়েছে ভাই।");
-    } finally {
-      setActionLoading(null);
+  // ২য় লেয়ার: অ্যাডমিন ইউজার ভেরিফিকেশন
+  const handleAdminVerify = (e: React.FormEvent) => {
+    e.preventDefault();
+    setAdminError("");
+
+    const admins: { [key: string]: string } = {
+      "fahim_admin": "202699",
+      "willian_mod": "112233",
+    };
+
+    if (admins[adminUid] && admins[adminUid] === adminPin) {
+      setActiveAdmin(adminUid);
+      localStorage.setItem("wlc_admin_active", adminUid);
+    } else {
+      setAdminError("ভুল অ্যাডমিন আইডি অথবা সিক্রেট পিন ভাই!");
     }
   };
 
-  // ❌ Reject/Delete লজিক
-  const handleDelete = async (id: string) => {
-    if (!confirm("লেখাটি ডাটাবেজ থেকে চিরতরে ডিলিট করতে চাও ভাই?")) return;
-    setActionLoading(id);
-    try {
-      await deleteDoc(doc(db, "writings", id));
-      setWritings(writings.filter((w) => w.id !== id));
-    } catch (err) {
-      alert("ডিলিট করতে সমস্যা হয়েছে।");
-    } finally {
-      setActionLoading(null);
-    }
+  const handleFullLogout = () => {
+    localStorage.removeItem("wlc_gate_session");
+    localStorage.removeItem("wlc_admin_active");
+    setIsAuthenticated(false);
+    setActiveAdmin(null);
+    setGatewayPassword("");
+    setAdminUid("");
+    setAdminPin("");
   };
 
+  // SCREEN RENDERING
   if (!isAuthenticated) {
     return (
-      <main className="min-h-screen bg-stone-950 flex items-center justify-center p-6">
-        <form onSubmit={handleLogin} className="bg-white p-8 rounded-3xl border border-gray-200 shadow-2xl max-w-sm w-full space-y-6">
+      <main className="min-h-screen bg-neutral-950 flex items-center justify-center p-6">
+        <form onSubmit={handleGatewayLogin} className="bg-neutral-900 border border-neutral-800 p-8 rounded-3xl shadow-2xl max-w-sm w-full space-y-6">
           <div className="text-center">
-            <div className="w-12 h-12 bg-stone-100 rounded-2xl flex items-center justify-center mx-auto mb-3 text-xl">🛡️</div>
-            <h1 className="text-xl font-bold font-serif text-gray-900">Control Hub Access</h1>
-            <p className="text-xs text-gray-400 mt-1">উইলস সাহিত্য ক্লাব সেন্ট্রাল ম্যানেজমেন্ট</p>
+            <div className="w-14 h-14 bg-red-950/40 border border-red-900/50 text-red-400 rounded-2xl flex items-center justify-center mx-auto mb-3 text-2xl">🛡️</div>
+            <h1 className="text-xl font-bold text-neutral-100">Gateway Lock</h1>
+            <p className="text-xs text-neutral-400 mt-1">উইলস সাহিত্য ক্লাব সেন্ট্রাল সিকিউরিটি</p>
           </div>
-
-          {passError && <p className="text-xs text-rose-600 bg-rose-50 border border-rose-100 p-3 rounded-xl font-medium text-center">{passError}</p>}
-
+          {gatewayError && <p className="text-xs text-red-400 bg-red-950/20 border border-red-900/40 p-3 rounded-xl font-center">{gatewayError}</p>}
           <div>
-            <label className="block text-[10px] font-bold uppercase text-gray-400 mb-2 tracking-wider">প্যানেল অ্যাক্সেস কি (Key)</label>
-            <input 
-              type="password" 
-              className="w-full bg-stone-50 border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-stone-900 font-mono"
-              placeholder="••••••••"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-            />
+            <input type="password" required className="w-full bg-neutral-950 border border-neutral-800 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-red-600 font-mono" placeholder="গেটওয়ে কি (Key)" value={gatewayPassword} onChange={(e) => setGatewayPassword(e.target.value)} />
           </div>
-
-          <button type="submit" className="w-full bg-stone-950 text-white font-semibold text-xs py-3.5 rounded-xl hover:bg-rose-900 transition-colors tracking-wide">
-            হাব এন্ট্রি মারো ➔
+          <button type="submit" disabled={authLoading} className="w-full bg-red-700 hover:bg-red-600 text-white font-semibold text-xs py-3.5 rounded-xl transition-all">
+            {authLoading ? "ভেরিফাইং..." : "গেটওয়ে আনলক করুন ➔"}
           </button>
         </form>
       </main>
     );
   }
 
+  if (!activeAdmin) {
+    return (
+      <main className="min-h-screen bg-neutral-950 flex items-center justify-center p-6">
+        <form onSubmit={handleAdminVerify} className="bg-neutral-900 border border-neutral-800 p-8 rounded-3xl shadow-2xl max-w-md w-full space-y-5">
+          <div className="text-center">
+            <div className="w-14 h-14 bg-emerald-950/40 border border-emerald-900/50 text-emerald-400 rounded-2xl flex items-center justify-center mx-auto mb-3 text-2xl">🔐</div>
+            <h1 className="text-xl font-bold text-neutral-100">Admin Verification</h1>
+          </div>
+          {adminError && <p className="text-xs text-red-400 bg-red-950/20 border border-red-900/40 p-3 rounded-xl font-center">{adminError}</p>}
+          <div className="space-y-4">
+            <input type="text" required className="w-full bg-neutral-950 border border-neutral-800 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-emerald-600" placeholder="অ্যাডমিন UID" value={adminUid} onChange={(e) => setAdminUid(e.target.value)} />
+            <input type="password" required className="w-full bg-neutral-950 border border-neutral-800 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-emerald-600 font-mono" placeholder="সিক্রেট পিন" value={adminPin} onChange={(e) => setAdminPin(e.target.value)} />
+          </div>
+          <div className="flex gap-3">
+            <button type="button" onClick={handleFullLogout} className="flex-1 bg-neutral-800 text-neutral-300 font-medium text-xs py-3 rounded-xl">পিছনে যান</button>
+            <button type="submit" className="flex-1 bg-emerald-600 text-white font-semibold text-xs py-3 rounded-xl">প্রবেশ করুন</button>
+          </div>
+        </form>
+      </main>
+    );
+  }
+
   return (
-    <main className="min-h-screen bg-[#FAFAFA] text-gray-800 p-6 md:p-12 max-w-5xl mx-auto">
-      <header className="border-b border-gray-200 pb-6 mb-10 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <span className="text-[10px] font-mono bg-stone-900 text-stone-100 px-2.5 py-1 rounded-md uppercase tracking-widest">Central System</span>
-          <h1 className="text-3xl font-bold font-serif text-gray-900 mt-2">Control Hub Panel</h1>
-          <p className="text-gray-500 text-sm mt-1">মেম্বারদের সাবমিট করা লেখার ডাটাবেজ মডারেশন ডেস্ক।</p>
-        </div>
-        <button onClick={() => setIsAuthenticated(false)} className="text-xs font-semibold text-stone-500 bg-white border border-gray-200 hover:bg-stone-50 px-4 py-2 rounded-xl transition-colors self-start sm:self-center">
-          লগআউট ✕
-        </button>
-      </header>
-
-      <div className="flex items-center justify-between mb-6 bg-white border border-gray-200 rounded-2xl p-4 shadow-sm">
-        <span className="text-sm font-medium">
-          পেন্ডিং ডাটা কিউ (Queue): <strong className="text-rose-700 bg-rose-50 px-2 py-0.5 rounded border border-rose-100">{writings.length} টি</strong>
-        </span>
-        <button onClick={fetchPendingWritings} className="text-xs font-bold text-stone-900 hover:underline flex items-center gap-1">
-          🔄 রিফ্রেশ ফিড
-        </button>
-      </div>
-
-      {loading ? (
-        <div className="text-center py-12 text-xs text-gray-400 font-mono animate-pulse">ফায়ারস্টোর সিঙ্ক হচ্ছে ভাই...</div>
-      ) : writings.length === 0 ? (
-        <div className="text-center py-16 bg-white border border-gray-200 rounded-3xl p-8 shadow-sm">
-          <span className="text-xl block mb-2">⚡</span>
-          <p className="text-gray-500 text-sm font-medium">কোনো পেন্ডিং ডাটা নেই ভাই! অল ক্লিয়ার।</p>
-        </div>
-      ) : (
-        <div className="space-y-6">
-          {writings.map((post) => (
-            <div key={post.id} className="bg-white border border-gray-200 rounded-3xl p-6 shadow-sm flex flex-col md:flex-row gap-6 justify-between items-start">
-              <div className="flex-1 space-y-3 w-full">
-                <div className="flex items-center gap-3">
-                  <span className="text-[10px] font-bold uppercase tracking-wider bg-stone-100 border border-stone-200 text-stone-800 px-2.5 py-1 rounded-full">
-                    {post.category === "poetry" ? "কবিতা" : post.category === "story" ? "ছোটগল্প" : "প্রবন্ধ"}
-                  </span>
-                  <span className="text-xs text-gray-400 font-medium">কলমে: <strong className="text-gray-700 font-serif">{post.penName}</strong></span>
-                </div>
-                <h2 className="text-lg font-bold text-gray-900 font-serif">{post.title}</h2>
-                <p className="text-gray-600 text-sm leading-relaxed bg-stone-50 border border-stone-100 p-4 rounded-2xl whitespace-pre-line max-h-60 overflow-y-auto font-mono">
-                  {post.content}
-                </p>
-              </div>
-
-              <div className="flex md:flex-col gap-3 w-full md:w-36 flex-shrink-0">
-                <button onClick={() => handleApprove(post.id)} disabled={actionLoading !== null} className="flex-1 bg-stone-950 text-white font-bold text-xs py-3 rounded-xl hover:bg-emerald-800 transition-colors shadow-sm disabled:bg-gray-300">
-                  {actionLoading === post.id ? "প্রসেসিং..." : "Approve ✓"}
-                </button>
-                <button onClick={() => handleDelete(post.id)} disabled={actionLoading !== null} className="flex-1 bg-white border border-rose-200 text-rose-700 font-bold text-xs py-3 rounded-xl hover:bg-rose-50 transition-colors disabled:bg-gray-300">
-                  Reject ✕
-                </button>
-              </div>
+    <main className="min-h-screen bg-neutral-950 text-neutral-200 flex flex-col md:flex-row">
+      {/* বাম পাশের সাইডবার */}
+      <aside className="w-full md:w-64 bg-neutral-900 border-b md:border-b-0 md:border-r border-neutral-800 p-6 flex flex-col justify-between shrink-0">
+        <div className="space-y-8">
+          <div>
+            <div className="flex items-center gap-2 text-emerald-400 font-bold tracking-wider text-sm">
+              <ShieldCheck className="w-5 h-5" /> WLC SYSTEM
             </div>
-          ))}
+            <p className="text-[10px] text-neutral-500 mt-1 uppercase font-mono">Admin: {activeAdmin}</p>
+          </div>
+          <nav className="space-y-2">
+            <a href="/controlhub" className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-xs font-semibold bg-neutral-800 text-white border-l-4 border-emerald-500">
+              <LayoutDashboard className="w-4 h-4" /> মেইন ড্যাশবোর্ড
+            </a>
+            <a href="/controlhub/written-approval" className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-xs font-semibold text-neutral-400 hover:bg-neutral-850 hover:text-neutral-200">
+              <FileText className="w-4 h-4" /> লেখা অ্যাপ্রুভাল
+            </a>
+          </div>
         </div>
-      )}
+        <button onClick={handleFullLogout} className="w-full flex items-center justify-center gap-2 bg-neutral-800/60 text-neutral-400 hover:text-red-400 border border-neutral-800 py-2.5 rounded-xl text-xs font-semibold">
+          <LogOut className="w-3.5 h-3.5" /> সিস্টেম লগআউট
+        </button>
+      </aside>
+
+      {/* ড্যাশবোর্ড কমান্ড ডিরেক্টরি */}
+      <section className="flex-1 p-6 md:p-10 max-w-5xl mx-auto w-full">
+        <div className="bg-neutral-900 border border-neutral-800 rounded-3xl p-6 md:p-8">
+          <h2 className="text-2xl font-bold font-serif text-white mb-2">🕹️ ডিরেক্টরি কমান্ড হাব</h2>
+          <p className="text-neutral-400 text-sm">উইলস সাহিত্য ক্লাবের যাবতীয় সিকিউরড ইন্টারনাল পেজের এক্সেস রুট সমূহ:</p>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-8">
+            {/* মডিউল ১: লেখা অ্যাপ্রুভাল */}
+            <a href="/controlhub/written-approval" className="p-5 bg-neutral-950 border border-neutral-800 hover:border-emerald-600 rounded-2xl transition-all group flex flex-col justify-between">
+              <div>
+                <div className="w-10 h-10 bg-emerald-950/40 text-emerald-400 border border-emerald-900/40 rounded-xl flex items-center justify-center text-lg mb-4">📝</div>
+                <h3 className="text-sm font-bold text-white mb-1">Written Approval Panel</h3>
+                <p className="text-xs text-neutral-400">পেন্ডিং গল্প, কবিতা ও রচনার কোয়ালিটি কন্ট্রোল ও ডাটাবেজ মডারেশন ডেস্ক।</p>
+              </div>
+              <div className="flex items-center gap-1 text-xs text-emerald-400 font-bold mt-4 opacity-0 group-hover:opacity-100 transition-all">
+                প্যানেলে ঢুকুন <ArrowRight className="w-3 h-3" />
+              </div>
+            </a>
+
+            {/* মডিউল ২: শব্দ যোগ (Future Route) */}
+            <div onClick={() => alert("ইনস্টলেশন চলছে ভাই! /shobdo-add রাউট শীঘ্রই আসছে।")} className="p-5 bg-neutral-950 border border-neutral-800/40 opacity-50 hover:opacity-70 rounded-2xl transition-all cursor-pointer">
+              <div className="w-10 h-10 bg-neutral-900 text-neutral-500 border border-neutral-800 rounded-xl flex items-center justify-center text-lg mb-4">✍️</div>
+              <h3 className="text-sm font-bold text-neutral-400 mb-1">/shobdo-add (Future Module)</h3>
+              <p className="text-xs text-neutral-500">প্রতিদিনের কুইজ প্রতিযোগিতার জন্য এআই জেনারেটেড ও ম্যানুয়াল শব্দ ভাণ্ডার আপলোডার হাব।</p>
+            </div>
+          </div>
+        </div>
+      </section>
     </main>
   );
 }
