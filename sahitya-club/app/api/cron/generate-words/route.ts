@@ -2,7 +2,7 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/firebase";
 import { collection, writeBatch, doc } from "firebase/firestore/lite"; 
-import { GoogleGenAI } from "@google/generative-ai"; // 👈 অফিশিয়াল SDK ইম্পোর্ট
+import { GoogleGenerativeAI } from "@google/generative-ai"; // 👈 কারেক্ট ক্লাস নেম ইম্পোর্ট করা হলো
 
 export async function GET(request: Request) {
   // ১. সিকিউরিটি চেক
@@ -19,14 +19,14 @@ export async function GET(request: Request) {
   }
 
   try {
-    // 🤖 অফিশিয়াল SDK ইনিশিয়ালাইজেশন
-    const ai = new GoogleGenAI({ apiKey });
+    // 🤖 কারেক্ট ক্লাস নেম দিয়ে SDK ইনিশিয়ালাইজেশন করা হলো
+    const ai = new GoogleGenerativeAI(apiKey);
     
     // লেটেস্ট ফ্ল্যাশ মডেল কল করা
     const model = ai.getGenerativeModel({
       model: "gemini-1.5-flash",
       generationConfig: {
-        responseMimeType: "application/json", // 👈 অফিশিয়াল SDK-তে এটি ১০০% কাজ করবে
+        responseMimeType: "application/json",
       },
     });
 
@@ -77,5 +77,5 @@ export async function GET(request: Request) {
     console.error("SDK Cron Error:", error);
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
-  }
-      
+      }
+        
