@@ -2,7 +2,7 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/firebase";
 import { collection, writeBatch, doc } from "firebase/firestore/lite"; 
-import { GoogleGenerativeAI } from "@google/generative-ai"; // 👈 কারেক্ট ক্লাস নেম ইম্পোর্ট করা হলো
+import { GoogleGenerativeAI } from "@google/generative-ai"; 
 
 export async function GET(request: Request) {
   // ১. সিকিউরিটি চেক
@@ -19,12 +19,11 @@ export async function GET(request: Request) {
   }
 
   try {
-    // 🤖 কারেক্ট ক্লাস নেম দিয়ে SDK ইনিশিয়ালাইজেশন করা হলো
     const ai = new GoogleGenerativeAI(apiKey);
     
-    // লেটেস্ট ফ্ল্যাশ মডেল কল করা
+    // 🤖 অল-টাইম স্টেবল এবং বাঘা মডেল gemini-1.5-pro সেট করা হলো ভাই
     const model = ai.getGenerativeModel({
-      model: "gemini-1.5-flash",
+      model: "gemini-1.5-pro", 
       generationConfig: {
         responseMimeType: "application/json",
       },
@@ -77,5 +76,4 @@ export async function GET(request: Request) {
     console.error("SDK Cron Error:", error);
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
-      }
-        
+}
