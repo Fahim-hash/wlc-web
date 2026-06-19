@@ -2,7 +2,6 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import useRouter  from "next/navigation"; // রাউটিংয়ের জন্য
 import { ShieldCheck, LayoutDashboard, LogOut, FileText, PlusCircle, Lock, ArrowRight } from "lucide-react";
 
 export default function ControlHubPage() {
@@ -91,7 +90,7 @@ export default function ControlHubPage() {
             <h1 className="text-xl font-bold text-neutral-100">Gateway Lock</h1>
             <p className="text-xs text-neutral-400 mt-1">উইলস সাহিত্য ক্লাব সেন্ট্রাল সিকিউরিটি</p>
           </div>
-          {gatewayError && <p className="text-xs text-red-400 bg-red-950/20 border border-red-900/40 p-3 rounded-xl font-center">{gatewayError}</p>}
+          {gatewayError && <p className="text-xs text-red-400 bg-red-950/20 border border-red-900/40 p-3 rounded-xl text-center">{gatewayError}</p>}
           <div>
             <input type="password" required className="w-full bg-neutral-950 border border-neutral-800 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-red-600 font-mono" placeholder="গেটওয়ে কি (Key)" value={gatewayPassword} onChange={(e) => setGatewayPassword(e.target.value)} />
           </div>
@@ -111,7 +110,7 @@ export default function ControlHubPage() {
             <div className="w-14 h-14 bg-emerald-950/40 border border-emerald-900/50 text-emerald-400 rounded-2xl flex items-center justify-center mx-auto mb-3 text-2xl">🔐</div>
             <h1 className="text-xl font-bold text-neutral-100">Admin Verification</h1>
           </div>
-          {adminError && <p className="text-xs text-red-400 bg-red-950/20 border border-red-900/40 p-3 rounded-xl font-center">{adminError}</p>}
+          {adminError && <p className="text-xs text-red-400 bg-red-950/20 border border-red-900/40 p-3 rounded-xl text-center">{adminError}</p>}
           <div className="space-y-4">
             <input type="text" required className="w-full bg-neutral-950 border border-neutral-800 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-emerald-600" placeholder="অ্যাডমিন UID" value={adminUid} onChange={(e) => setAdminUid(e.target.value)} />
             <input type="password" required className="w-full bg-neutral-950 border border-neutral-800 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-emerald-600 font-mono" placeholder="সিক্রেট পিন" value={adminPin} onChange={(e) => setAdminPin(e.target.value)} />
@@ -143,7 +142,7 @@ export default function ControlHubPage() {
             <a href="/controlhub/written-approval" className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-xs font-semibold text-neutral-400 hover:bg-neutral-850 hover:text-neutral-200">
               <FileText className="w-4 h-4" /> লেখা অ্যাপ্রুভাল
             </a>
-          </div>
+          </nav> {/* 👈 ফিক্সড: এখানে আগে ভুল করে </div> ছিল */}
         </div>
         <button onClick={handleFullLogout} className="w-full flex items-center justify-center gap-2 bg-neutral-800/60 text-neutral-400 hover:text-red-400 border border-neutral-800 py-2.5 rounded-xl text-xs font-semibold">
           <LogOut className="w-3.5 h-3.5" /> সিস্টেম লগআউট
