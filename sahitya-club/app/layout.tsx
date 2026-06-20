@@ -1,4 +1,3 @@
-// app/layout.tsx
 import type { Metadata } from "next";
 import { Hind_Siliguri } from "next/font/google"; 
 import Link from "next/link";
@@ -10,7 +9,7 @@ const hindSiliguri = Hind_Siliguri({
   weight: ["300", "400", "500", "600", "700"],
 });
 
-// 🚀 SEO & Metadata Setup (Premium Style)
+// 🚀 SEO & Metadata Setup
 export const metadata: Metadata = {
   title: "উইল্‌স সাহিত্য ক্লাব | Willes Literary Club",
   description: "উইল্‌স লিটল ফ্লাওয়ার স্কুল অ্যান্ড কলেজের অফিশিয়াল সাহিত্য ক্লাব ওয়েবসাইট। সাহিত্যের বন্ধনে, প্রতিভার সন্ধানে এগিয়ে চলেছে উইলিয়ানদের ভালোবাসার এই প্রাঙ্গণ।",
@@ -20,14 +19,11 @@ export const metadata: Metadata = {
     "WLFSC Literary Club",
     "Willes Little Flower School & College",
     "উইলিয়ান সাহিত্য",
-    "ঢাকা কলেজ সাহিত্য ক্লাব",
     "Willes Sahitto Club",
     "wlc",
-    "WLC",
-    "Wlc"
+    "WLC"
   ],
   authors: [{ name: "উইল্‌স সাহিত্য ক্লাব প্যানেল" }],
-  // 🎯 লোগো হিসেবে সরাসরি logo.png কনফিগারেশন
   icons: {
     icon: "/logo.png", 
     shortcut: "/logo.png",
@@ -36,7 +32,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "উইল্‌স সাহিত্য ক্লাব | Willes Literary Club",
     description: "উইল্‌স লিটল ফ্লাওয়ার স্কুল অ্যান্ড কলেজের অফিশিয়াল সাহিত্য ক্লাব ওয়েবসাইট।",
-    url: "https://wlc.pro.bd", // তোমার অরিজিনাল ইউআরএল থাকলে এখানে বসিয়ে দিও
+    url: "https://wlc.pro.bd",
     siteName: "Willes Literary Club",
     locale: "bn_BD",
     type: "website",
@@ -62,15 +58,29 @@ export default function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const navLinks = [
+  // ডেক্সটপ নেভিগেশনের জন্য ছাঁটাইকৃত ক্লিন লিংক লিস্ট
+  const desktopLinks = [
     { name: "হোম", path: "/" },
     { name: "আমাদের কথা", path: "/about" },
-    { name: "নবীনবরণ '২৫", path: "/nobinboron" },
     { name: "আর্কাইভ ও প্যানেল", path: "/panel" },
     { name: "শিক্ষক মডারেটর", path: "/panel/moderator" },
   ];
 
-  // 🧠 Structured Data (গুগল সার্চকে প্রাতিষ্ঠানিক ডেটা দেওয়ার জন্য)
+  // মোবাইল ড্রপডাউন মেনুর জন্য তোমার নির্দিষ্ট করে দেওয়া পেজসমূহ
+  const mobileLinks = [
+    { name: "হোম", path: "/" },
+    { name: "আমাদের কথা", path: "/about" },
+    { name: "অর্জনসমূহ", path: "/achievement" },
+    { name: "অ্যালবাম", path: "/album" },
+    { name: "যোগাযোগ", path: "/contact" },
+    { name: "ইভেন্টস", path: "/events" },
+    { name: "সাধারণ জিজ্ঞাসা (FAQ)", path: "/faq" },
+    { name: "অফিশিয়াল প্যানেল", path: "/panel" },
+    { name: "সদস্য নিবন্ধন", path: "/register" },
+    { name: "শব্দকোষ", path: "/shobdo" },
+    { name: "মুক্ত লেখনী ডেস্ক", path: "/writing" },
+  ];
+
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "EducationalOrganization",
@@ -98,20 +108,19 @@ export default function RootLayout({
   return (
     <html lang="bn" className="h-full">
       <head>
-        {/* JSON-LD for Google Knowledge Graph */}
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         />
       </head>
       <body className={`${hindSiliguri.className} bg-stone-50 text-stone-900 min-h-screen flex flex-col selection:bg-rose-100 selection:text-rose-900 antialiased overflow-x-hidden`}>
-        
+
         {/* ================= GLOBAL HEADER / NAVBAR ================= */}
-        <header className="sticky top-0 z-50 w-full bg-white/80 backdrop-blur-md border-b border-stone-200/60 transition-all">
-          <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
-            
+        <header className="sticky top-0 z-50 w-full bg-white/80 backdrop-blur-md border-b border-stone-200/60">
+          <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between relative">
+
             {/* ব্র্যান্ড লোগো */}
-            <Link href="/" className="flex items-center gap-3 group">
+            <Link href="/" className="flex items-center gap-3 group z-50">
               <div className="relative w-10 h-10 md:w-11 md:h-11 transition-transform duration-300 group-hover:scale-110">
                 <Image 
                   src="/logo.png" 
@@ -120,7 +129,7 @@ export default function RootLayout({
                   className="object-contain"
                 />
               </div>
-              
+
               <div className="flex flex-col">
                 <span className="font-bold text-base md:text-lg tracking-tight text-stone-950 group-hover:text-rose-900 transition-colors">
                   উইল্‌স সাহিত্য ক্লাব
@@ -133,7 +142,7 @@ export default function RootLayout({
 
             {/* ডেক্সটপ নেভিগেশন */}
             <nav className="hidden md:flex items-center gap-1 bg-stone-100 p-1 rounded-xl border border-stone-200/40">
-              {navLinks.map((link, idx) => (
+              {desktopLinks.map((link, idx) => (
                 <Link 
                   key={idx} 
                   href={link.path}
@@ -144,15 +153,37 @@ export default function RootLayout({
               ))}
             </nav>
 
-            {/* মোবাইল বাটন */}
-            <div className="flex md:hidden items-center">
-              <Link 
-                href="/panel" 
-                className="text-xs font-bold bg-stone-900 text-white px-3 py-1.5 rounded-lg border border-stone-800"
-              >
-                প্যানেল 📖
-              </Link>
+            {/* ================= MOBILE HAMBURGER SYSTEM (PURE CSS PEER MECHANISM) ================= */}
+            <input type="checkbox" id="menu-toggle" className="peer hidden" />
+            
+            <label 
+              htmlFor="menu-toggle" 
+              className="flex md:hidden flex-col justify-between w-5 h-4 cursor-pointer z-50 relative p-0.5"
+            >
+              <span className="w-full h-0.5 bg-stone-950 rounded-full transition-all duration-300 origin-left peer-checked:rotate-45"></span>
+              <span className="w-full h-0.5 bg-stone-950 rounded-full transition-all duration-300 peer-checked:opacity-0"></span>
+              <span className="w-full h-0.5 bg-stone-950 rounded-full transition-all duration-300 origin-left peer-checked:-rotate-45"></span>
+            </label>
+
+            {/* মোবাইল ড্রপডাউন মেনু ব্যাকড্রপ ও প্যানেল */}
+            <div className="fixed inset-x-0 top-0 h-screen bg-white border-b border-stone-200 pointer-events-none opacity-0 invisible peer-checked:opacity-100 peer-checked:invisible-none peer-checked:pointer-events-auto transition-all duration-300 z-40 md:hidden flex flex-col pt-24 px-6 overflow-y-auto pb-8 shadow-xl">
+              <span className="text-[10px] font-bold uppercase tracking-widest text-rose-900 border-b border-stone-100 pb-2 mb-4">
+                ওয়েবসাইট ডিরেক্টরি 📖
+              </span>
+              <nav className="flex flex-col gap-1">
+                {mobileLinks.map((link, idx) => (
+                  <Link
+                    key={idx}
+                    href={link.path}
+                    className="text-stone-800 hover:text-rose-900 font-semibold text-base py-3 border-b border-stone-50/80 transition-colors flex items-center justify-between group"
+                  >
+                    <span>{link.name}</span>
+                    <span className="text-stone-300 group-hover:text-rose-900 transition-colors text-xs font-mono">➔</span>
+                  </Link>
+                ))}
+              </nav>
             </div>
+            {/* =================================================================================== */}
 
           </div>
         </header>
@@ -165,7 +196,7 @@ export default function RootLayout({
         {/* ================= GLOBAL FOOTER (DEVELOPER EDITION) ================= */}
         <footer className="w-full bg-white border-t border-stone-200/60 py-10 mt-auto relative z-20">
           <div className="max-w-6xl mx-auto px-4 grid grid-cols-1 md:grid-cols-3 gap-8 items-center text-center md:text-left">
-            
+
             {/* বাম অংশ: কপিরাইট ও প্রাতিষ্ঠানিক তথ্য */}
             <div className="flex flex-col gap-1">
               <p className="text-xs font-semibold text-stone-600">
@@ -194,7 +225,7 @@ export default function RootLayout({
               {/* প্রিমিয়াম ডেভেলপার বাটন */}
               <div className="mt-1">
                 <a 
-                  href="https://www.instagram.com/relaxstudio__" // তোমার ফ্রেমার বা পোর্টফোলিও লিঙ্ক এখানে বসবে
+                  href="https://www.instagram.com/relaxstudio__" 
                   target="_blank" 
                   rel="noopener noreferrer" 
                   className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-stone-900 hover:bg-stone-800 text-stone-100 hover:text-white rounded-lg text-[11px] font-semibold tracking-wide border border-stone-800 transition-all shadow-sm hover:scale-[1.02]"
@@ -209,7 +240,6 @@ export default function RootLayout({
             <div className="flex flex-col md:items-end gap-2">
               <span className="text-stone-800 font-bold uppercase tracking-wider text-[10px]">আমাদের সামাজিক মাধ্যম</span>
               <div className="flex items-center justify-center gap-3">
-                {/* ফেসবুক পেজ লিঙ্ক */}
                 <a 
                   href="https://www.facebook.com/profile.php?id=61560572355031" 
                   target="_blank" 
@@ -222,7 +252,6 @@ export default function RootLayout({
                   </svg>
                 </a>
 
-                {/* ইনস্টাগ্রাম লিঙ্ক */}
                 <a 
                   href="https://www.instagram.com/willes_literary_club/" 
                   target="_blank" 
@@ -235,9 +264,8 @@ export default function RootLayout({
                   </svg>
                 </a>
 
-                {/* ইউটিউব লিঙ্ক 🚀 (নতুন যুক্ত করা হয়েছে) */}
                 <a 
-                  href="https://www.youtube.com/@willes_literary_club" // এখানে তোমাদের ক্লাবের ইউটিউব লিঙ্কটি বসিয়ে দিও
+                  href="https://www.youtube.com/@willes_literary_club" 
                   target="_blank" 
                   rel="noopener noreferrer"
                   className="p-2 rounded-full bg-stone-100 text-stone-600 hover:bg-red-50 hover:text-red-600 transition-all duration-200"
