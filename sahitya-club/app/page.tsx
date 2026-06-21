@@ -83,7 +83,7 @@ export default function WillesSahityaClub() {
           <div className="relative w-32 h-32 md:w-36 md:h-36 drop-shadow-sm transition-transform duration-500 hover:scale-105">
             <Image
               src="/logo.png"
-              alt="উইল্‌স সাহিত্য ক্লাব লোগো"
+              alt="উইল্‌স সাহিত্য ক্লাবের লোগো"
               fill
               className="object-contain"
               priority
@@ -117,7 +117,7 @@ export default function WillesSahityaClub() {
           <div className="w-12 h-1 bg-rose-900/30 mx-auto rounded-full" />
         </div>
         <p className="text-base md:text-lg text-stone-600 leading-relaxed max-w-3xl mx-auto font-medium">
-          ২০২৪ সালে প্রতিষ্ঠিত উইল্‌স সাহিত্য ক্লাব এমন একটি উন্মুক্ত প্রাঙ্গণ, যেখানে সাহিত্যের প্রতি অকৃত্রিম ভালোবাসা এবং সৃজনশীলতার মেলবন্ধন ঘটে। আমরা বিশ্বাস করি প্রতিটি শিক্ষার্থীর মাঝেই লুকিয়ে আছে একজন সুপ্ত লেখক, কবি বা দার্শনিক। আমাদের মূল লক্ষ্য হলো সেই প্রতিভাকে খুঁজে বের করা এবং একটি সুস্থ সাহিত্যিক পরিবেশ নিশ্চিত করা।
+          ২০২৪ সালে প্রতিষ্ঠিত উইল্‌স সাহিত্য ক্লাব এমন একটি উন্মুক্ত প্রাঙ্গণ, Geometry সাহিত্যে প্রতি অকৃত্রিম ভালোবাসা এবং সৃজনশীলতার মেলবন্ধন ঘটে। আমরা বিশ্বাস করি প্রতিটি শিক্ষার্থীর মাঝেই লুকিয়ে আছে একজন সুপ্ত লেখক, কবি বা দার্শনিক। আমাদের মূল লক্ষ্য হলো সেই প্রতিভাকে খুঁজে বের করা এবং একটি সুস্থ সাহিত্যিক পরিবেশ নিশ্চিত করা।
         </p>
       </section>
 
@@ -183,7 +183,7 @@ export default function WillesSahityaClub() {
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {[
-            { tag: "সাহিত্য উৎসব", title: "আন্তঃকলেজ দেয়ালিকা প্রতিযোগিতা", detail: "ঢাকা শহরের শীর্ষস্থানীয় কলেজগুলোর মাঝে সেরা কন্টেন্ট ও ডিজাইনের স্বীকৃতি।" },
+            { tag: "সাহিত্য উৎসব", title: "আন্তঃকলেজ দেয়ালিকা প্রতিযোগিতা", detail: "ঢাকা শহরের শীর্ষস্থানীয় collegeগুলোর মাঝে সেরা কন্টেন্ট ও ডিজাইনের স্বীকৃতি।" },
             { tag: "কুইজ চ্যাম্পিয়নশিপ", title: "জাতীয় সাহিত্য কুইজ রানার্স-আপ", detail: "বাংলা ভাষা ও সাহিত্যের গভীর জ্ঞান ও মেধার প্রমাণ রেখে গৌরবময় অর্জন।" },
             { tag: "স্বীকৃতি", title: "সেরা উদীয়মান ক্লাব সম্মাননা", detail: "শিক্ষা প্রতিষ্ঠানে সাহিত্য চর্চা ও কন্ট্রিবিউশনে অনন্য অবদানের জন্য বিশেষ স্মারক।" }
           ].map((item, index) => (
@@ -204,7 +204,7 @@ export default function WillesSahityaClub() {
         </div>
       </section>
 
-      {/* ================= ৬. ALBUM / FLASHBACKS (স্মৃতির পাতা) ================= */}
+      {/* ================= 📸 ৬. ALBUM / FLASHBACKS (স্মৃতির পাতা - UPDATED) ================= */}
       <section className="max-w-6xl mx-auto px-4 py-16 space-y-10">
         <div className="text-center space-y-2">
           <span className="text-xs font-bold text-rose-900 uppercase tracking-widest">গ্যালারি</span>
@@ -212,15 +212,21 @@ export default function WillesSahityaClub() {
           <p className="text-stone-400 text-xs font-medium">আমাদের সাম্প্রতিক কার্যক্রমের কিছু খণ্ডচিত্র</p>
         </div>
 
-        {/* ডামি বা ডাইনামিক ইমেজ লুপ প্লেসহোল্ডার ফ্রন্টএন্ড */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-          {[1, 2, 3].map((idx) => (
-            <div key={idx} className="relative aspect-square overflow-hidden rounded-2xl border border-stone-200/40 bg-stone-200 group shadow-sm">
-              <div className="absolute inset-0 bg-stone-900/40 opacity-0 group-hover:opacity-100 transition-opacity z-10 flex items-center justify-center">
-                <span className="text-white text-xs font-bold tracking-wider">মুহূর্ত ০{idx}</span>
-              </div>
-              <div className="w-full h-full flex items-center justify-center text-stone-400 bg-stone-100/80 text-xs font-medium">
-                ইমেজ লোড হচ্ছে / ফোল্ডার এন্ট্রি
+        {/* 🖼️ /public/album ফোল্ডার থেকে 2.jpg থেকে 6.jpg পর্যন্ত ম্যাপ করা হয়েছে */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-4">
+          {[2, 3, 4, 5, 6].map((num) => (
+            <div key={num} className="relative aspect-square overflow-hidden rounded-2xl border border-stone-200 bg-stone-100 group shadow-sm">
+              <Image 
+                src={`/album/${num}.jpg`}
+                alt={`WLC মুহূর্ত ${num}`}
+                fill
+                sizes="(max-w-768px) 100vw, 20vw"
+                className="object-cover transition-transform duration-500 group-hover:scale-105"
+              />
+              <div className="absolute inset-0 bg-stone-950/40 opacity-0 group-hover:opacity-100 transition-opacity z-10 flex items-end p-4">
+                <span className="text-white text-[10px] font-bold tracking-wider uppercase bg-black/20 backdrop-blur-xs px-2 py-0.5 rounded">
+                  মুহূর্ত ০{num - 1}
+                </span>
               </div>
             </div>
           ))}
