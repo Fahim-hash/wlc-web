@@ -23,9 +23,16 @@ export default function DevelopersPage() {
           {/* কর্নার ডেকোরেশন */}
           <div className="absolute top-0 right-0 w-24 h-24 bg-rose-50 rounded-bl-full pointer-events-none border-b border-l border-rose-100/40" />
 
-          {/* রিল্যাক্স স্টুডিও ব্র্যান্ড আইকন */}
-          <div className="relative w-20 h-20 mx-auto bg-stone-900 rounded-2xl flex items-center justify-center shadow-sm transform hover:rotate-6 transition-transform duration-300">
-            <span className="text-white font-mono font-bold text-2xl tracking-tighter">RS</span>
+          {/* 🎯 রিল্যাক্স স্টুডিও ব্ল্যাক লোগো ইমেজিং */}
+          <div className="relative w-24 h-24 mx-auto flex items-center justify-center transform hover:scale-105 hover:rotate-3 transition-transform duration-300 select-none">
+            <Image
+              src="/relaxstudio.png"
+              alt="Relax Studio Logo"
+              width={96}
+              height={96}
+              className="object-contain"
+              priority
+            />
           </div>
 
           {/* নাম ও টাইটেল */}
