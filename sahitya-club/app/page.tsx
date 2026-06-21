@@ -95,9 +95,9 @@ export default function WillesSahityaClub() {
             <h1 className="text-4xl md:text-6xl font-extrabold tracking-tight text-stone-950">
               উইল্‌স সাহিত্য ক্লাব
             </h1>
-            <h2 className="text-xl md:text-2xl text-rose-900 font-bold italic tracking-wide">
+            <h3 className="text-xl md:text-2xl text-rose-900 font- italic tracking-wide">
               "সাহিত্যের বন্ধনে, প্রতিভার সন্ধানে"
-            </h2>
+            </h3>
           </div>
 
           {/* ব্যাজ */}
@@ -117,7 +117,7 @@ export default function WillesSahityaClub() {
           <div className="w-12 h-1 bg-rose-900/30 mx-auto rounded-full" />
         </div>
         <p className="text-base md:text-lg text-stone-600 leading-relaxed max-w-3xl mx-auto font-medium">
-          ২০২৪ সালে প্রতিষ্ঠিত উইল্‌স সাহিত্য ক্লাব এমন একটি উন্মুক্ত প্রাঙ্গণ, Geometry সাহিত্যে প্রতি অকৃত্রিম ভালোবাসা এবং সৃজনশীলতার মেলবন্ধন ঘটে। আমরা বিশ্বাস করি প্রতিটি শিক্ষার্থীর মাঝেই লুকিয়ে আছে একজন সুপ্ত লেখক, কবি বা দার্শনিক। আমাদের মূল লক্ষ্য হলো সেই প্রতিভাকে খুঁজে বের করা এবং একটি সুস্থ সাহিত্যিক পরিবেশ নিশ্চিত করা।
+          ২০২৪ সালে প্রতিষ্ঠিত উইল্‌স সাহিত্য ক্লাব এমন একটি উন্মুক্ত প্রাঙ্গণ,  সাহিত্যে প্রতি অকৃত্রিম ভালোবাসা এবং সৃজনশীলতার মেলবন্ধন ঘটে। আমরা বিশ্বাস করি প্রতিটি শিক্ষার্থীর মাঝেই লুকিয়ে আছে একজন সুপ্ত লেখক, কবি বা দার্শনিক। আমাদের মূল লক্ষ্য হলো সেই প্রতিভাকে খুঁজে বের করা এবং একটি সুস্থ সাহিত্যিক পরিবেশ নিশ্চিত করা।
         </p>
       </section>
 
@@ -198,7 +198,7 @@ export default function WillesSahityaClub() {
         </div>
 
         <div className="text-center">
-          <Link href="/achievement" className="text-xs font-bold text-stone-600 hover:text-rose-900 transition-colors inline-flex items-center gap-1">
+          <Link href="/achievements" className="text-xs font-bold text-stone-600 hover:text-rose-900 transition-colors inline-flex items-center gap-1">
             সকল অর্জনের তালিকা দেখুন →
           </Link>
         </div>
