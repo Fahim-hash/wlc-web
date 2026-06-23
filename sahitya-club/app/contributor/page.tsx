@@ -3,7 +3,7 @@
 import React from "react";
 import Image from "next/image";
 
-// কন্ট্রিবিউটর ডাটা এরে (JSON স্ট্রাকচার অনুযায়ী)
+// ৪টি পার্টনারসহ আপডেটেড ডাটা এরে
 const contributors = [
   {
     id: "relax-studio",
@@ -14,20 +14,28 @@ const contributors = [
     instagram: "https://www.instagram.com/relaxstudio__"
   },
   {
+    id: "we-are-willians",
+    name: "We Are Willians",
+    role: "Official Media Partner",
+    description: "উইল্‌স লিটল ফ্লাওয়ার স্কুল অ্যান্ড কলেজের ছাত্র-ছাত্রীদের সর্ববৃহৎ কমিউনিটি প্ল্যাটফর্ম ও সাহিত্য ক্লাবের অফিশিয়াল মিডিয়া পার্টনার।",
+    logo: "/wearewillians.png",
+    instagram: "https://www.instagram.com/we_are_willians"
+  },
+  {
     id: "nirob-creative",
     name: "Nirob Creative Studio",
     role: "Creative Support",
     description: "ক্লাবের বিভিন্ন প্রকাশনা, দেয়ালিকা এবং ব্র্যান্ডিং মেটেরিয়ালসের নান্দনিক গ্রাফিক্স ও ক্রিয়েটিভ ডিজাইন অ্যাসিস্ট্যান্স।",
-    logo: "/nirobcreative.png",
-    instagram: "https://www.instagram.com/"
+    logo: "/nirob.png",
+    instagram: "https://www.instagram.com/visuals_by_nirob"
   },
   {
     id: "shuttered-rakib",
     name: "Shuttered by Rakib",
     role: "Photography and Cinematography",
-    "description": "উইল্‌স সাহিত্য ক্লাবের সকল অফলাইন ইভেন্ট, স্মৃতির পাতা এবং সিনেমাটিক মুহূর্তগুলোর অফিশিয়াল মিডিয়া ও ভিজ্যুয়াল ক্যাপচারিং পার্টনার।",
-    logo: "/shutteredrakib.png",
-    instagram: "https://www.instagram.com/"
+    description: "উইল্‌স সাহিত্য ক্লাবের সকল অফলাইন ইভেন্ট, স্মৃতির পাতা এবং সিনেমাটিক মুহূর্তগুলোর অফিশিয়াল মিডিয়া ও ভিজ্যুয়াল ক্যাপচারিং পার্টনার।",
+    logo: "/rakib.png",
+    instagram: "https://www.instagram.com/shutteredby_rakib"
   }
 ];
 
@@ -41,11 +49,11 @@ export default function ContributorPage() {
           Partners & Support
         </span>
         <h1 className="text-4xl font-bold font-serif text-gray-900 mt-3 mb-2">Official Contributors</h1>
-        <p className="text-gray-500 text-sm md:text-base">উইল্‌স সাহিত্য ক্লাবের অগ্রযাত্রায় নিয়োজিত ক্রিয়েটিভ পার্টনারবৃন্দ।</p>
+        <p className="text-gray-500 text-sm md:text-base">উইল্‌স সাহিত্য ক্লাবের অগ্রযাত্রায় নিয়োজিত ক্রিয়েটিভ ও মিডিয়া পার্টনারবৃন্দ।</p>
       </header>
 
       {/* 🛠️ কন্ট্রিবিউটর গ্রিড লেআউট */}
-      <section className="grid grid-cols-1 md:grid-cols-3 gap-6 my-4">
+      <section className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-6 my-4">
         {contributors.map((studio) => (
           <div 
             key={studio.id} 
@@ -65,16 +73,16 @@ export default function ContributorPage() {
 
               {/* টাইটেল ও রোল */}
               <div className="space-y-1">
-                <h2 className="text-lg font-bold text-gray-900 group-hover:text-rose-900 transition-colors">
+                <h2 className="text-base font-bold text-gray-900 group-hover:text-rose-900 transition-colors line-clamp-1">
                   {studio.name}
                 </h2>
-                <p className="text-rose-700 text-[11px] font-bold uppercase tracking-wider">
+                <p className="text-rose-700 text-[10px] font-bold uppercase tracking-wider block min-h-[16px]">
                   {studio.role}
                 </p>
               </div>
 
               {/* বর্ণনা */}
-              <p className="text-gray-600 text-xs leading-relaxed font-medium">
+              <p className="text-gray-600 text-[11px] leading-relaxed font-medium line-clamp-4">
                 {studio.description}
               </p>
             </div>
