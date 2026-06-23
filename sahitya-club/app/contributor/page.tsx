@@ -26,7 +26,7 @@ const contributors = [
     name: "Nirob Creative Studio",
     role: "Creative Support",
     description: "ক্লাবের বিভিন্ন প্রকাশনা, দেয়ালিকা এবং ব্র্যান্ডিং মেটেরিয়ালসের নান্দনিক গ্রাফিক্স ও ক্রিয়েটিভ ডিজাইন অ্যাসিস্ট্যান্স।",
-    logo: "/nirob.png",
+    logo: "/nirob.jpg",
     instagram: "https://www.instagram.com/visuals_by_nirob"
   },
   {
@@ -34,7 +34,7 @@ const contributors = [
     name: "Shuttered by Rakib",
     role: "Photography and Cinematography",
     description: "উইল্‌স সাহিত্য ক্লাবের সকল অফলাইন ইভেন্ট, স্মৃতির পাতা এবং সিনেমাটিক মুহূর্তগুলোর অফিশিয়াল মিডিয়া ও ভিজ্যুয়াল ক্যাপচারিং পার্টনার।",
-    logo: "/rakib.png",
+    logo: "/rakib.jpg",
     instagram: "https://www.instagram.com/shutteredby_rakib"
   }
 ];
