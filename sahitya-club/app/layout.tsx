@@ -58,25 +58,24 @@ export default function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const desktopLinks = [
+  // ডেক্সটপ মেইন বার
+  const desktopMainLinks = [
     { name: "হোম", path: "/" },
     { name: "আমাদের কথা", path: "/about" },
     { name: "আর্কাইভ ও প্যানেল", path: "/panel" },
     { name: "শিক্ষক মডারেটর", path: "/panel/moderator" },
   ];
 
-  const mobileLinks = [
-    { name: "হোম", path: "/" },
-    { name: "আমাদের কথা", path: "/about" },
-    { name: "অর্জনসমূহ", path: "/achievement" },
-    { name: "অ্যালবাম", path: "/album" },
-    { name: "যোগাযোগ", path: "/contact" },
-    { name: "ইভেন্টস", path: "/events" },
-    { name: "সাধারণ জিজ্ঞাসা (FAQ)", path: "/faq" },
-    { name: "অফিশিয়াল প্যানেল", path: "/panel" },
-    { name: "সদস্য নিবন্ধন", path: "/register" },
-    { name: "শব্দকোষ", path: "/shobdo" },
-    { name: "মুক্ত লেখনী ডেস্ক", path: "/writing" },
+  // ডেক্সটপ ড্রপডাউন এবং মোবাইলের কম্বাইন্ড ডিরেক্টরি
+  const extendedLinks = [
+    { name: "মুক্ত লেখনী ডেস্ক", path: "/writing", emoji: "✍️" },
+    { name: "সদস্য নিবন্ধন", path: "/register", emoji: "📝" },
+    { name: "ইভেন্টস", path: "/events", emoji: "📅" },
+    { name: "অর্জনসমূহ", path: "/achievement", emoji: "🏆" },
+    { name: "অ্যালবাম", path: "/album", emoji: "🖼️" },
+    { name: "শব্দকোষ", path: "/shobdo", emoji: "📖" },
+    { name: "সাধারণ জিজ্ঞাসা (FAQ)", path: "/faq", emoji: "❓" },
+    { name: "যোগাযোগ", path: "/contact", emoji: "📞" },
   ];
 
   const jsonLd = {
@@ -138,24 +137,43 @@ export default function RootLayout({
               </div>
             </Link>
 
-            {/* ডেক্সটপ নেভিগেশন */}
-            <nav className="hidden md:flex items-center gap-1 bg-stone-100 p-1 rounded-xl border border-stone-200/40">
-              {desktopLinks.map((link, idx) => (
+            {/* 🖥️ ডেক্সটপ নেভিগেশন (ড্রপডাউন সিস্টেম সহ আপগ্রেডেড) */}
+            <nav className="hidden md:flex items-center gap-1 bg-stone-100 p-1 rounded-xl border border-stone-200/40 relative">
+              {desktopMainLinks.map((link, idx) => (
                 <Link 
                   key={idx} 
                   href={link.path}
-                  className="text-stone-600 hover:text-stone-950 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 hover:bg-white"
+                  className="text-stone-600 hover:text-stone-950 px-3.5 py-2 rounded-lg text-sm font-medium transition-all duration-200 hover:bg-white"
                 >
                   {link.name}
                 </Link>
               ))}
+
+              {/* ▾ পিওর সিএসএস ডেক্সটপ ড্রপডাউন (Hover Triggered) */}
+              <div className="relative group/desktop">
+                <button className="text-stone-600 group-hover/desktop:text-stone-950 px-3.5 py-2 rounded-lg text-sm font-semibold transition-all duration-200 flex items-center gap-1 group-hover/desktop:bg-white">
+                  অন্যান্য ডিরেক্টরি <span className="text-[10px] text-stone-400 transition-transform group-hover/desktop:rotate-180">▼</span>
+                </button>
+                
+                {/* ড্রপডাউন মেনু প্যানেল */}
+                <div className="absolute right-0 top-full mt-2 w-56 bg-white border border-stone-200 rounded-2xl shadow-xl py-2 opacity-0 invisible translate-y-2 group-hover/desktop:opacity-100 group-hover/desktop:visible group-hover/desktop:translate-y-0 transition-all duration-200 z-50">
+                  {extendedLinks.map((link, idx) => (
+                    <Link
+                      key={idx}
+                      href={link.path}
+                      className="flex items-center gap-2 px-4 py-2.5 text-sm text-stone-700 hover:bg-stone-50 hover:text-rose-900 transition-colors font-medium"
+                    >
+                      <span>{link.emoji}</span>
+                      <span>{link.name}</span>
+                    </Link>
+                  ))}
+                </div>
+              </div>
             </nav>
 
-            {/* ================= FIXED PURE CSS HAMBURGER & DROPDOWN SYSTEM ================= */}
-            {/* ১. ইনপুট চেক বক্স পিয়ার সিলেক্টরের জন্য সবার প্রথমে থাকবে */}
+            {/* ================= FIXED PURE CSS HAMBURGER & DROPDOWN SYSTEM (MOBILE) ================= */}
             <input type="checkbox" id="menu-toggle" className="peer hidden" />
             
-            {/* ২. রেসপনসিভ হ্যামবার্গার আইকন বাটন (ক্লিক ট্রিপল লাইন) */}
             <label 
               htmlFor="menu-toggle" 
               className="flex md:hidden flex-col justify-between w-6 h-4 cursor-pointer z-50 relative p-0.5"
@@ -165,19 +183,23 @@ export default function RootLayout({
               <span className="w-full h-0.5 bg-stone-950 rounded-full transition-all duration-300 transform origin-center peer-checked:bg-stone-950 peer-checked:-rotate-45 peer-checked:-translate-y-2"></span>
             </label>
 
-            {/* ৩. মোবাইল ড্রপডাউন মেনু প্যানেল (ইনপুট টগল চেকড হলে স্লাইড ডাউন হবে) */}
+            {/* 📱 মোবাইল ড্রপডাউন প্যানেল */}
             <div className="fixed inset-x-0 top-0 h-screen bg-white/95 backdrop-blur-xl border-b border-stone-200 transition-all duration-300 ease-in-out z-40 md:hidden flex flex-col pt-24 px-6 overflow-y-auto pb-8 shadow-xl translate-y-[-100%] opacity-0 invisible peer-checked:translate-y-0 peer-checked:opacity-100 peer-checked:visible">
               <span className="text-[10px] font-bold uppercase tracking-widest text-rose-900 border-b border-stone-100 pb-2 mb-4">
                 ওয়েবসাইট ডিরেক্টরি 📖
               </span>
               <nav className="flex flex-col gap-1">
-                {mobileLinks.map((link, idx) => (
+                {/* মোবাইল স্ক্রিনে সব লিঙ্ক একসাথে দেখা যাবে */}
+                {[...desktopMainLinks, ...extendedLinks].map((link, idx) => (
                   <Link
                     key={idx}
                     href={link.path}
                     className="text-stone-800 hover:text-rose-900 font-semibold text-base py-3 border-b border-stone-50/80 transition-colors flex items-center justify-between group"
                   >
-                    <span>{link.name}</span>
+                    <div className="flex items-center gap-2">
+                      {"emoji" in link && <span>{link.emoji}</span>}
+                      <span>{link.name}</span>
+                    </div>
                     <span className="text-stone-300 group-hover:text-rose-900 transition-colors text-xs font-mono">➔</span>
                   </Link>
                 ))}
@@ -193,11 +215,11 @@ export default function RootLayout({
           {children}
         </main>
 
-        {/* ================= GLOBAL FOOTER (DEVELOPER EDITION) ================= */}
+        {/* ================= GLOBAL FOOTER ================= */}
         <footer className="w-full bg-white border-t border-stone-200/60 py-10 mt-auto relative z-20">
           <div className="max-w-6xl mx-auto px-4 grid grid-cols-1 md:grid-cols-3 gap-8 items-center text-center md:text-left">
 
-            {/* বাম অংশ: কপিরাইট ও প্রাতিষ্ঠানিক তথ্য */}
+            {/* কপিরাইট */}
             <div className="flex flex-col gap-1">
               <p className="text-xs font-semibold text-stone-600">
                 © ২০২৬ উইল্‌স সাহিত্য ক্লাব। সর্বস্বত্ব সংরক্ষিত।
@@ -210,7 +232,7 @@ export default function RootLayout({
               </p>
             </div>
 
-            {/* can adjust contact details safely */}
+            {/* কন্টাক্ট এবং ডেভেলপার বাটন */}
             <div className="flex flex-col items-center md:items-start gap-3">
               <div className="flex flex-col gap-1 text-xs text-stone-500 font-medium">
                 <span className="text-stone-800 font-bold uppercase tracking-wider text-[10px]">যোগাযোগ করুন</span>
@@ -222,7 +244,6 @@ export default function RootLayout({
                 </a>
               </div>
 
-              {/* প্রিমিয়াম ডেভেলপার বাটন */}
               <div className="mt-1">
                 <a 
                   href="https://www.instagram.com/relaxstudio__" 
@@ -236,7 +257,7 @@ export default function RootLayout({
               </div>
             </div>
 
-            {/* ডান অংশ: সোশ্যাল মিডিয়া পেজ লিঙ্কসমূহ */}
+            {/* সোশ্যাল মিডিয়া লিঙ্কসমূহ */}
             <div className="flex flex-col md:items-end gap-2">
               <span className="text-stone-800 font-bold uppercase tracking-wider text-[10px]">আমাদের সামাজিক মাধ্যম</span>
               <div className="flex items-center justify-center gap-3">
@@ -272,7 +293,7 @@ export default function RootLayout({
                   title="YouTube Channel"
                 >
                   <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
-                    <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+                    <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93 snowy .502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
                   </svg>
                 </a>
               </div>
