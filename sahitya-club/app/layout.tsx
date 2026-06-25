@@ -4,6 +4,13 @@ import Link from "next/link";
 import "./globals.css";
 import Image from "next/image";
 
+// ১. নেভিগেশন লিংকের জন্য টাইপস্ক্রিপ্ট ইন্টারফেস (টাইপ সেফটি বিল্ড এরর ফিক্স)
+interface NavLink {
+  name: string;
+  path: string;
+  emoji?: string;
+}
+
 const hindSiliguri = Hind_Siliguri({
   subsets: ["bengali", "latin"],
   weight: ["300", "400", "500", "600", "700"],
@@ -58,16 +65,16 @@ export default function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
-  // ডেক্সটপ মেইন বার
-  const desktopMainLinks = [
+  // ডেক্সটপ প্রধান লিঙ্কসমূহ
+  const desktopMainLinks: NavLink[] = [
     { name: "হোম", path: "/" },
     { name: "আমাদের কথা", path: "/about" },
     { name: "আর্কাইভ ও প্যানেল", path: "/panel" },
     { name: "শিক্ষক মডারেটর", path: "/panel/moderator" },
   ];
 
-  // ডেক্সটপ ড্রপডাউন এবং মোবাইলের কম্বাইন্ড ডিরেক্টরি
-  const extendedLinks = [
+  // ড্রপডাউন এবং মোবাইলের বর্ধিত লিঙ্কসমূহ
+  const extendedLinks: NavLink[] = [
     { name: "মুক্ত লেখনী ডেস্ক", path: "/writing", emoji: "✍️" },
     { name: "সদস্য নিবন্ধন", path: "/register", emoji: "📝" },
     { name: "ইভেন্টস", path: "/events", emoji: "📅" },
@@ -137,7 +144,7 @@ export default function RootLayout({
               </div>
             </Link>
 
-            {/* 🖥️ ডেক্সটপ নেভিগেশন (ড্রপডাউন সিস্টেম সহ আপগ্রেডেড) */}
+            {/* 🖥️ ডেক্সটপ নেভিগেশন */}
             <nav className="hidden md:flex items-center gap-1 bg-stone-100 p-1 rounded-xl border border-stone-200/40 relative">
               {desktopMainLinks.map((link, idx) => (
                 <Link 
@@ -163,7 +170,7 @@ export default function RootLayout({
                       href={link.path}
                       className="flex items-center gap-2 px-4 py-2.5 text-sm text-stone-700 hover:bg-stone-50 hover:text-rose-900 transition-colors font-medium"
                     >
-                      <span>{link.emoji}</span>
+                      {link.emoji && <span>{link.emoji}</span>}
                       <span>{link.name}</span>
                     </Link>
                   ))}
@@ -189,15 +196,14 @@ export default function RootLayout({
                 ওয়েবসাইট ডিরেক্টরি 📖
               </span>
               <nav className="flex flex-col gap-1">
-                {/* মোবাইল স্ক্রিনে সব লিঙ্ক একসাথে দেখা যাবে */}
-                {[...desktopMainLinks, ...extendedLinks].map((link, idx) => (
+                {[...desktopMainLinks, ...extendedLinks].map((link: NavLink, idx) => (
                   <Link
                     key={idx}
                     href={link.path}
                     className="text-stone-800 hover:text-rose-900 font-semibold text-base py-3 border-b border-stone-50/80 transition-colors flex items-center justify-between group"
                   >
                     <div className="flex items-center gap-2">
-                      {"emoji" in link && <span>{link.emoji}</span>}
+                      {link.emoji && <span>{link.emoji}</span>}
                       <span>{link.name}</span>
                     </div>
                     <span className="text-stone-300 group-hover:text-rose-900 transition-colors text-xs font-mono">➔</span>
@@ -293,7 +299,7 @@ export default function RootLayout({
                   title="YouTube Channel"
                 >
                   <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
-                    <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93 snowy .502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+                    <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
                   </svg>
                 </a>
               </div>
