@@ -24,7 +24,7 @@ const contributors = [
     id: "nirob-creative",
     name: "Nirob Creative Studio",
     role: "Creative Support",
-    description: "ক্লাবের বিভিন্ন প্রকাশনা, দেয়ালিকা এবং ব্র্যান্ডিং মেটেরিয়ালসের নান্দনিক গ্রাফিক্স ও ক্রিয়েティブ ডিজাইন অ্যাসিস্ট্যান্স।",
+    description: "ক্লাবের বিভিন্ন প্রকাশনা, দেয়ালিকা এবং ব্র্যান্ডিং মেটেরিয়ালসের নান্দনিক গ্রাফিক্স ও ক্রিয়েটিভ ডিজাইন অ্যাসিস্ট্যান্স।",
     logo: "/nirob.jpg",
     instagram: "https://www.instagram.com/visuals_by_nirob"
   },
@@ -40,10 +40,8 @@ const contributors = [
 
 export default function ContributorPage() {
   return (
-    // ফিক্সড: পুরো স্ক্রিন জুড়ে ব্যাকগ্রাউন্ড কালার নিশ্চিত করা হলো
     <main className="w-full min-h-screen bg-[#FAFAFA] text-gray-800 font-sans">
       
-      {/* ডেস্কটপ ও মোবাইলের জন্য রেসপন্সিভ কন্টেনার */}
       <div className="max-w-6xl mx-auto p-6 md:p-16 min-h-screen flex flex-col justify-center">
         
         {/* 🔮 হেডার সেকশন */}
@@ -55,35 +53,35 @@ export default function ContributorPage() {
             Official Contributors
           </h1>
           <p className="text-gray-500 text-sm md:text-base font-medium">
-            উইল্‌স সাহিত্য ক্লাবের অগ্রযাত্রায় নিয়োজিত ক্রিয়েティブ ও মিডিয়া পার্টনারবৃন্দ।
+            উইল্‌স সাহিত্য ক্লাবের অগ্রযাত্রায় নিয়োজিত ক্রিয়েটিভ ও মিডিয়া পার্টনারবৃন্দ।
           </p>
         </header>
 
-        {/* 🛠️ প্রিমিয়াম কন্ট্রিবিউটর গ্রিড লেআউট (PC ভার্সন অপ্টিমাইজড) */}
+        {/* 🛠️ প্রিমিয়াম কন্ট্রিবিউটর গ্রিড লেআউট */}
         <section className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-2 gap-8 my-4">
           {contributors.map((studio) => (
             <div 
               key={studio.id} 
               className="bg-white border border-gray-200/70 rounded-[2rem] p-6 md:p-8 shadow-sm flex flex-col justify-between space-y-6 relative overflow-hidden group hover:border-rose-200 hover:shadow-md transition-all duration-300"
             >
-              {/* পিসি ভার্সনের জন্য নান্দনিক ব্যাকগ্রাউন্ড গ্লো ইফেক্ট */}
               <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-rose-50/40 to-transparent rounded-bl-full pointer-events-none" />
               
               <div className="space-y-5">
                 
-                {/* টপ বার: লোগো এবং ডেকোরেটিভ অ্যারো */}
+                {/* টপ বার: লোগো বক্স এবং অ্যারো */}
                 <div className="flex items-center justify-between">
-                  {/* স্টুডিও লোগো বক্স */}
-                  <div className="relative w-16 h-16 bg-stone-50 rounded-2xl p-2 border border-stone-100 flex items-center justify-center shadow-inner select-none transition-transform duration-300 group-hover:scale-105 group-hover:rotate-2">
+                  {/* লোগো বক্স - স্কয়ার এবং কালারড */}
+                  <div className="relative w-16 h-16 bg-stone-50 rounded-xl p-1.5 border border-stone-100 flex items-center justify-center shadow-inner select-none transition-transform duration-300 group-hover:scale-105">
                     <Image
                       src={studio.logo}
                       alt={`${studio.name} Logo`}
-                      width={56}
-                      height={56}
-                      className="object-contain rounded-xl filter grayscale group-hover:grayscale-0 transition-all duration-500"
+                      width={64}
+                      height={64}
+                      className="object-contain aspect-square" // লোগো সবসময় স্কয়ার থাকবে এবং অরিজিনাল কালার শো করবে
+                      priority
                     />
                   </div>
-                  {/* ডাইনামিক ট্র্যাকিং অ্যারো */}
+                  
                   <span className="text-stone-300 group-hover:text-rose-700 font-mono text-lg transition-all duration-300 transform group-hover:translate-x-1 group-hover:-translate-y-1">
                     ↗
                   </span>
@@ -111,7 +109,7 @@ export default function ContributorPage() {
                   href={studio.instagram}
                   target="_blank" 
                   rel="noopener noreferrer"
-                  className="inline-flex w-full items-center justify-center bg-stone-950 hover:bg-rose-900 text-white font-semibold text-xs py-3 px-4 rounded-xl transition-all duration-300 shadow-sm gap-2 active:scale-98 group-hover:shadow-rose-900/10"
+                  className="inline-flex w-full items-center justify-center bg-stone-950 hover:bg-rose-900 text-white font-semibold text-xs py-3 px-4 rounded-xl transition-all duration-300 shadow-sm gap-2 active:scale-98"
                 >
                   📸 Connect on Instagram
                 </a>
