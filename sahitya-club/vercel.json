@@ -1,0 +1,8 @@
+{
+  "crons": [
+    {
+      "path": "/api/cron/generate-words?key=wlc_secret_cron_2026",
+      "schedule": "0 18 * * *"
+    }
+  ]
+}
