@@ -3,7 +3,7 @@ import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
 // যখন মেইনটেইন্যান্স মোড অন করতে চাও, এটাকে true করে দেবে 🚀
-const IS_MAINTENANCE_MODE = false; 
+const IS_MAINTENANCE_MODE = true; 
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
