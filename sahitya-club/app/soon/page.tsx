@@ -111,7 +111,7 @@ export default function ComingSoonPage() {
             "সাহিত্যের বন্ধনে, প্রতিভার সন্ধানে..."
           </p>
           <p className="text-stone-500 text-xs md:text-sm font-medium max-w-md mx-auto leading-relaxed pt-2">
-            আমাদের অফিশিয়াল Web প্ল্যাটফর্মটি চমৎকার সব কন্টেন্ট ও ইন্টারঅ্যাক্টিভ ফিচার দিয়ে সাজানো হচ্ছে।
+            আমাদের অফিশিয়াল ওয়েব প্ল্যাটফর্মটি চমৎকার সব কন্টেন্ট ও ইন্টারঅ্যাক্টিভ ফিচার দিয়ে সাজানো হচ্ছে।
           </p>
         </div>
 
