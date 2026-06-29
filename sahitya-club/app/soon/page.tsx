@@ -4,7 +4,7 @@ import React, { useState, useEffect } from "react";
 import Image from "next/image";
 
 export default function ComingSoonPage() {
-  // ১. লাইভ কাউন্টডাউন স্টেট (সাহিত্য ক্লাবের পরবর্তী মেগা ইভেন্ট টার্গেট করে)
+  // ১. লাইভ কাউন্টডাউন স্টেট
   const [timeLeft, setTimeLeft] = useState({
     days: 0,
     hours: 0,
@@ -13,9 +13,24 @@ export default function ComingSoonPage() {
   });
 
   const [isSurprised, setIsSurprised] = useState(false);
+  const [fallingElements, setFallingElements] = useState<any[]>([]);
+
+  // ২. ক্লাবের ভাইব অনুযায়ী পেজ লোড হলে ব্যাকগ্রাউন্ডের এলিমেন্টগুলো জেনারেট করা
+  useEffect(() => {
+    const items = Array.from({ length: 20 }).map((_, i) => ({
+      id: i,
+      left: `${Math.random() * 100}%`,
+      delay: `${Math.random() * 10}s`,
+      duration: `${6 + Math.random() * 8}s`,
+      size: `${12 + Math.random() * 16}px`,
+      opacity: 0.15 + Math.random() * 0.3,
+      // সাহিত্য ক্লাবের জন্য বই, কলম, তারা ও ফুলের পাপড়ির ইমোজি মিক্স
+      content: ["🌸", "✨", "✒️", "📄", "✨"][Math.floor(Math.random() * 5)],
+    }));
+    setFallingElements(items);
+  }, []);
 
   useEffect(() => {
-    // সাহিত্য ক্লাবের আপকামিং ধামাকার একটি ফিউচার ডেট সেট করা হলো
     const targetDate = new Date("2026-09-01T10:30:00").getTime();
 
     const interval = setInterval(() => {
@@ -41,26 +56,45 @@ export default function ComingSoonPage() {
   return (
     <main className="w-full min-h-screen bg-[#FAFAFA] text-stone-800 font-sans flex items-center justify-center p-4 md:p-8 relative overflow-hidden">
       
-      {/* ব্যাকগ্রাউন্ড ক্রিয়েটিভ গ্লো আর্ট (WLC ক্লাসিক রোজ থিম) */}
-      <div className="absolute top-[-10%] left-[-10%] w-[50vw] h-[50vw] bg-rose-100/30 rounded-full blur-[120px] pointer-events-none" />
-      <div className="absolute bottom-[-10%] right-[-10%] w-[40vw] h-[40vw] bg-stone-200/40 rounded-full blur-[100px] pointer-events-none" />
+      {/* 🍂 Falling Elements Layer (Decoration) */}
+      <div className="absolute inset-0 pointer-events-none overflow-hidden select-none z-0">
+        {fallingElements.map((item) => (
+          <div
+            key={item.id}
+            className="absolute animate-fall"
+            style={{
+              left: item.left,
+              animationDelay: item.delay,
+              animationDuration: item.duration,
+              fontSize: item.size,
+              opacity: item.opacity,
+              top: "-5%",
+            }}
+          >
+            {item.content}
+          </div>
+        ))}
+      </div>
 
-      <div className="max-w-3xl w-full text-center bg-white border border-stone-200/80 rounded-[2.5rem] p-8 md:p-16 shadow-xl relative overflow-hidden transition-all duration-300 hover:shadow-2xl hover:border-rose-200/50">
-        
+      {/* ব্যাকগ্রাউন্ড ক্রিয়েটিভ গ্লো আর্ট (WLC ক্লাসিক রোজ থিম) */}
+      <div className="absolute top-[-10%] left-[-10%] w-[50vw] h-[50vw] bg-rose-100/30 rounded-full blur-[120px] pointer-events-none z-0" />
+      <div className="absolute bottom-[-10%] right-[-10%] w-[40vw] h-[40vw] bg-stone-200/40 rounded-full blur-[100px] pointer-events-none z-0" />
+
+      <div className="max-w-3xl w-full text-center bg-white border border-stone-200/80 rounded-[2.5rem] p-8 md:p-16 shadow-xl relative overflow-hidden transition-all duration-300 hover:shadow-2xl hover:border-rose-200/50 z-10">
+
         {/* টপ মেটালিক অ্যান্ড নিওন এক্সেন্ট */}
         <div className="absolute top-0 inset-x-0 h-1.5 bg-gradient-to-r from-rose-900 via-stone-900 to-rose-700" />
 
         {/* 🎯 উইল্‌স সাহিত্য ক্লাব অফিশিয়াল স্কয়ার লোগো বক্স */}
         <div className="relative w-24 h-24 mx-auto mb-6 bg-stone-50 rounded-2xl p-2 border border-stone-200/60 flex items-center justify-center shadow-md select-none transition-all duration-500 hover:scale-110 hover:rotate-3 hover:shadow-rose-900/10 group">
           <Image
-            src="/logo.png" // সাহিত্য ক্লাবের মেইন অফিশিয়াল লোগো
+            src="/logo.png" 
             alt="Willes Literary Club Logo"
             width={80}
             height={80}
             className="object-contain aspect-square"
             priority
           />
-          {/* লোগো কর্নার লাইট ইফেক্ট */}
           <div className="absolute inset-0 border border-transparent group-hover:border-rose-900/20 rounded-2xl transition-colors duration-500" />
         </div>
 
@@ -77,7 +111,7 @@ export default function ComingSoonPage() {
             "সাহিত্যের বন্ধনে, প্রতিভার সন্ধানে..."
           </p>
           <p className="text-stone-500 text-xs md:text-sm font-medium max-w-md mx-auto leading-relaxed pt-2">
-            আমাদের অফিশিয়াল ওয়েব প্ল্যাটফর্মটি চমৎকার সব কন্টেন্ট ও ইন্টারঅ্যাক্টিভ ফিচার দিয়ে সাজানো হচ্ছে।
+            আমাদের অফিশিয়াল Web প্ল্যাটফর্মটি চমৎকার সব কন্টেন্ট ও ইন্টারঅ্যাক্টিভ ফিচার দিয়ে সাজানো হচ্ছে।
           </p>
         </div>
 
@@ -105,8 +139,6 @@ export default function ComingSoonPage() {
 
         {/* 🛠️ ইন্টারঅ্যাক্টিভ অ্যাকশন বাটন এরিয়া */}
         <div className="pt-2 flex flex-col sm:flex-row gap-4 justify-center items-center max-w-sm mx-auto">
-          
-          {/* সারপ্রাইজ বাটন (ইন্টারঅ্যাক্টিভ স্টেট ট্রিগার) */}
           <button 
             onClick={() => {
               setIsSurprised(true);
@@ -117,7 +149,6 @@ export default function ComingSoonPage() {
             {isSurprised ? "🎉 প্রস্তুত তো উইলিয়ান?" : "✨ একটু ছোঁয়া দিয়ে দেখুন"}
           </button>
 
-          {/* পিওর রিলোড বাটন */}
           <button 
             onClick={() => window.location.reload()}
             className="w-full bg-white border border-stone-200 text-stone-800 hover:bg-stone-50 font-semibold text-xs py-3.5 px-6 rounded-xl transition-all duration-300 text-center active:scale-95 shadow-sm"
@@ -132,6 +163,23 @@ export default function ComingSoonPage() {
         </div>
 
       </div>
+
+      {/* 🎨 Falling Animation Keyframes CSS */}
+      <style jsx global>{`
+        @keyframes fall {
+          0% {
+            transform: translateY(0) rotate(0deg);
+          }
+          100% {
+            transform: translateY(110vh) rotate(360deg);
+          }
+        }
+        .animate-fall {
+          animation-name: fall;
+          animation-timing-function: linear;
+          animation-iteration-count: infinite;
+        }
+      `}</style>
     </main>
   );
 }
