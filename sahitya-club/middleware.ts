@@ -12,11 +12,11 @@ export function middleware(request: NextRequest) {
   // এবং কোনো ইমেজ বা লোগো ফাইল রিকোয়েস্ট না করে, তাকে রিডাইরেক্ট করো
   if (
     IS_MAINTENANCE_MODE && 
-    pathname !== '/maintenance' && 
+    pathname !== '/soon' && 
     !pathname.startsWith('/_next') && 
     !pathname.includes('.')
   ) {
-    return NextResponse.redirect(new URL('/maintenance', request.url))
+    return NextResponse.redirect(new URL('/soon', request.url))
   }
 
   return NextResponse.next()
