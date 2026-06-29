@@ -1,43 +1,134 @@
 "use client";
 
-import React from "react";
+import React, { useState, useEffect } from "react";
+import Image from "next/image";
 
 export default function ComingSoonPage() {
+  // ১. লাইভ কাউন্টডাউন স্টেট (সাহিত্য ক্লাবের পরবর্তী মেগা ইভেন্ট টার্গেট করে)
+  const [timeLeft, setTimeLeft] = useState({
+    days: 0,
+    hours: 0,
+    minutes: 0,
+    seconds: 0,
+  });
+
+  const [isSurprised, setIsSurprised] = useState(false);
+
+  useEffect(() => {
+    // সাহিত্য ক্লাবের আপকামিং ধামাকার একটি ফিউচার ডেট সেট করা হলো
+    const targetDate = new Date("2026-09-01T10:30:00").getTime();
+
+    const interval = setInterval(() => {
+      const now = new Date().getTime();
+      const difference = targetDate - now;
+
+      if (difference < 0) {
+        clearInterval(interval);
+        return;
+      }
+
+      const d = Math.floor(difference / (1000 * 60 * 60 * 24));
+      const h = Math.floor((difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+      const m = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60));
+      const s = Math.floor((difference % (1000 * 60)) / 1000);
+
+      setTimeLeft({ days: d, hours: h, minutes: m, seconds: s });
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, []);
+
   return (
-    <main className="w-full min-h-screen bg-[#FAFAFA] text-gray-800 font-sans flex items-center justify-center p-6">
-      <div className="max-w-xl w-full text-center space-y-6 bg-white border border-gray-200/70 rounded-[2rem] p-8 md:p-12 shadow-sm relative overflow-hidden">
+    <main className="w-full min-h-screen bg-[#FAFAFA] text-stone-800 font-sans flex items-center justify-center p-4 md:p-8 relative overflow-hidden">
+      
+      {/* ব্যাকগ্রাউন্ড ক্রিয়েটিভ গ্লো আর্ট (WLC ক্লাসিক রোজ থিম) */}
+      <div className="absolute top-[-10%] left-[-10%] w-[50vw] h-[50vw] bg-rose-100/30 rounded-full blur-[120px] pointer-events-none" />
+      <div className="absolute bottom-[-10%] right-[-10%] w-[40vw] h-[40vw] bg-stone-200/40 rounded-full blur-[100px] pointer-events-none" />
+
+      <div className="max-w-3xl w-full text-center bg-white border border-stone-200/80 rounded-[2.5rem] p-8 md:p-16 shadow-xl relative overflow-hidden transition-all duration-300 hover:shadow-2xl hover:border-rose-200/50">
         
-        {/* টপ ডেকোরেশন গ্লো */}
-        <div className="absolute top-0 inset-x-0 h-2 bg-gradient-to-r from-rose-500 via-stone-900 to-rose-900" />
+        {/* টপ মেটালিক অ্যান্ড নিওন এক্সেন্ট */}
+        <div className="absolute top-0 inset-x-0 h-1.5 bg-gradient-to-r from-rose-900 via-stone-900 to-rose-700" />
 
-        {/* ম্যাজিক আইকন বক্স */}
-        <div className="w-20 h-20 bg-rose-50 rounded-2xl border border-rose-100/70 flex items-center justify-center mx-auto text-4xl select-none transform hover:rotate-12 transition-transform duration-300">
-          ✨
+        {/* 🎯 উইল্‌স সাহিত্য ক্লাব অফিশিয়াল স্কয়ার লোগো বক্স */}
+        <div className="relative w-24 h-24 mx-auto mb-6 bg-stone-50 rounded-2xl p-2 border border-stone-200/60 flex items-center justify-center shadow-md select-none transition-all duration-500 hover:scale-110 hover:rotate-3 hover:shadow-rose-900/10 group">
+          <Image
+            src="/logo.png" // সাহিত্য ক্লাবের মেইন অফিশিয়াল লোগো
+            alt="Willes Literary Club Logo"
+            width={80}
+            height={80}
+            className="object-contain aspect-square"
+            priority
+          />
+          {/* লোগো কর্নার লাইট ইফেক্ট */}
+          <div className="absolute inset-0 border border-transparent group-hover:border-rose-900/20 rounded-2xl transition-colors duration-500" />
         </div>
 
-        {/* টাইটেল ও সাবটাইটেল */}
-        <div className="space-y-2">
-          <span className="text-rose-700 text-xs font-bold uppercase tracking-widest bg-rose-50 px-3 py-1 rounded-full border border-rose-100 inline-block">
-            Coming Soon
+        {/* ক্লাবের নাম ও স্লোগান */}
+        <div className="space-y-3">
+          <span className="inline-flex items-center gap-1.5 text-rose-900 text-xs font-bold uppercase tracking-widest bg-rose-50 px-4 py-1.5 rounded-full border border-rose-100/80 animate-bounce">
+            <span className="w-2 h-2 rounded-full bg-rose-800 animate-pulse"></span>
+            নতুন ফিচার আসছে
           </span>
-          <h1 className="text-3xl md:text-4xl font-bold font-serif text-gray-900 tracking-tight mt-2">
-            নতুন চমক আসছে!
+          <h1 className="text-3xl md:text-5xl font-bold font-serif text-stone-950 tracking-tight mt-2">
+            উইল্‌স সাহিত্য ক্লাব
           </h1>
+          <p className="text-rose-900/80 text-xs md:text-sm font-semibold tracking-wide italic">
+            "সাহিত্যের বন্ধনে, প্রতিভার সন্ধানে..."
+          </p>
+          <p className="text-stone-500 text-xs md:text-sm font-medium max-w-md mx-auto leading-relaxed pt-2">
+            আমাদের অফিশিয়াল ওয়েব প্ল্যাটফর্মটি চমৎকার সব কন্টেন্ট ও ইন্টারঅ্যাক্টিভ ফিচার দিয়ে সাজানো হচ্ছে।
+          </p>
         </div>
 
-        {/* বিবরণী */}
-        <p className="text-gray-600 text-sm leading-relaxed font-medium max-w-sm mx-auto">
-          উইল্‌স সাহিত্য ক্লাবের এই ফিচারটি বর্তমানে চমৎকার সব কন্টেন্ট ও আইডিয়া দিয়ে সাজানো হচ্ছে। খুব দ্রুতই এটি সবার জন্য উন্মুক্ত করা হবে।
-        </p>
+        {/* ⏳ লাইভ কাউন্টডাউন টাইমার */}
+        <div className="grid grid-cols-4 gap-2 md:gap-4 max-w-lg mx-auto my-8">
+          {[
+            { label: "দিন", value: timeLeft.days },
+            { label: "ঘণ্টা", value: timeLeft.hours },
+            { label: "মিনিট", value: timeLeft.minutes },
+            { label: "সেকেন্ড", value: timeLeft.seconds },
+          ].map((item, index) => (
+            <div 
+              key={index} 
+              className="bg-stone-50/80 border border-stone-200/60 rounded-2xl p-3 md:p-4 flex flex-col justify-center items-center shadow-inner group/time transition-all duration-300 hover:bg-rose-900 hover:text-white"
+            >
+              <span className="text-xl md:text-3xl font-bold font-mono tracking-tight text-stone-900 group-hover/time:text-white transition-colors">
+                {String(item.value).padStart(2, "0")}
+              </span>
+              <span className="text-[10px] md:text-xs font-bold text-stone-400 group-hover/time:text-rose-200 transition-colors mt-1">
+                {item.label}
+              </span>
+            </div>
+          ))}
+        </div>
 
-        {/* অ্যাকশন বাটন - কোনো লিংক ছাড়া, শুধু রিলোড ফাংশন */}
-        <div className="pt-4 max-w-xs mx-auto">
+        {/* 🛠️ ইন্টারঅ্যাক্টিভ অ্যাকশন বাটন এরিয়া */}
+        <div className="pt-2 flex flex-col sm:flex-row gap-4 justify-center items-center max-w-sm mx-auto">
+          
+          {/* সারপ্রাইজ বাটন (ইন্টারঅ্যাক্টিভ স্টেট ট্রিগার) */}
+          <button 
+            onClick={() => {
+              setIsSurprised(true);
+              setTimeout(() => setIsSurprised(false), 3000);
+            }}
+            className="w-full bg-stone-950 hover:bg-rose-900 text-white font-semibold text-xs py-3.5 px-6 rounded-xl transition-all duration-300 shadow-md text-center active:scale-95 flex items-center justify-center gap-2 select-none"
+          >
+            {isSurprised ? "🎉 প্রস্তুত তো উইলিয়ান?" : "✨ একটু ছোঁয়া দিয়ে দেখুন"}
+          </button>
+
+          {/* পিওর রিলোড বাটন */}
           <button 
             onClick={() => window.location.reload()}
-            className="w-full bg-stone-950 hover:bg-rose-900 text-white font-semibold text-xs py-3 px-6 rounded-xl transition-all duration-300 shadow-sm text-center active:scale-98"
+            className="w-full bg-white border border-stone-200 text-stone-800 hover:bg-stone-50 font-semibold text-xs py-3.5 px-6 rounded-xl transition-all duration-300 text-center active:scale-95 shadow-sm"
           >
-            🔄 পেজটি রিফ্রেশ করুন
+            পেজ রিফ্রেশ করুন
           </button>
+        </div>
+
+        {/* সারপ্রাইজ টেক্সট পপ-আপ */}
+        <div className={`mt-6 text-xs font-semibold text-rose-900 bg-rose-50 border border-rose-100 rounded-xl py-2.5 px-4 inline-block transition-all duration-500 transform ${isSurprised ? "opacity-100 translate-y-0 scale-100" : "opacity-0 translate-y-2 scale-95 pointer-events-none"}`}>
+          ✨ সাহিত্যের ডিজিটাল মঞ্চ সাজাতে দিন-রাত কাজ করছে আমাদের ক্রিয়েটিভ টিম!
         </div>
 
       </div>
