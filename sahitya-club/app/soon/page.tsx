@@ -68,7 +68,7 @@ export default function ComingSoonPage() {
         <div className="space-y-3">
           <span className="inline-flex items-center gap-1.5 text-rose-900 text-xs font-bold uppercase tracking-widest bg-rose-50 px-4 py-1.5 rounded-full border border-rose-100/80 animate-bounce">
             <span className="w-2 h-2 rounded-full bg-rose-800 animate-pulse"></span>
-            নতুন ফিচার আসছে
+            নতুন চমক আসছে
           </span>
           <h1 className="text-3xl md:text-5xl font-bold font-serif text-stone-950 tracking-tight mt-2">
             উইল্‌স সাহিত্য ক্লাব
