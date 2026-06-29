@@ -1,48 +1,51 @@
-import Image from "next/image";
+"use client";
+
+import React from "react";
 
 export default function MaintenancePage() {
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center px-6 bg-stone-950 text-stone-100 antialiased select-none">
-      <div className="max-w-sm w-full text-center space-y-6">
+    <main className="w-full min-h-screen bg-[#FAFAFA] text-gray-800 font-sans flex items-center justify-center p-6">
+      <div className="max-w-xl w-full text-center space-y-6 bg-white border border-gray-200/80 rounded-[2rem] p-8 md:p-12 shadow-sm relative overflow-hidden">
         
-        {/* ক্লাবের লোগো */}
-        <div className="relative w-16 h-16 mx-auto bg-stone-900 rounded-2xl border border-stone-800 flex items-center justify-center shadow-inner">
-          <Image 
-            src="/logo.png" 
-            alt="WLC Logo" 
-            fill 
-            className="object-contain p-2 grayscale opacity-90"
-            priority
-          />
+        {/* টপ ডেকোরেশন গ্লো */}
+        <div className="absolute top-0 inset-x-0 h-2 bg-gradient-to-r from-amber-400 via-rose-500 to-amber-500" />
+        
+        {/* অ্যানিমেটেড আইকন বক্স */}
+        <div className="w-20 h-20 bg-amber-50 rounded-2xl border border-amber-100/70 flex items-center justify-center mx-auto text-4xl select-none animate-pulse">
+          🛠️
         </div>
 
-        {/* সলিড ও বোল্ড টেক্সট */}
+        {/* টাইটেল ও সাবটাইটেল */}
         <div className="space-y-2">
-          <h1 className="text-3xl font-black tracking-tight text-white uppercase sm:text-4xl">
-            Opening Soon
-          </h1>
-          <p className="text-stone-400 text-sm leading-relaxed max-w-[280px] mx-auto">
-            উইল্‌স সাহিত্য ক্লাবের নতুন ওয়েব প্ল্যাটফর্ম প্রস্তুত হচ্ছে। আমরা খুব শীঘ্রই আসছি।
-          </p>
-        </div>
-
-        {/* মিনিমাল পালস ডট */}
-        <div className="flex items-center justify-center pt-2">
-          <span className="flex h-2 w-2 relative">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-500 opacity-75"></span>
-            <span className="relative inline-flex rounded-full h-2 w-2 bg-rose-600"></span>
+          <span className="text-amber-700 text-xs font-bold uppercase tracking-widest bg-amber-50 px-3 py-1 rounded-full border border-amber-100 inline-block">
+            Under Maintenance
           </span>
+          <h1 className="text-3xl md:text-4xl font-bold font-serif text-gray-900 tracking-tight mt-2">
+            সাময়িক বিরতি
+          </h1>
         </div>
 
-        {/* একদম নিট ফুটার */}
-        <div className="pt-8 border-t border-stone-900/60 flex items-center justify-between text-[11px] text-stone-600 font-medium">
-          <p>© 2026 Willes Sahitto Club</p>
-          <p className="tracking-wide">
-            Dev: <span className="text-stone-400 font-semibold">Relax Studio</span>
-          </p>
+        {/* বিবরণী */}
+        <p className="text-gray-600 text-sm leading-relaxed font-medium max-w-sm mx-auto">
+          ওয়েবসাইটটিকে আরও সুন্দর ও দ্রুততর করার জন্য কিছু টেকনিক্যাল আপগ্রেডের কাজ চলছে। আমরা খুব শীঘ্রই আবার ফিরে আসছি!
+        </p>
+
+        {/* প্রгнозы ইন্ডিকেটর */}
+        <div className="w-full bg-stone-100 rounded-full h-1.5 max-w-xs mx-auto overflow-hidden">
+          <div className="bg-gradient-to-r from-amber-500 to-rose-600 h-1.5 rounded-full w-3/4" />
+        </div>
+
+        {/* অ্যাকশন বাটন - কোনো লিংক ছাড়া, শুধু রিলোড ফাংশন */}
+        <div className="pt-4 max-w-xs mx-auto">
+          <button 
+            onClick={() => window.location.reload()}
+            className="w-full bg-stone-950 hover:bg-rose-900 text-white font-semibold text-xs py-3 px-6 rounded-xl transition-all duration-300 shadow-sm text-center active:scale-98"
+          >
+            🔄 পেজটি রিফ্রেশ করুন
+          </button>
         </div>
 
       </div>
-    </div>
+    </main>
   );
 }
