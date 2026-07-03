@@ -1,55 +1,72 @@
 // app/@popup/page.tsx
 'use client';
-import { useState } from 'react';
+
+import { useEffect, useState } from 'react';
+import Link from 'next/link';
 
 export default function EventPopup() {
-  const [isOpen, setIsOpen] = useState(true);
+  const [isOpen, setIsOpen] = useState(false);
+
+  useEffect(() => {
+    // Check jodi user notice ti eiti session e prothemar dekhche kina
+    const hasSeenNotice = localStorage.getItem('wlc_event_notice_2026');
+    if (!hasSeenNotice) {
+      setIsOpen(true);
+    }
+  }, []);
+
+  const handleClose = () => {
+    localStorage.setItem('wlc_event_notice_2026', 'true');
+    setIsOpen(false);
+  };
 
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-md transition-all duration-300">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-stone-900/40 backdrop-blur-md transition-all duration-300">
+      
       {/* Pop-up Box Container */}
-      <div className="relative w-full max-w-md mx-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl p-6 text-center transform transition-all">
+      <div className="relative w-full max-w-md mx-4 bg-white border border-stone-200 rounded-2xl shadow-2xl p-6 text-center transform transition-all animate-in fade-in zoom-in-95 duration-200">
         
         {/* Close Button (Top Right Cross) */}
         <button 
-          onClick={() => setIsOpen(false)}
-          className="absolute top-4 right-4 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors"
+          onClick={handleClose}
+          className="absolute top-4 right-4 text-stone-400 hover:text-stone-600 transition-colors"
           aria-label="Close popup"
         >
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-6 h-6">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5">
             <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
           </svg>
         </button>
 
-        {/* Club Event Content */}
+        {/* Content Box */}
         <div className="mt-2">
-          <span className="inline-block bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400 text-xs font-bold uppercase tracking-wider px-3 py-1 rounded-full mb-3">
-            Upcoming Event 🔥
+          <span className="inline-block bg-rose-50 text-rose-800 text-xs font-bold uppercase tracking-wider px-3 py-1 rounded-full mb-3">
+            আসন্ন ইভেন্ট 📢
           </span>
-          <h2 className="text-2xl font-bold text-slate-800 dark:text-white mb-3">
-            Mega Club Reunion '26
+          <h2 className="text-xl font-bold text-stone-950 mb-2">
+            উইল্‌স সাহিত্য উৎসব ২০২৬
           </h2>
-          <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed mb-5">
-            Registration is now open for our biggest event of the year! Secure your slot before it's too late.
+          <p className="text-sm text-stone-600 leading-relaxed mb-6">
+            সাহিত্যের বন্ধনে আমাদের আগামী উৎসবের সদস্য নিবন্ধন ও ইভেন্ট রেজিস্ট্রেশন শুরু হয়েছে। আপনার সৃজনশীল প্রতিভা বিকাশে আজই যুক্ত হোন!
           </p>
         </div>
 
-        {/* Action Button */}
+        {/* Action Buttons */}
         <div className="flex gap-3 justify-center">
           <button 
-            onClick={() => setIsOpen(false)}
-            className="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-800 dark:text-white text-sm font-semibold rounded-xl transition-colors"
+            onClick={handleClose}
+            className="px-5 py-2.5 bg-stone-100 hover:bg-stone-200 text-stone-800 text-sm font-semibold rounded-xl transition-colors"
           >
-            Later
+            পরে দেখবো
           </button>
-          <a 
-            href="/register" // Apnar registration link ba explicit section link input korun
-            className="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-xl shadow-md shadow-blue-500/20 transition-all"
+          <Link 
+            href="/register"
+            onClick={handleClose}
+            className="px-5 py-2.5 bg-rose-900 hover:bg-rose-800 text-white text-sm font-semibold rounded-xl shadow-md shadow-rose-900/10 transition-all"
           >
-            Register Now
-          </a>
+            নিবন্ধন করুন ➔
+          </Link>
         </div>
 
       </div>
