@@ -1,10 +1,11 @@
+// app/layout.tsx
 import type { Metadata } from "next";
 import { Hind_Siliguri } from "next/font/google"; 
 import Link from "next/link";
 import "./globals.css";
 import Image from "next/image";
 
-// ১. নেভিগেশন লিংকের জন্য টাইপস্ক্রিপ্ট ইন্টারফেস (টাইপ সেফটি বিল্ড এরর ফিক্স)
+// ১. নেভিগেশন লিংকের জন্য টাইপস্ক্রিপ্ট ইন্টারফেস
 interface NavLink {
   name: string;
   path: string;
@@ -62,8 +63,10 @@ export const metadata: Metadata = {
 
 export default function RootLayout({
   children,
+  popup, // 👈 ২. এখানে প্যারালাল রুট স্লট প্রপ্স হিসেবে রিসিভ করা হলো
 }: {
   children: React.ReactNode;
+  popup: React.ReactNode; // 👈 ৩. টাইপ ডিফাইন করা হলো
 }) {
   // ডেক্সটপ প্রধান লিঙ্কসমূহ
   const desktopMainLinks: NavLink[] = [
@@ -161,7 +164,7 @@ export default function RootLayout({
                 <button className="text-stone-600 group-hover/desktop:text-stone-950 px-3.5 py-2 rounded-lg text-sm font-semibold transition-all duration-200 flex items-center gap-1 group-hover/desktop:bg-white">
                   অন্যান্য ডিরেক্টরি <span className="text-[10px] text-stone-400 transition-transform group-hover/desktop:rotate-180">▼</span>
                 </button>
-                
+
                 {/* ড্রপডাউন মেনু প্যানেল */}
                 <div className="absolute right-0 top-full mt-2 w-56 bg-white border border-stone-200 rounded-2xl shadow-xl py-2 opacity-0 invisible translate-y-2 group-hover/desktop:opacity-100 group-hover/desktop:visible group-hover/desktop:translate-y-0 transition-all duration-200 z-50">
                   {extendedLinks.map((link, idx) => (
@@ -180,7 +183,7 @@ export default function RootLayout({
 
             {/* ================= FIXED PURE CSS HAMBURGER & DROPDOWN SYSTEM (MOBILE) ================= */}
             <input type="checkbox" id="menu-toggle" className="peer hidden" />
-            
+
             <label 
               htmlFor="menu-toggle" 
               className="flex md:hidden flex-col justify-between w-6 h-4 cursor-pointer z-50 relative p-0.5"
@@ -307,6 +310,9 @@ export default function RootLayout({
 
           </div>
         </footer>
+
+        {/* 👈 ৪. এখানে পপ-আপ রেন্ডার করা হলো (যা শুধু হোম পেজে দেখাবে) */}
+        {popup} 
 
       </body>
     </html>
