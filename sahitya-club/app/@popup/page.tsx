@@ -28,7 +28,7 @@ export default function EventPopup() {
       {/* 🟢 Mockup Structure Container */}
       <div className="relative w-full max-w-md mx-4 transition-all transform animate-in fade-in zoom-in-95 duration-300">
         
-        {/* ❌ Top-Right X (Close Button) - Mockup anujayi card er baire top right e positioned */}
+        {/* ❌ Top-Right X (Close Button) - Card er baire top right e positioned */}
         <button 
           onClick={handleClose}
           className="absolute -top-10 right-0 md:-right-6 text-white hover:text-stone-300 text-xl font-light p-2 transition-colors transition-transform hover:scale-110"
@@ -38,30 +38,25 @@ export default function EventPopup() {
         </button>
 
         {/* 🖤 Top Black Box (Theme Design Container) */}
-        <div className="w-[86%] mx-auto h-14 bg-stone-950 rounded-t-2xl relative flex items-center justify-center border border-stone-800 border-b-0 overflow-hidden">
+        <div className="w-[86%] mx-auto h-14 bg-stone-950 rounded-t-2xl relative border border-stone-800 border-b-0 overflow-visible">
           
-          {/* Dynamic Theme Design (Gradient Line/Glow effect wrapper inside black box) */}
-          <div className="absolute inset-0 bg-gradient-to-r from-rose-900/40 via-amber-500/20 to-rose-950/40 opacity-80" />
+          {/* Dynamic Theme Design (Gradient Line & Pattern inside black box) */}
+          <div className="absolute inset-0 bg-gradient-to-r from-rose-900/40 via-amber-500/25 to-rose-950/40 opacity-80 rounded-t-2xl" />
           <div className="absolute bottom-0 inset-x-0 h-[3px] bg-gradient-to-r from-rose-700 via-amber-500 to-rose-900" />
 
-          {/* 🏷️ LOGO Overlay Layout (Centrally layered) */}
-          <div className="absolute top-1/2 -translate-y-1/2 z-10 bg-stone-950 px-4 py-1.5 rounded-xl border border-stone-800 shadow-lg flex items-center gap-2">
-            <div className="relative w-5 h-5">
-              <Image 
-                src="/logo.png" 
-                alt="WLC Logo" 
-                fill 
-                className="object-contain"
-              />
-            </div>
-            <span className="text-[10px] font-black tracking-widest text-white uppercase font-sans">
-              LOGO / WLC
-            </span>
+          {/* 🏷️ LOGO Overlay Layout (No border, half inside black box, half in blank space) */}
+          <div className="absolute top-0 -translate-y-1/2 left-1/2 -translate-x-1/2 z-10 w-16 h-16 transition-transform duration-300 hover:scale-105">
+            <Image 
+              src="/logo.png" 
+              alt="WLC Logo" 
+              fill 
+              className="object-contain drop-shadow-[0_4px_12px_rgba(0,0,0,0.3)]"
+            />
           </div>
         </div>
 
         {/* ⚪ Main Event Details White Card */}
-        <div className="w-full bg-white rounded-3xl shadow-2xl p-6 md:p-8 pt-10 text-center border border-stone-100 flex flex-col items-center">
+        <div className="w-full bg-white rounded-3xl shadow-2xl p-6 md:p-8 pt-12 text-center border border-stone-100 flex flex-col items-center">
           
           {/* Content Heading */}
           <span className="text-[10px] font-bold text-rose-900 uppercase tracking-widest bg-rose-50 px-2.5 py-1 rounded-md mb-3">
@@ -72,12 +67,12 @@ export default function EventPopup() {
             উইল্‌স সাহিত্য উৎসব ২০২৬
           </h2>
 
-          {/* Event Details Here Area */}
+          {/* Event Details Area */}
           <p className="text-stone-600 text-sm leading-relaxed max-w-sm mb-8 font-medium">
             উইল্‌স লিটল ফ্লাওয়ার স্কুল অ্যান্ড কলেজের শিক্ষার্থীদের সৃজনশীল লেখনী প্রকাশের সবচেয়ে বড় উৎসবের নিবন্ধন চলছে। আপনার গল্প, কবিতা বা কুইজে অংশ নিতে আজই যুক্ত হোন!
           </p>
 
-          {/* 🔴 Red Action Button (Mockup ar matching button setup) */}
+          {/* 🔴 Red Action Button */}
           <Link 
             href="/register"
             onClick={handleClose}
