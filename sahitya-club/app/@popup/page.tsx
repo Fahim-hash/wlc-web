@@ -8,7 +8,7 @@ export default function EventPopup() {
   const [isOpen, setIsOpen] = useState(false);
 
   useEffect(() => {
-    // Session check jate refresh korle bar bar user birokto na hoy
+    // Session track rakhar jonno jate bar bar refresh e user birokto na hoy
     const hasSeenNotice = localStorage.getItem('wlc_event_notice_2026');
     if (!hasSeenNotice) {
       setIsOpen(true);
@@ -23,97 +23,69 @@ export default function EventPopup() {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-stone-900/50 backdrop-blur-md transition-all duration-300">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-stone-900/60 backdrop-blur-md transition-all duration-300">
       
-      {/* 📦 Main Pop-up Container (Based on Sketch Layout) */}
-      <div className="relative w-full max-w-xl mx-4 bg-white border border-stone-200/80 rounded-2xl shadow-2xl overflow-hidden flex flex-col md:flex-row transform transition-all animate-in fade-in zoom-in-95 duration-300">
+      {/* 🟢 Mockup Structure Container */}
+      <div className="relative w-full max-w-md mx-4 transition-all transform animate-in fade-in zoom-in-95 duration-300">
         
-        {/* 🟥 Left Section (Sketch er baam pasher rectangular box anujayi button element) */}
-        <div className="bg-rose-950 text-stone-100 p-6 flex flex-col justify-center items-center text-center md:w-1/3 border-b md:border-b-0 md:border-r border-stone-100/10">
-          <div className="w-12 h-12 bg-white/10 rounded-xl flex items-center justify-center mb-3">
-            <span className="text-2xl">✨</span>
+        {/* ❌ Top-Right X (Close Button) - Mockup anujayi card er baire top right e positioned */}
+        <button 
+          onClick={handleClose}
+          className="absolute -top-10 right-0 md:-right-6 text-white hover:text-stone-300 text-xl font-light p-2 transition-colors transition-transform hover:scale-110"
+          aria-label="Close popup"
+        >
+          ✕
+        </button>
+
+        {/* 🖤 Top Black Box (Theme Design Container) */}
+        <div className="w-[86%] mx-auto h-14 bg-stone-950 rounded-t-2xl relative flex items-center justify-center border border-stone-800 border-b-0 overflow-hidden">
+          
+          {/* Dynamic Theme Design (Gradient Line/Glow effect wrapper inside black box) */}
+          <div className="absolute inset-0 bg-gradient-to-r from-rose-900/40 via-amber-500/20 to-rose-950/40 opacity-80" />
+          <div className="absolute bottom-0 inset-x-0 h-[3px] bg-gradient-to-r from-rose-700 via-amber-500 to-rose-900" />
+
+          {/* 🏷️ LOGO Overlay Layout (Centrally layered) */}
+          <div className="absolute top-1/2 -translate-y-1/2 z-10 bg-stone-950 px-4 py-1.5 rounded-xl border border-stone-800 shadow-lg flex items-center gap-2">
+            <div className="relative w-5 h-5">
+              <Image 
+                src="/logo.png" 
+                alt="WLC Logo" 
+                fill 
+                className="object-contain"
+              />
+            </div>
+            <span className="text-[10px] font-black tracking-widest text-white uppercase font-sans">
+              LOGO / WLC
+            </span>
           </div>
-          <h3 className="font-bold text-base mb-1">উৎসব ২০২৬</h3>
-          <p className="text-[11px] text-rose-200 leading-snug max-w-[120px]">
-            সাহিত্যের বন্ধনে নতুন এক প্রাঙ্গণ
+        </div>
+
+        {/* ⚪ Main Event Details White Card */}
+        <div className="w-full bg-white rounded-3xl shadow-2xl p-6 md:p-8 pt-10 text-center border border-stone-100 flex flex-col items-center">
+          
+          {/* Content Heading */}
+          <span className="text-[10px] font-bold text-rose-900 uppercase tracking-widest bg-rose-50 px-2.5 py-1 rounded-md mb-3">
+            আসন্ন উৎসব ও নোটিশ 📢
+          </span>
+          
+          <h2 className="text-xl md:text-2xl font-bold text-stone-950 tracking-tight leading-tight mb-3">
+            উইল্‌স সাহিত্য উৎসব ২০২৬
+          </h2>
+
+          {/* Event Details Here Area */}
+          <p className="text-stone-600 text-sm leading-relaxed max-w-sm mb-8 font-medium">
+            উইল্‌স লিটল ফ্লাওয়ার স্কুল অ্যান্ড কলেজের শিক্ষার্থীদের সৃজনশীল লেখনী প্রকাশের সবচেয়ে বড় উৎসবের নিবন্ধন চলছে। আপনার গল্প, কবিতা বা কুইজে অংশ নিতে আজই যুক্ত হোন!
           </p>
+
+          {/* 🔴 Red Action Button (Mockup ar matching button setup) */}
           <Link 
             href="/register"
             onClick={handleClose}
-            className="mt-5 w-full py-2 bg-white text-rose-950 font-bold text-xs rounded-lg shadow-sm hover:bg-stone-100 transition-all text-center block"
+            className="w-32 py-2.5 bg-red-600 hover:bg-red-700 text-white font-bold text-xs rounded-xl shadow-md shadow-red-600/20 transition-all hover:scale-[1.02] text-center block"
           >
-            যুক্ত হোন ➔
+            নিবন্ধন করুন ➔
           </Link>
-        </div>
-
-        {/* 🟦 Right Main Content Section */}
-        <div className="flex-1 p-6 md:p-8 flex flex-col justify-between relative bg-gradient-to-br from-white to-stone-50/50">
           
-          {/* Close Trigger (X Button) */}
-          <button 
-            onClick={handleClose}
-            className="absolute top-4 right-4 text-stone-400 hover:text-stone-700 p-1 rounded-full hover:bg-stone-100 transition-all"
-            aria-label="Close popup"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-4 h-4">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
-
-          {/* Main Typography & Body text */}
-          <div className="pr-4 mt-2">
-            <span className="inline-block bg-rose-50 text-rose-900 text-[11px] font-extrabold uppercase tracking-widest px-2.5 py-1 rounded-md mb-2.5">
-              আসন্ন উৎসব ও নোটিশ 📢
-            </span>
-            <h2 className="text-xl font-bold text-stone-950 tracking-tight leading-tight mb-2">
-              উইল্‌স সাহিত্য উৎসব ২০২৬
-            </h2>
-            <p className="text-xs md:text-sm text-stone-600 leading-relaxed font-medium">
-              উইল্‌স লিটল ফ্লাওয়ার স্কুল অ্যান্ড কলেজের অফিশিয়াল সাহিত্য ক্লাবের উদ্যোগে আয়োজিত হতে যাচ্ছে বছরের সবথেকে বড় উৎসব। কবিতা, গল্প এবং কুইজ প্রতিযোগিতায় অংশগ্রহণের জন্য রেজিষ্ট্রেশন চলছে।
-            </p>
-          </div>
-
-          {/* 🎨 Bottom Buttons Section */}
-          <div className="flex gap-2 justify-end mt-6">
-            <button 
-              onClick={handleClose}
-              className="px-4 py-2 text-stone-500 hover:text-stone-800 text-xs font-semibold rounded-lg hover:bg-stone-100 transition-colors"
-            >
-              পরে দেখবো
-            </button>
-            <Link 
-              href="/events"
-              onClick={handleClose}
-              className="px-4 py-2 bg-stone-900 hover:bg-stone-800 text-white text-xs font-semibold rounded-lg transition-all"
-            >
-              বিস্তারিত জানুন
-            </Link>
-          </div>
-        </div>
-
-        {/* 🏷️ LOGO & Extra Dynamic Theme Bar Panel (Sketch এর ডান পাশের Vertical Layout) */}
-        <div className="w-full md:w-16 bg-stone-100 border-t md:border-t-0 md:border-l border-stone-200/60 p-3 flex flex-row md:flex-col items-center justify-between md:justify-start gap-4">
-          
-          {/* Logo Container */}
-          <div className="relative w-8 h-8 md:w-10 md:h-10 shrink-0">
-            <Image 
-              src="/logo.png" 
-              alt="উইল্‌স সাহিত্য ক্লাব লোগো" 
-              fill 
-              className="object-contain"
-            />
-          </div>
-          
-          {/* Vertical 'LOGO' Label or Identifier text */}
-          <span className="text-[9px] font-black tracking-widest uppercase text-stone-400 select-none md:[writing-mode:vertical-lr] md:rotate-180">
-            WLC PNL
-          </span>
-
-          {/* 🌟 Extra Bar / Event Theme Graphic Decor (Sketch Er Niche Jetu Chilo) */}
-          <div className="flex-grow w-24 md:w-full h-2 md:h-full mt-0 md:mt-2 bg-gradient-to-r md:bg-gradient-to-b from-rose-900 via-amber-500 to-rose-950 rounded-full opacity-90 relative overflow-hidden" title="Event Theme Color">
-            {/* Animated Glow Element over theme bar */}
-            <div className="absolute inset-0 bg-white/20 animate-pulse"></div>
-          </div>
         </div>
 
       </div>
