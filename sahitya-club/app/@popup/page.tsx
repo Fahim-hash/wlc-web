@@ -8,7 +8,7 @@ export default function EventPopup() {
   const [isOpen, setIsOpen] = useState(false);
 
   useEffect(() => {
-    // Session track rakhar jonno jate bar bar refresh e user birokto na hoy
+    // Session track jate user refresh korle bar bar distrubed na hoy
     const hasSeenNotice = localStorage.getItem('wlc_event_notice_2026');
     if (!hasSeenNotice) {
       setIsOpen(true);
@@ -25,60 +25,65 @@ export default function EventPopup() {
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-stone-900/60 backdrop-blur-md transition-all duration-300">
       
-      {/* 🟢 Mockup Structure Container */}
-      <div className="relative w-full max-w-md mx-4 transition-all transform animate-in fade-in zoom-in-95 duration-300">
+      {/* 📂 Main Box Matrix Wrapper */}
+      <div className="relative w-full max-w-xl mx-4 transition-all transform animate-in fade-in zoom-in-95 duration-300">
         
-        {/* ❌ Top-Right X (Close Button) - Card er baire top right e positioned */}
+        {/* ❌ Absolute Top-Right Close Button (Mockup frame er ekdom baire) */}
         <button 
           onClick={handleClose}
-          className="absolute -top-10 right-0 md:-right-6 text-white hover:text-stone-300 text-xl font-light p-2 transition-colors transition-transform hover:scale-110"
+          className="absolute -top-12 right-0 md:-right-6 text-white hover:text-stone-300 text-xl font-light p-2 transition-transform hover:scale-110"
           aria-label="Close popup"
         >
           ✕
         </button>
 
-        {/* 🖤 Top Black Box (Theme Design Container) */}
-        <div className="w-[86%] mx-auto h-14 bg-stone-950 rounded-t-2xl relative border border-stone-800 border-b-0 overflow-visible">
-          
-          {/* Dynamic Theme Design (Gradient Line & Pattern inside black box) */}
-          <div className="absolute inset-0 bg-gradient-to-r from-rose-900/40 via-amber-500/25 to-rose-950/40 opacity-80 rounded-t-2xl" />
-          <div className="absolute bottom-0 inset-x-0 h-[3px] bg-gradient-to-r from-rose-700 via-amber-500 to-rose-900" />
-
-          {/* 🏷️ LOGO Overlay Layout (No border, half inside black box, half in blank space) */}
-          <div className="absolute top-0 -translate-y-1/2 left-1/2 -translate-x-1/2 z-10 w-16 h-16 transition-transform duration-300 hover:scale-105">
-            <Image 
-              src="/logo.png" 
-              alt="WLC Logo" 
-              fill 
-              className="object-contain drop-shadow-[0_4px_12px_rgba(0,0,0,0.3)]"
-            />
-          </div>
+        {/* 🏷️ FLOATING LOGO OVERLAY (dfghdfh.jpg style anujayi top blank space position) */}
+        <div className="absolute -top-16 left-1/2 -translate-x-1/2 z-30 w-16 h-16 transition-transform duration-300 hover:scale-105">
+          <Image 
+            src="/logo.png" 
+            alt="WLC Logo" 
+            fill 
+            className="object-contain drop-shadow-[0_4px_10px_rgba(0,0,0,0.3)]"
+          />
         </div>
 
-        {/* ⚪ Main Event Details White Card */}
-        <div className="w-full bg-white rounded-3xl shadow-2xl p-6 md:p-8 pt-12 text-center border border-stone-100 flex flex-col items-center">
+        {/* 🎨 TOP MULTI-COLOR THEME TAB SYSTEM (Based on dfghdfh.jpg) */}
+        <div className="w-[90%] mx-auto flex items-end justify-between relative z-10 -mb-[1px]">
+          {/* Left Green Tab */}
+          <div className="w-16 h-7 bg-emerald-500 rounded-t-xl border border-emerald-600/20 shadow-sm" />
           
-          {/* Content Heading */}
-          <span className="text-[10px] font-bold text-rose-900 uppercase tracking-widest bg-rose-50 px-2.5 py-1 rounded-md mb-3">
-            আসন্ন উৎসব ও নোটিশ 📢
-          </span>
+          {/* Center Crimson Red Theme Bar */}
+          <div className="flex-1 max-w-[280px] h-9 bg-rose-700 rounded-t-xl border border-rose-800/40 flex items-center justify-center shadow-md relative overflow-hidden">
+            <div className="absolute inset-0 bg-gradient-to-b from-white/10 to-transparent" />
+            <span className="text-white font-bold text-xs tracking-wider px-2 font-sans text-center truncate drop-shadow-sm">
+              সাহিত্যের নবীনবরণ ২০২৬ 🎉
+            </span>
+          </div>
+
+          {/* Right Green Tab */}
+          <div className="w-16 h-7 bg-emerald-500 rounded-t-xl border border-emerald-600/20 shadow-sm" />
+        </div>
+
+        {/* ⚪ MAIN WHITE CARD FRAME */}
+        <div className="w-full bg-white rounded-[2.5rem] shadow-2xl p-6 md:p-10 pt-12 text-center border-2 border-stone-100 flex flex-col items-center relative z-20">
           
-          <h2 className="text-xl md:text-2xl font-bold text-stone-950 tracking-tight leading-tight mb-3">
-            উইল্‌স সাহিত্য উৎসব ২০২৬
+          {/* Main Title / Banner Notice text */}
+          <h2 className="text-2xl md:text-3xl font-extrabold text-stone-950 tracking-tight leading-tight mb-4">
+            নবীনদের সাহিত্য প্রাঙ্গণে স্বাগতম!
           </h2>
 
-          {/* Event Details Area */}
-          <p className="text-stone-600 text-sm leading-relaxed max-w-sm mb-8 font-medium">
-            উইল্‌স লিটল ফ্লাওয়ার স্কুল অ্যান্ড কলেজের শিক্ষার্থীদের সৃজনশীল লেখনী প্রকাশের সবচেয়ে বড় উৎসবের নিবন্ধন চলছে। আপনার গল্প, কবিতা বা কুইজে অংশ নিতে আজই যুক্ত হোন!
+          {/* Event Details Description block */}
+          <p className="text-stone-600 text-sm md:text-base leading-relaxed max-w-md mb-8 font-medium">
+            উইল্‌স লিটল ফ্লাওয়ার স্কুল অ্যান্ড কলেজের শিক্ষার্থীদের নতুন সাহিত্যিক মেলবন্ধনে আমন্ত্রণ জানাচ্ছে উইল্‌স সাহিত্য ক্লাব। আমাদের বিশেষ নবীনবরণ উৎসবের আসন সংখ্যা সীমিত হওয়ায় আজই আপনার নিবন্ধন নিশ্চিত করুন।
           </p>
 
-          {/* 🔴 Red Action Button */}
+          {/* 🔴 CUSTOM RED ACTION BUTTON (dfghdfh.jpg ar thik bottom base layout matching) */}
           <Link 
             href="/register"
             onClick={handleClose}
-            className="w-32 py-2.5 bg-red-600 hover:bg-red-700 text-white font-bold text-xs rounded-xl shadow-md shadow-red-600/20 transition-all hover:scale-[1.02] text-center block"
+            className="px-8 py-3 bg-red-600 hover:bg-red-700 text-white font-bold text-xs md:text-sm rounded-xl shadow-lg shadow-red-600/30 transition-all hover:scale-[1.03] active:scale-[0.98] text-center"
           >
-            নিবন্ধন করুন ➔
+            নিবন্ধন নিশ্চিত করুন ➔
           </Link>
           
         </div>
