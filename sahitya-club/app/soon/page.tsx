@@ -31,7 +31,7 @@ export default function ComingSoonPage() {
   }, []);
 
   useEffect(() => {
-    const targetDate = new Date("2026-09-01T10:30:00").getTime();
+    const targetDate = new Date("2026-08-08T16:30:00").getTime();
 
     const interval = setInterval(() => {
       const now = new Date().getTime();
