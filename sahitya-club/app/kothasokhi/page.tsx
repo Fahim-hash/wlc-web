@@ -23,6 +23,63 @@ export default function KothasokhiPage() {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, loading]);
 
+  // 🛠️ ডায়নামিক টেক্সট, বাটন ও ইমেজ পার্সার ফাংশন
+  const renderFormattedMessage = (content: string) => {
+    // Regex দিয়ে [BUTTON:...] ও [IMAGE:...] ট্যাগগুলোকে আলাদা করা
+    const parts = content.split(/(\[BUTTON:.*?\|.*?\]|\[IMAGE:.*?\|.*?\])/g);
+
+    return (
+      <div className="space-y-3">
+        {parts.map((part, idx) => {
+          // ১. বাটন রেন্ডারিং
+          if (part.startsWith("[BUTTON:") && part.endsWith("]")) {
+            const inner = part.slice(8, -1);
+            const [label, url] = inner.split("|");
+            return (
+              <div key={idx} className="pt-1 pb-1">
+                <a
+                  href={url?.trim()}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 bg-rose-900 hover:bg-stone-900 text-white font-semibold text-xs sm:text-sm px-4 py-2.5 rounded-xl shadow-md transition-all active:scale-95"
+                >
+                  🔗 {label?.trim()}
+                </a>
+              </div>
+            );
+          }
+
+          // ২. ইমেজ কার্ড রেন্ডারিং
+          if (part.startsWith("[IMAGE:") && part.endsWith("]")) {
+            const inner = part.slice(7, -1);
+            const [src, alt] = inner.split("|");
+            return (
+              <div key={idx} className="my-2 overflow-hidden rounded-2xl border border-stone-200 bg-stone-50 p-1.5 shadow-sm max-w-xs">
+                <div className="relative w-full h-48 rounded-xl overflow-hidden bg-stone-200">
+                  <Image
+                    src={src?.trim()}
+                    alt={alt?.trim() || "Panel Member"}
+                    fill
+                    className="object-cover"
+                  />
+                </div>
+                {alt && (
+                  <p className="text-[11px] font-semibold text-stone-600 text-center mt-1.5 pb-0.5">
+                    {alt.trim()}
+                  </p>
+                )}
+              </div>
+            );
+          }
+
+          // ৩. সাধারণ টেক্সট রেন্ডারিং
+          if (!part.trim()) return null;
+          return <span key={idx} className="whitespace-pre-line">{part}</span>;
+        })}
+      </div>
+    );
+  };
+
   const handleSend = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!input.trim() || loading) return;
@@ -69,7 +126,7 @@ export default function KothasokhiPage() {
   return (
     <main className="w-full min-h-screen pt-20 sm:pt-24 pb-6 px-3 sm:px-6 bg-[#FAFAFA] text-stone-800 font-sans flex flex-col items-center justify-center relative overflow-x-hidden select-none">
       
-      {/* ব্যাকগ্রাউন্ড সফট ব্লুর গ্লো */}
+      {/* ব্যাকগ্রাউন্ড সফ্ট গ্লো */}
       <div className="absolute top-[-10%] left-[-10%] w-[40vw] h-[40vw] bg-rose-100/30 rounded-full blur-[120px] pointer-events-none" />
       <div className="absolute bottom-[-10%] right-[-10%] w-[40vw] h-[40vw] bg-stone-200/40 rounded-full blur-[100px] pointer-events-none" />
 
@@ -130,7 +187,10 @@ export default function KothasokhiPage() {
                     : "bg-white text-stone-800 border border-stone-200/70 rounded-bl-none"
                 }`}
               >
-                {msg.content}
+                {/* 🎯 অ্যাসিস্ট্যান্ট মেসেজের জন্য ডায়নামিক রেন্ডারিং */}
+                {msg.role === "assistant" 
+                  ? renderFormattedMessage(msg.content) 
+                  : msg.content}
               </div>
             </div>
           ))}
