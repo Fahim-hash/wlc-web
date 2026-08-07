@@ -12,7 +12,7 @@ export default function KothasokhiPage() {
   const [messages, setMessages] = useState<Message[]>([
     {
       role: "assistant",
-      content: "স্বাগতম! আমি 'কথাসখী'—উইল্‌স সাহিত্য ক্লাবের ডিজিটাল সখী। সাহিত্য, অবস্থান কিংবা ক্লাব সংক্রান্ত যেকোনো বিষয়ে কীভাবে সাহায্য করতে পারি?",
+      content: "স্বাগতম! আমি 'সাহিত্যসখী'—উইল্‌স সাহিত্য ক্লাবের ডিজিটাল সখী। সাহিত্য, অবস্থান কিংবা ক্লাব সংক্রান্ত যেকোনো বিষয়ে কীভাবে সাহায্য করতে পারি?",
     },
   ]);
   const [input, setInput] = useState("");
@@ -95,7 +95,7 @@ export default function KothasokhiPage() {
             <div>
               <div className="flex items-center gap-2">
                 <h1 className="text-base sm:text-lg font-bold font-serif text-stone-950 tracking-tight">
-                  কথাসখী
+                  সাহিত্যসখী
                 </h1>
                 <span className="text-[9px] sm:text-[10px] font-bold uppercase tracking-wider text-rose-900 bg-rose-50 border border-rose-100 px-2 py-0.5 rounded-md">
                   AI Companion
@@ -154,7 +154,7 @@ export default function KothasokhiPage() {
               type="text"
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              placeholder="কথাসখীকে আপনার প্রশ্নটি লিখুন..."
+              placeholder="সাহিত্যসখীকে আপনার প্রশ্নটি লিখুন..."
               className="flex-1 bg-stone-50 border border-stone-200 text-stone-800 text-xs sm:text-sm rounded-xl px-4 py-3 outline-none focus:border-rose-900 focus:bg-white transition-all font-medium placeholder:text-stone-400"
             />
             <button
