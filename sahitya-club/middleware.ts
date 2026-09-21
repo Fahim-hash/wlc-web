@@ -3,7 +3,7 @@ import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
 // যখন মেইনটেইন্যান্স মোড অন করতে চান, এটাকে true করে দেবেন 🚀
-const IS_MAINTENANCE_MODE = false; 
+const IS_MAINTENANCE_MODE = true; 
 
 export function middleware(request: NextRequest) {
   const url = request.nextUrl;
@@ -31,11 +31,11 @@ export function middleware(request: NextRequest) {
   // ==========================================
   if (
     IS_MAINTENANCE_MODE && 
-    pathname !== '/soon' && 
+    pathname !== '/reserve' && 
     !pathname.startsWith('/_next') && 
     !pathname.includes('.')
   ) {
-    return NextResponse.redirect(new URL('/soon', request.url))
+    return NextResponse.redirect(new URL('/reserve', request.url))
   }
 
   return NextResponse.next()
