@@ -8,7 +8,7 @@ type ChatMessage = {
   content: string;
 };
 
-type KnowledgeChunk = {
+type WebResult = {\n  title: string;\n  url: string;\n  content: string;\n};\n\ntype KnowledgeChunk = {
   text: string;
   normalized: string;
   tokens: Set<string>;
@@ -165,7 +165,7 @@ function needsWebSearch(input: string) {
   return linkIntent && personIntent;
 }
 
-async function searchWeb(query: string) {
+async function searchWeb(query: string): Promise<WebResult[]> {
   const apiKey = process.env.TAVILY_API_KEY;
   if (!apiKey) return [];
 
