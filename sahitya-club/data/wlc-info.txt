@@ -208,12 +208,13 @@ Source: https://wlc.pro.bd/panel/moderator
 
 === EVENTS & TIMELINE ===
 The official events page currently lists:
-Upcoming / listed 2026:
+Published event listing:
 - জাতীয় দেয়ালিকা ও কুইজ উৎসব ২০২৬
-- Date: 25 July 2026
+- Scheduled date: 25 July 2026
 - Time: 09:00–16:00
 - Venue: College Auditorium, WLFSC
 - Description: participation from 50+ colleges; wall-magazine exhibition, literary quiz and script-writing competition.
+- The live page still displays registration wording, but 25 July 2026 is already past as of 23 September 2026. Never describe this event as currently upcoming without a newer official update.
 Historical:
 - অমর একুশে সাহিত্য আসর ও বসন্ত উৎসব — 21 February 2026 — Shahid Minar grounds, Wills campus. Included original-poetry recitation, remembrance and unveiling of the annual wall magazine 'স্পন্দন'.
 - সৃজনশীল লেখনী ও কন্টেন্ট রাইটিং কর্মশালা — 15 January 2026 — Digital Classroom, College branch. A day-long workshop focused on writing improvement and content-writing basics.
