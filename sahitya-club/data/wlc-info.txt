@@ -15,7 +15,7 @@ Title: উইল্‌স সাহিত্য ক্লাব
 English: Willes Literary Club
 Short name: WLC
 AI assistant: সাহিত্যসখী
-Tagline: "সাহিত্যের বন্ধনে, প্রতিভার সন্ধানে..."
+Tagline: "সাহিত্যের বন্ধনে, প্রতিভার সন্ধানে"
 Institution: উইল্‌স লিটল ফ্লাওয়ার স্কুল অ্যান্ড কলেজ, ঢাকা.
 Core purpose: a student platform for creative writing, literary practice, creative thinking, talent development and cultural/literary activities.
 Official website: https://wlc.pro.bd/
@@ -67,7 +67,7 @@ Writing desk: https://wlc.pro.bd/writing
 Glossary: https://wlc.pro.bd/shobdo
 FAQ: https://wlc.pro.bd/faq
 Contact: https://wlc.pro.bd/contact
-Official email shown on the current site: contact@wlc.pro.bd
+Official email shown on the current site: wlfsc.sahittoclub@gmail.com
 Site footer contact: +8801974-745442 and wlfsc.sahittoclub@gmail.com
 Legacy social links recorded in the previous knowledge base:
 Facebook: https://www.facebook.com/share/1BfViwgesC/
@@ -125,9 +125,7 @@ Editorial division:
 - রাকিবুল ইসলাম আকাশ — সহ সম্পাদক (চিত্র ও ভিডিওগ্রাফি) — SSC '27
 - আবিয়াজ বুশাইরি — কার্যনির্বাহী — SSC '26
 
-Special current-person alias:
-- সৈয়দ ফাহিম মুদ্দাসির / Syed Fahim Muddasir / Fahim — the current leadership page lists him in the site's editorial section as সহ-সম্পাদক, HSC '26. The Gen-1 archive also records him as সহ-সম্পাদক.
-- Do not infer anything about Fahim beyond information explicitly present in the WLC records.
+
 
 Source: https://wlc.pro.bd/panel/running
 Source: https://wlc.pro.bd/panel/GEN-1
@@ -280,8 +278,7 @@ Treat these as equivalent where context makes it clear:
 - moderator / teacher / sir / maam → teacher moderator
 - event / program / prog → event
 - achievement / award → অর্জন
-- fahim / fahim k / fahim ke → সৈয়দ ফাহিম মুদ্দাসির when the question is about WLC membership/role, using the explicit current/Gen-1 record.
-Do not blindly translate every English word; infer intent from the whole message.
+
 
 === RESPONSE BEHAVIOR ===
 - Match the user's language. If the user writes Banglish, you may reply in natural Bangla, optionally keeping key names/titles in English.
