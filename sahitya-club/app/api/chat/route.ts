@@ -106,94 +106,103 @@ function retrieveKnowledge(query: string, chunks: KnowledgeChunk[], limit = 3) {
     .map((item) => item.text);
 }
 
+function isClubContext(input: string) {
+  const q = normalizeText(input);
+  return q.includes("wlc") || q.includes("ক্লাব") || q.includes("উইলস") || q.includes("সাহিত্য") || q.includes("willes");
+}
+
 function actionReply(input: string): string | null {
   const q = normalizeText(input);
-
-  const actions: Array<{ terms: string[]; label: string; url: string; message: string }> = [
-    {
-      terms: ["ফেসবুক"],
-      label: "Official Facebook",
-      url: "https://www.facebook.com/share/1BfViwgesC/",
-      message: "অবশ্যই—এটাই উইল্‌স সাহিত্য ক্লাবের Facebook লিংক:",
-    },
-    {
-      terms: ["ইনস্টাগ্রাম"],
-      label: "Official Instagram",
-      url: "https://www.instagram.com/willes_literary_club/",
-      message: "অবশ্যই—এটাই উইল্‌স সাহিত্য ক্লাবের Instagram:",
-    },
-    {
-      terms: ["রেজিস্ট্রেশন", "সদস্য", "মেম্বার"],
-      label: "Join WLC",
-      url: "https://wlc.pro.bd/register",
-      message: "WLC-তে সদস্য হওয়ার অফিসিয়াল রেজিস্ট্রেশন পেজ:",
-    },
-    {
-      terms: ["ওয়েবসাইট"],
-      label: "WLC Website",
-      url: "https://wlc.pro.bd/",
-      message: "উইল্‌স সাহিত্য ক্লাবের অফিসিয়াল ওয়েবসাইট:",
-    },
-    {
-      terms: ["কমিটি", "প্যানেল"],
-      label: "Current Committee",
-      url: "https://wlc.pro.bd/panel/running",
-      message: "বর্তমান ২০২৬ কমিটি দেখতে এখানে যান:",
-    },
-    {
-      terms: ["ইভেন্ট"],
-      label: "Events",
-      url: "https://wlc.pro.bd/events",
-      message: "WLC-এর ইভেন্ট ও নোটিশ বোর্ড:",
-    },
-    {
-      terms: ["অর্জন", "পুরস্কার"],
-      label: "Achievements",
-      url: "https://wlc.pro.bd/achievements",
-      message: "WLC-এর অর্জন ও পুরস্কারের পেজ:",
-    },
-    {
-      terms: ["যোগাযোগ"],
-      label: "Contact WLC",
-      url: "https://wlc.pro.bd/contact",
-      message: "WLC-এর অফিসিয়াল যোগাযোগ পেজ:",
-    },
-    {
-      terms: ["লেখালেখি"],
-      label: "Writing Desk",
-      url: "https://wlc.pro.bd/writing",
-      message: "নির্বাচিত সাহিত্যকর্ম দেখতে:",
-    },
-    {
-      terms: ["ছবি", "গ্যালারি", "অ্যালবাম"],
-      label: "Photo Album",
-      url: "https://wlc.pro.bd/album",
-      message: "WLC-এর ছবি ও স্মৃতির অ্যালবাম:",
-    },
-    {
-      terms: ["মডারেটর", "শিক্ষক"],
-      label: "Teacher Moderators",
-      url: "https://wlc.pro.bd/panel/moderator",
-      message: "শিক্ষক মডারেটর প্যানেল:",
-    },
-  ];
+  const clubContext = isClubContext(input);
 
   const wantsLink =
     /\b(link|url|dao|den|send)\b/i.test(input) ||
-    q.includes("লিংক") ||
-    q.includes("দাও") ||
-    q.includes("দেন") ||
-    q.includes("কোথায়");
+    q.includes("লিংক") || q.includes("দাও") || q.includes("দেন") || q.includes("কোথায়");
 
   if (!wantsLink) return null;
 
-  const match = actions.find((action) =>
-    action.terms.some((term) => q.includes(term))
-  );
+  const mentionsPerson =
+    q.includes("ফাহিম") || q.includes("member") || q.includes("সদস্য") ||
+    q.includes("person") || q.includes("মানুষ") || q.includes("president") ||
+    q.includes("সভাপতি") || q.includes("secretary") || q.includes("সম্পাদক");
 
-  if (!match) return null;
+  const actions: Array<{ terms: string[]; label: string; url: string; message: string }> = [
+    { terms: ["ফেসবুক"], label: "Official WLC Facebook", url: "https://www.facebook.com/share/1BfViwgesC/", message: "এটাই উইল্‌স সাহিত্য ক্লাবের official Facebook:" },
+    { terms: ["ইনস্টাগ্রাম"], label: "Official WLC Instagram", url: "https://www.instagram.com/willes_literary_club/", message: "এটাই উইল্‌স সাহিত্য ক্লাবের official Instagram:" },
+    { terms: ["রেজিস্ট্রেশন", "সদস্য", "মেম্বার"], label: "Join WLC", url: "https://wlc.pro.bd/register", message: "WLC-তে সদস্য হওয়ার অফিসিয়াল রেজিস্ট্রেশন পেজ:" },
+    { terms: ["ওয়েবসাইট"], label: "WLC Website", url: "https://wlc.pro.bd/", message: "উইল্‌স সাহিত্য ক্লাবের অফিসিয়াল ওয়েবসাইট:" },
+    { terms: ["কমিটি", "প্যানেল"], label: "Current Committee", url: "https://wlc.pro.bd/panel/running", message: "বর্তমান ২০২৬ কমিটি:" },
+    { terms: ["ইভেন্ট"], label: "WLC Events", url: "https://wlc.pro.bd/events", message: "WLC-এর ইভেন্ট পেজ:" },
+    { terms: ["অর্জন", "পুরস্কার"], label: "WLC Achievements", url: "https://wlc.pro.bd/achievements", message: "WLC-এর অর্জন ও পুরস্কারের পেজ:" },
+    { terms: ["যোগাযোগ"], label: "WLC Contact", url: "https://wlc.pro.bd/contact", message: "WLC-এর অফিসিয়াল যোগাযোগ পেজ:" },
+    { terms: ["লেখালেখি"], label: "WLC Writing Desk", url: "https://wlc.pro.bd/writing", message: "WLC Writing Desk:" },
+    { terms: ["ছবি", "গ্যালারি", "অ্যালবাম"], label: "WLC Photo Album", url: "https://wlc.pro.bd/album", message: "WLC-এর ছবি ও স্মৃতির অ্যালবাম:" },
+    { terms: ["মডারেটর", "শিক্ষক"], label: "Teacher Moderators", url: "https://wlc.pro.bd/panel/moderator", message: "WLC-এর শিক্ষক মডারেটর প্যানেল:" },
+  ];
 
-  return `${match.message}\n\n[BUTTON:${match.label}|${match.url}]`;
+  const match = actions.find((action) => {
+    if ((action.terms.includes("ফেসবুক") || action.terms.includes("ইনস্টাগ্রাম")) && mentionsPerson) return false;
+    if (action.terms.includes("ফেসবুক") || action.terms.includes("ইনস্টাগ্রাম")) return clubContext || !mentionsPerson;
+    return action.terms.some((term) => q.includes(term));
+  });
+
+  return match ? `${match.message}\n\n[BUTTON:${match.label}|${match.url}]` : null;
+}
+
+function needsWebSearch(input: string) {
+  const q = normalizeText(input);
+  const lower = input.toLowerCase();
+
+  const linkIntent =
+    /\b(facebook|fb|instagram|insta|linkedin|youtube|github|website|profile|link|url|search|find)\b/i.test(lower) ||
+    q.includes("ফেসবুক") || q.includes("ইনস্টাগ্রাম") || q.includes("লিংক") || q.includes("খুঁজ");
+
+  const personIntent =
+    q.includes("ফাহিম") || q.includes("member") || q.includes("সদস্য") ||
+    q.includes("president") || q.includes("সভাপতি") || q.includes("secretary") ||
+    q.includes("সম্পাদক") || q.includes("person") || q.includes("profile");
+
+  return linkIntent && personIntent;
+}
+
+async function searchWeb(query: string) {
+  const apiKey = process.env.TAVILY_API_KEY;
+  if (!apiKey) return [];
+
+  try {
+    const response = await fetch("https://api.tavily.com/search", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` },
+      body: JSON.stringify({
+        query,
+        search_depth: "basic",
+        topic: "general",
+        max_results: 5,
+        include_answer: false,
+        include_raw_content: false,
+      }),
+      cache: "no-store",
+    });
+
+    if (!response.ok) {
+      console.error("Tavily search failed:", response.status);
+      return [];
+    }
+
+    const data = await response.json();
+    return Array.isArray(data?.results)
+      ? data.results.slice(0, 5)
+          .map((item: any) => ({
+            title: String(item.title || "Web result"),
+            url: String(item.url || ""),
+            content: String(item.content || ""),
+          }))
+          .filter((item: { url: string }) => /^https?:\/\//i.test(item.url))
+      : [];
+  } catch (error) {
+    console.error("Web search error:", error);
+    return [];
+  }
 }
 
 export async function POST(req: Request) {
@@ -214,14 +223,30 @@ export async function POST(req: Request) {
     const latestUserMessage =
       [...messages].reverse().find((message) => message.role === "user")?.content || "";
 
-    // Deterministic actions avoid spending model tokens on simple link requests.
+    // Known WLC links are answered locally without spending model tokens.
     const directAction = actionReply(latestUserMessage);
     if (directAction) {
       return NextResponse.json({ reply: directAction });
     }
 
+    const webResults = needsWebSearch(latestUserMessage)
+      ? await searchWeb(`Willes Literary Club Dhaka ${latestUserMessage}`)
+      : [];
+
     const knowledge = loadKnowledge();
-    const relevantKnowledge = retrieveKnowledge(latestUserMessage, knowledge, 3);
+    const isCasual =
+      /\b(joke|funny|fun|riddle|game|roast|story|jokes|play)\b/i.test(latestUserMessage) ||
+      /মজা|জোক|ধাঁধা|খেলা|গল্প|হাসাও|রোস্ট/i.test(latestUserMessage);
+
+    const relevantKnowledge = isCasual
+      ? []
+      : retrieveKnowledge(latestUserMessage, knowledge, 3);
+
+    const webContext = webResults.length
+      ? webResults.map((result, index) =>
+          `[WEB ${index + 1}] ${result.title}\nURL: ${result.url}\nSnippet: ${result.content}`
+        ).join("\n\n")
+      : "No external web results were available.";
 
     // Keep conversational context bounded so token usage does not grow forever.
     const recentMessages = messages.slice(-8);
@@ -258,8 +283,11 @@ INTERACTIVE OUTPUT:
 - URL অবশ্যই http/https হতে হবে।
 - Person photo-এর জন্য [IMAGE:/path|caption] ব্যবহার কেবল knowledge-এ path explicitly থাকলে।
 
-RETRIEVED KNOWLEDGE:
+RETRIEVED WLC KNOWLEDGE:
 ${relevantKnowledge.join("\n\n---\n\n")}
+
+LIVE WEB RESULTS:
+${webContext}
 `,
     };
 
