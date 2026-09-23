@@ -72,7 +72,7 @@ function loadKnowledge(): KnowledgeChunk[] {
     }));
 }
 
-function retrieveKnowledge(query: string, chunks: KnowledgeChunk[], limit = 5) {
+function retrieveKnowledge(query: string, chunks: KnowledgeChunk[], limit = 3) {
   const queryTokens = tokenize(query);
 
   if (!queryTokens.size) {
@@ -221,7 +221,7 @@ export async function POST(req: Request) {
     }
 
     const knowledge = loadKnowledge();
-    const relevantKnowledge = retrieveKnowledge(latestUserMessage, knowledge, 5);
+    const relevantKnowledge = retrieveKnowledge(latestUserMessage, knowledge, 3);
 
     // Keep conversational context bounded so token usage does not grow forever.
     const recentMessages = messages.slice(-8);
