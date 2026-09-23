@@ -1,106 +1,294 @@
-=== উইল্‌স সাহিত্য ক্লাব (WLC) - তথ্য ভাণ্ডার ===
+=== WLC KNOWLEDGE BASE — SAHITYASAKHI ===
+Knowledge version: 2026-09-23
+Primary source: https://wlc.pro.bd/
+Purpose: factual knowledge for সাহিত্যসখী, the WLC digital assistant.
 
-[AI ফিচারের পরিচয়]
-- সিস্টেমের নাম: সাহিত্যসখী
-- পরিচয়: উইল্‌স সাহিত্য ক্লাবের অফিশিয়াল সাহিত্যিক AI ডিজিটাল বন্ধু।
+IMPORTANT SOURCE RULE:
+- Prefer current information from the official WLC website over legacy records.
+- When current and old records differ, treat the current website as authoritative unless the user explicitly asks about the historical/Gen-1 record.
+- Never invent a member, position, event date, result, URL, or policy.
+- If information is not in this knowledge base, say so briefly and provide the relevant official page when possible.
+- This file is intentionally divided into retrievable sections so the chat API can send only relevant sections to the model.
 
-[সাধারণ তথ্য]
-- ক্লাবের নাম: উইল্‌স সাহিত্য ক্লাব (Willes Literary Club)
-- স্লোগান: "সাহিত্যের বন্ধনে, প্রতিভার সন্ধানে..."
-- প্রতিষ্ঠান: উইল্‌স লিটল ফ্লাওয়ার স্কুল অ্যান্ড কলেজ।
-- প্রতিষ্ঠা তারিখ: ১১ই জুন, ২০২৪ (মাত্র ১৫ জন সদস্য নিয়ে যাত্রা শুরু)।
-- বর্তমান সদস্য সংখ্যা: প্রায় ১,০০০+ জন।
+=== IDENTITY & BRAND ===
+Title: উইল্‌স সাহিত্য ক্লাব
+English: Willes Literary Club
+Short name: WLC
+AI assistant: সাহিত্যসখী
+Tagline: "সাহিত্যের বন্ধনে, প্রতিভার সন্ধানে..."
+Institution: উইল্‌স লিটল ফ্লাওয়ার স্কুল অ্যান্ড কলেজ, ঢাকা.
+Core purpose: a student platform for creative writing, literary practice, creative thinking, talent development and cultural/literary activities.
+Official website: https://wlc.pro.bd/
+Common aliases users may type:
+- WLC, wlc
+- Willes Literary Club
+- Willes Sahitto Club
+- Willes Sahitya Club
+- উইলস সাহিত্য ক্লাব
+- উইল্‌স সাহিত্য ক্লাব
+- সাহিত্যসখী
+- সাহিত্তসখী
+- সাহিত্য সখী
 
-[যোগাযোগ, অনলাইন প্ল্যাটফর্ম ও অবস্থান]
-- ক্লাব রুম: কলেজ ভবনের নিচতলা।
-- রেজিস্ট্রেশন লিংক: https://wlc.pro.bd/register
-- ফেসবুক পেজ: https://www.facebook.com/share/1BfViwgesC/
-- ইনস্টাগ্রাম হ্যান্ডেল: https://www.instagram.com/willes_literary_club?igsh=MW4xdmE2eTRsaTAwbA==
-- সদস্যপদ গ্রহণ: অফিশিয়াল ওয়েবসাইট (wlc.pro.bd/register) বা অফিশিয়াল ফর্ম পূরণ করে আবেদন করা যায়।
+Source: https://wlc.pro.bd/about
+Source: https://wlc.pro.bd/
 
-[কার্যক্রম ও সামাজিক ভূমিকা]
-- নিয়মিত কার্যক্রম: দেয়ালিকা প্রকাশনা, সাহিত্য প্রতিযোগিতা, কবিতা আবৃত্তি, ওয়ার্কশপ ও বার্ষিক সাহিত্য উৎসব।
-- সামাজিক অবদান: সহ-শিক্ষা কার্যক্রমের পাশাপাশি মানবসেবা, সমাজসেবা, মনুষ্যত্বের বিকাশ ও সামাজিক সচেতনতা বৃদ্ধিতে সক্রিয় ভূমিকা।
+=== ABOUT THE CLUB ===
+WLC describes itself as more than a traditional club: it is a platform for students of Willes Little Flower School and College to develop creative thinking, practice literature and present their talents.
+The club promotes literary gatherings, wall-magazine/publication work, quizzes, debate and an annual literary festival.
+Goal: expand healthy, thoughtful literary practice among students and create an environment where students can express creative ideas through writing alongside formal studies.
+Vision: build a generation that combines modern technology with roots, language and sound literary values, while taking creative work beyond the Wills campus.
+Regular activities listed by the official site:
+- fortnightly and monthly literary gatherings
+- wall magazine and annual magazine publication
+- recitation and creative-writing workshops
+- inter-college literary and cultural festivals
+- book-reading and book-review competitions
+- quiz and word-puzzle olympiads
 
-[অর্জিত সাফল্য ও স্বীকৃতি]
-- রমনা থানা পর্যায়ে শ্রেষ্ঠ ক্লাবের স্বীকৃতি এবং পরবর্তীতে জাতীয় পর্যায়ে প্রথম স্থান অর্জন।
-- অন্তর্বর্তীকালীন সরকারের সংস্কৃতি উপদেষ্টা মোস্তফা সরোয়ার ফারুকীর হাত থেকে ক্লাবের পক্ষে পুরস্কার গ্রহণ করেন প্রতিষ্ঠাতা উপদেষ্টা আরিয়ান আজমাইন মিয়ন।
-- জাতীয় শিক্ষা সপ্তাহ, শিশু সপ্তাহ, বিতর্ক ইভেন্টসহ রেমিয়ান্স কালচারাল ক্লাব ও নটরডেম আবৃত্তি দলের বিভিন্ন আঞ্চলিক ও জাতীয় ফেস্টে একাধিক পুরস্কার অর্জন।
+Source: https://wlc.pro.bd/about
 
-==================================================
-=== বর্তমান কার্যকরী কমিটি (Running Committee) ===
-==================================================
+=== CONTACT, CAMPUS & OFFICIAL LINKS ===
+Campus:
+Willes Little Flower School and College
+85, Kakrail, Dhaka-1000, Bangladesh.
+Official website: https://wlc.pro.bd/
+Registration page: https://wlc.pro.bd/register
+About: https://wlc.pro.bd/about
+Leadership archive: https://wlc.pro.bd/panel
+Current committee: https://wlc.pro.bd/panel/running
+Gen-1 archive: https://wlc.pro.bd/panel/GEN-1
+Interim wing: https://wlc.pro.bd/panel/temporary
+Teacher moderators: https://wlc.pro.bd/panel/moderator
+Events: https://wlc.pro.bd/events
+Achievements: https://wlc.pro.bd/achievements
+Album: https://wlc.pro.bd/album
+Writing desk: https://wlc.pro.bd/writing
+Glossary: https://wlc.pro.bd/shobdo
+FAQ: https://wlc.pro.bd/faq
+Contact: https://wlc.pro.bd/contact
+Official email shown on the current site: contact@wlc.pro.bd
+Site footer contact: +8801974-745442 and wlfsc.sahittoclub@gmail.com
+Legacy social links recorded in the previous knowledge base:
+Facebook: https://www.facebook.com/share/1BfViwgesC/
+Instagram: https://www.instagram.com/willes_literary_club/
+Important: if a user asks for an official link, give the relevant exact URL as a clickable button. Do not make up alternate URLs.
 
-[উপদেষ্টা ও পরামর্শদাতা মণ্ডলী (Advisors)]
-1. আরিয়ান আজমাইন মিয়ন | পদবি: উপদেষ্টা | ব্যাচ: SSC '24
-2. আইশান শান | পদবি: উপদেষ্টা | ব্যাচ: HSC '25
-3. মোল্লা সৌম্য রহমান | পদবি: পরামর্শদাতা | ব্যাচ: HSC '27
-4. তওহিদ মাহমুদ | পদবি: পরামর্শদাতা | ব্যাচ: HSC '27
+Source: https://wlc.pro.bd/contact
+Source: https://wlc.pro.bd/register
 
-[কার্যনির্বাহী পরিষদ (Executive Members)]
-1. এহসান আহমেদ সিয়াম | পদবি: সভাপতি | ব্যাচ: HSC '26
-2. অনন্যা হাসান বিথি | পদবি: সহ সভাপতি | ব্যাচ: HSC '26
-3. আতিক আহরার | পদবি: সাধারন সম্পাদক | ব্যাচ: HSC '27
-4. রাফিদুল আমিন সাব্বির | পদবি: সাংগঠনিক সম্পাদক | ব্যাচ: SSC '26
-5. শেখ তাসিন | পদবি: মুখ্য সংগঠক (দিবা শাখা) | ব্যাচ: SSC '27
-6. নাহিয়ান নূর অহনা | পদবি: মুখ্য সংগঠক (প্রভাতি শাখা) | ব্যাচ: SSC '28
-7. অরণ্য আসিফ | পদবি: নিয়ন্ত্রক (বাংলা সাহিত্য) | ব্যাচ: SSC '26
-8. সামশিহা পরী | পদবি: নিয়ন্ত্রক (ইংরেজি সাহিত্য) | ব্যাচ: SSC '28
-9. দেওয়ান মো: রেজওয়ান | পদবি: নিয়ন্ত্রক (সুইড শাখা) | ব্যাচ: SSC '27
-10. আরিয়ান চৌধুরী | পদবি: সহ নিয়ন্ত্রক (বাংলা সাহিত্য) | ব্যাচ: SSC '27
-11. ইফতেখার জামান রোহান | পদবি: সহ নিয়ন্ত্রক (ইংরেজি সাহিত্য) | ব্যাচ: SSC '27
-12. আলী আল-আমীন | পদবি: সহ নিয়ন্ত্রক (ধর্মীয় সাহিত্য) | ব্যাচ: SSC '29
-13. রাফসান জাবির | পদবি: সহ নিয়ন্ত্রক (সুইড শাখা) | ব্যাচ: SSC '27
-14. আব্দুল কাইয়ুম ত্বোহা | পদবি: কোষাধ্যক্ষ | ব্যাচ: HSC '27
-15. ফারহানা আফরোজ ইপ্তি | পদবি: প্রচার-প্রচারণা বিষয়ক সম্পাদক | ব্যাচ: HSC '26
-16. আব্দুল নূর | পদবি: যোগাযোগ ও ব্যবস্থাপনা বিষয়ক সম্পাদক | ব্যাচ: SSC '27
-17. সামিন ইয়াসির | পদবি: গ্রন্থাগার বিষয়ক সম্পাদক | ব্যাচ: SSC '26
-18. ইয়াসফা রহমান জুঁই | পদবি: দেয়ালিকা বিষয়ক সম্পাদক | ব্যাচ: SSC '27
-19. নাবিল আহমেদ | পদবি: নিয়োগ ও শৃঙ্খলা বিষয়ক সম্পাদক (দিবা শাখা) | ব্যাচ: SSC '27
-20. জান্নাতুন তাজরি বারিহা | পদবি: শৃঙ্খলা বিষয়ক সম্পাদক (প্রভাতি শাখা) | ব্যাচ: SSC '29
-21. আব্দুল্লাহ আল-মাহদি | পদবি: নথি সংগ্রাহক | ব্যাচ: SSC '27
+=== MEMBERSHIP / REGISTRATION ===
+The official registration page redirects users to an official Google Form.
+FAQ says students from science, humanities or business studies can join; prior writing expertise is not required.
+The club says interested students can develop through literary gatherings and workshops.
+FAQ describes a review process after registration, followed by a short interview/session and notification by email/SMS according to the site's published FAQ.
+Membership opportunities described by the site include literary gatherings, representing the college in inter-college competitions, and experience working with the club's publication/editorial activities.
 
-[সম্পাদনা বিভাগ (Editorial Board)]
-1. নাজমুল সাকিব | পদবি: সভাপতি (সম্পাদনা বিভাগ) | ব্যাচ: HSC '26
-2. ইয়ামিন উজ-জামান | পদবি: সম্পাদক (সম্পাদনা বিভাগ) | ব্যাচ: HSC '26
-3. রাকিবুল ইসলাম আকাশ | পদবি: সহ সম্পাদক (চিত্র ও ভিডিওগ্রাফি) | ব্যাচ: SSC '27
-4. আবিয়াজ বুশাইরি | পদবি: কার্যনির্বাহী | ব্যাচ: SSC '26
+Registration: https://wlc.pro.bd/register
+FAQ: https://wlc.pro.bd/faq
 
-==================================================
-=== পূর্ববর্তী প্যানেল архив (Gen 1 Panel & Editorial) ===
-==================================================
+=== CURRENT RUNNING COMMITTEE — 2026 ===
+Current leadership page: https://wlc.pro.bd/panel/running
 
-[Gen 1 Panel Members]
-1. আরিয়ান আজমাইন মিয়ন (উপদেষ্টা, SSC '24)
-2. মাইমুনা তাবাসসুম মাহিয়া (সভাপতি, HSC '25)
-3. এহসান আহমেদ সিয়াম (সহ-সভাপতি, HSC '26)
-4. সামিয়া সাদেক (সম্পাদক, HSC '27)
-5. মো. শান গাজী (সহ-সম্পাদক, SSC '26)
-6. আতিক আহরার (সদস্য সচিব, HSC '27)
-7.তাসীন খান (উপ সদস্য সচিব, SSC '26)
-8. তওহিদ মাহমুদ (প্রচারণা সম্পাদক, HSC '27)
-9. আরিফুর রহমান তাহমিদ (নিয়ন্ত্রক - বাংলা সাহিত্য, SSC '26)
-10. মোল্লা সৌম্য রহমান (নিয়ন্ত্রক - ইংরেজি সাহিত্য, HSC '27)
-11. তাওসীফ মাহমুদ গুঞ্জন (নিয়ন্ত্রক - ধর্মীয় সাহিত্য, SSC '26)
-12. তানজুমা আক্তার স্নেহা (সহ-নিয়ন্ত্রক - বাংলা সাহিত্য, SSC '26)
-13. হাসনাত আযান (সহ-নিয়ন্ত্রক - ইংরেজি সাহিত্য, SSC '26)
-14. আদিবা হাসান (সহ-নিয়ন্ত্রক - ধর্মীয় সাহিত্য, SSC '26)
-15. ইয়ামিন উজ জামান (চিত্র ও নথি সংগ্রাহক, HSC '26)
-16. নাজমুল সাকিব (কার্যনির্বাহী প্রধান, HSC '26)
-17. যুক্ত প্রিয়তা (কার্যনির্বাহী, SSC '26)
-18. অনন্যা হাসান বিথি (কার্যনির্বাহী, HSC '26)
-19. আরিয়ান চৌধুরী (কার্যনির্বাহী, SSC '27)
-20. সাজিদ আলম খান তামিম (কার্যনির্বাহী, SSC '26)
-21. অয়ন মাহমুদ রাদিন (কার্যনির্বাহী, SSC '26)
-22. আবিদ হাসান দীপ্ত (কার্যনির্বাহী, SSC '26)
-23. মুহতাসিম মানাফি (কার্যনির্বাহী, SSC '26)
-24. নাফিসা সুলতানা (কার্যনির্বাহী, HSC '26)
-25. আব্দুল নুর (কার্যনির্বাহী, SSC '27)
-26. নামিয়া নাওয়ার (কার্যনির্বাহী, HSC '27)
-27. নাহিদ ইসলাম নয়ন (কার্যনির্বাহী, SSC '26)
-28. সাদিকা মালিহা শখ (কার্যনির্বাহী, SSC '28)
-29. সেঁজুতি আক্তার অথৈ (কার্যনির্বাহী, SSC '26)
+Advisors / advisers:
+- আরিয়ান আজমাইন মিয়ন — উপদেষ্টা — SSC '24
+- আইশান শান — উপদেষ্টা — HSC '25
+- মোল্লা সৌম্য রহমান — পরামর্শদাতা — HSC '27
+- তওহিদ মাহমুদ — পরামর্শদাতা — HSC '27
 
-[Gen 1 Editorial Members]
-1. আইশান শান (সম্পাদক, HSC '25)
-2. সৈয়দ ফাহিম মুদ্দাসির (সহ-সম্পাদক, HSC '26)
+Administrative division:
+- এহসান আহমেদ সিয়াম — সভাপতি — HSC '26
+- অনন্যা হাসান বিথি — সহ সভাপতি — HSC '26
+- আতিক আহরার — সাধারন সম্পাদক — HSC '27
+- রাফিদুল আমিন সাব্বির — সাংগঠনিক সম্পাদক — SSC '26
+- শেখ তাসিন — মুখ্য সংগঠক (দিবা শাখা) — SSC '27
+- নাহিয়ান নূর অহনা — মুখ্য সংগঠক (প্রভাতি শাখা) — SSC '28
+- অরণ্য আসিফ — নিয়ন্ত্রক (বাংলা সাহিত্য) — SSC '26
+- সামশিহা পরী — নিয়ন্ত্রক (ইংরেজি সাহিত্য) — SSC '28
+- দেওয়ান মো: রেজওয়ান — নিয়ন্ত্রক (সুইড শাখা) — SSC '27
+- আরিয়ান চৌধুরী — সহ নিয়ন্ত্রক (বাংলা সাহিত্য) — SSC '27
+- ইফতেখার জামান রোহান — সহ নিয়ন্ত্রক (ইংরেজি সাহিত্য) — SSC '27
+- আলী আল-আমীন — সহ নিয়ন্ত্রক (ধর্মীয় সাহিত্য) — SSC '29
+- রাফসান জাবির — সহ নিয়ন্ত্রক (সুইড শাখা) — SSC '27
+- আব্দুল কাইয়ুম ত্বোহা — কোষাধ্যক্ষ — HSC '27
+- ফারহানা আফরোজ ইপ্তি — প্রচার-প্রচারণা বিষয়ক সম্পাদক — HSC '26
+- আব্দুল নূর — যোগাযোগ ও ব্যবস্থাপনা বিষয়ক সম্পাদক — SSC '27
+- সামিন ইয়াসির — গ্রন্থাগার বিষয়ক সম্পাদক — SSC '26
+- ইয়াসফা রহমান জুঁই — দেয়ালিকা বিষয়ক সম্পাদক — SSC '27
+- নাবিল আহমেদ — নিয়োগ ও শৃঙ্খলা বিষয়ক সম্পাদক (দিবা শাখা) — SSC '27
+- জান্নাতুন তাজরি বারিহা — শৃঙ্খলা বিষয়ক সম্পাদক (প্রভাতি শাখা) — SSC '29
+- আব্দুল্লাহ আল-মাহদি — নথি সংগ্রাহক — SSC '27
+
+Editorial division:
+- নাজমুল সাকিব — সভাপতি (সম্পাদনা বিভাগ) — HSC '26
+- ইয়ামিন উজ-জামান — সম্পাদক (সম্পাদনা বিভাগ) — HSC '26
+- রাকিবুল ইসলাম আকাশ — সহ সম্পাদক (চিত্র ও ভিডিওগ্রাফি) — SSC '27
+- আবিয়াজ বুশাইরি — কার্যনির্বাহী — SSC '26
+
+Special current-person alias:
+- সৈয়দ ফাহিম মুদ্দাসির / Syed Fahim Muddasir / Fahim — the current leadership page lists him in the site's editorial section as সহ-সম্পাদক, HSC '26. The Gen-1 archive also records him as সহ-সম্পাদক.
+- Do not infer anything about Fahim beyond information explicitly present in the WLC records.
+
+Source: https://wlc.pro.bd/panel/running
+Source: https://wlc.pro.bd/panel/GEN-1
+
+=== GEN-1 HISTORICAL PANEL — 2024-2025 ===
+Use this section when the user asks about Gen-1, founding-era leadership, historical panel, or 2024-2025 records.
+- আরিয়ান আজমাইন মিয়ন — উপদেষ্টা — SSC '24
+- মাইমুনা তাবাসসুম মাহিয়া — সভাপতি — HSC '25
+- এহসান আহমেদ সিয়াম — সহ-সভাপতি — HSC '26
+- সামিয়া সাদেক — সম্পাদক — HSC '27
+- মো. শান গাজী — সহ-সম্পাদক — SSC '26
+- আতিক আহরার — সদস্য সচিব — HSC '27
+- তাসীন খান — উপ সদস্য সচিব — SSC '26
+- তওহিদ মাহমুদ — প্রচারণা সম্পাদক — HSC '27
+- আরিফুর রহমান তাহমিদ — নিয়ন্ত্রক (বাংলা সাহিত্য) — SSC '26
+- মোল্লা সৌম্য রহমান — নিয়ন্ত্রক (ইংরেজি সাহিত্য) — HSC '27
+- তাওসীফ মাহমুদ গুঞ্জন — নিয়ন্ত্রক (ধর্মীয় সাহিত্য) — SSC '26
+- তানজুমা আক্তার স্নেহা — সহ-নিয়ন্ত্রক (বাংলা সাহিত্য) — SSC '26
+- হাসনাত আযান — সহ-নিয়ন্ত্রক (ইংরেজি সাহিত্য) — SSC '26
+- আদিবা হাসান — সহ-নিয়ন্ত্রক (ধর্মীয় সাহিত্য) — SSC '26
+- ইয়ামিন উজ জামান — চিত্র ও নথি সংগ্রাহক — HSC '26
+- নাজমুল সাকিব — কার্যনির্বাহী প্রধান — HSC '26
+- যুক্ত প্রিয়তা — কার্যনির্বাহী — SSC '26
+- অনন্যা হাসান বিথি — কার্যনির্বাহী — HSC '26
+- আরিয়ান চৌধুরী — কার্যনির্বাহী — SSC '27
+- সাজিদ আলম খান তামিম — কার্যনির্বাহী — SSC '26
+- অয়ন মাহমুদ রাদিন — কার্যনির্বাহী — SSC '26
+- আবিদ হাসান দীপ্ত — কার্যনির্বাহী — SSC '26
+- মুহতাসিম মানাফি — কার্যনির্বাহী — SSC '26
+- নাফিসা সুলতানা — কার্যনির্বাহী — HSC '26
+- আব্দুল নুর — কার্যনির্বাহী — SSC '27
+- নামিয়া নাওয়ার — কার্যনির্বাহী — HSC '27
+- নাহিদ ইসলাম নয়ন — কার্যনির্বাহী — SSC '26
+- সাদিকা মালিহা শখ — কার্যনির্বাহী — SSC '28
+- সেঁজুতি আক্তার অথৈ — কার্যনির্বাহী — SSC '26
+Gen-1 editorial:
+- আইশান শান — সম্পাদক — HSC '25
+- সৈয়দ ফাহিম মুদ্দাসির — সহ-সম্পাদক — HSC '26
+
+Source: https://wlc.pro.bd/panel/GEN-1
+
+=== INTERIM WING — 2026 ===
+- সুরাইয়া আক্তার — অস্থায়ী কার্যনির্বাহী — SSC '26
+- আব্দুল্লাহ আহমেদ — অস্থায়ী কার্যনির্বাহী — SSC '30
+- মেহরাব জামান আরিয়ান — অস্থায়ী কার্যনির্বাহী — SSC '29
+- রাহুল পাল — অস্থায়ী কার্যনির্বাহী — HSC '27
+- আহনাফ অমি — অস্থায়ী কার্যনির্বাহী — SSC '30
+- মাশরাক আলম — অস্থায়ী কার্যনির্বাহী — SSC '28
+- আসফিতাজ ইনোরা — অস্থায়ী কার্যনির্বাহী — SSC '28
+- সুমাইয়া আক্তার — অস্থায়ী কার্যনির্বাহী — SSC '27
+
+Source: https://wlc.pro.bd/panel/temporary
+
+=== TEACHER MODERATORS ===
+The official moderator page lists:
+- খন্দকার আতিক — মডারেটর
+- সংজিৎ অধিকারী — ক্লাব সেক্রেটারি
+- আব্দুল কাইয়ুম — সদস্য (ইংরেজি সাহিত্য)
+- ফেরদৌসী সুমি — সদস্য (ইংরেজি সাহিত্য)
+- রফিক নটবর — সদস্য (বাংলা সাহিত্য)
+- শরীফুল ইসলাম — সদস্য (বাংলা সাহিত্য)
+- ফৌজিয়া আক্তার — সদস্য (বাংলা সাহিত্য)
+- ফ্রাহিম মারজান — সদস্য (বাংলা সাহিত্য)
+- রণপ্রভা সাহা — সদস্য (ইংরেজি সাহিত্য)
+- কাবেরী বিশ্বাস — সদস্য (বাংলা সাহিত্য)
+- আয়েশা সিদ্দিকা — সদস্য (বাংলা সাহিত্য)
+- তৌহিদা জাহের — সদস্য (বাংলা সাহিত্য)
+- সৈয়দ আনিসুর রহমান — সদস্য (ইসলামী সাহিত্য)
+- ফাতেমা খানম — সদস্য (ইসলামী সাহিত্য)
+- মহিবুল ইসলাম — সদস্য (ইসলামী সাহিত্য)
+- এইচ.কে সাব্বির — সদস্য (ইসলামী সাহিত্য)
+- খান মোঃ রায়হান ফারুক — সদস্য (ইসলামী সাহিত্য)
+- মোঃ জাকের উল্লাহ — সদস্য (ইসলামী সাহিত্য)
+- মনিরুজ্জামান মুকুল — সদস্য (ইসলামী সাহিত্য)
+- আসাদুজ্জামান খান — সদস্য (বাংলা সাহিত্য)
+
+Source: https://wlc.pro.bd/panel/moderator
+
+=== EVENTS & TIMELINE ===
+The official events page currently lists:
+Upcoming / listed 2026:
+- জাতীয় দেয়ালিকা ও কুইজ উৎসব ২০২৬
+- Date: 25 July 2026
+- Time: 09:00–16:00
+- Venue: College Auditorium, WLFSC
+- Description: participation from 50+ colleges; wall-magazine exhibition, literary quiz and script-writing competition.
+Historical:
+- অমর একুশে সাহিত্য আসর ও বসন্ত উৎসব — 21 February 2026 — Shahid Minar grounds, Wills campus. Included original-poetry recitation, remembrance and unveiling of the annual wall magazine 'স্পন্দন'.
+- সৃজনশীল লেখনী ও কন্টেন্ট রাইটিং কর্মশালা — 15 January 2026 — Digital Classroom, College branch. A day-long workshop focused on writing improvement and content-writing basics.
+- বিজয় দিবস বিশেষ কুইজ প্রতিযোগিতা — 16 December 2025 — online. The site says 300+ Willians participated and the quiz covered Bangladesh's Liberation War and Bangla literary history.
+When asked about an event, distinguish "upcoming/listed" from "historical" and never claim an event happened unless the source says so.
+
+Source: https://wlc.pro.bd/events
+
+=== ACHIEVEMENTS ===
+The current achievements page displays headline totals:
+- 05+ national trophies
+- 12+ inter-college awards
+- 50+ published writings
+
+Listed achievements:
+- সেরা সাহিত্য ক্লাব অ্যাওয়ার্ড ২০২৫ — November 2025. The site says the club received recognition at জাতীয় সাহিত্য উৎসব ২০২৫ for creative publication and wall-magazine work.
+- আন্তঃকলেজ দেয়ালিকা প্রতিযোগিতায় ১ম স্থান — February 2026. The site says the jointly edited wall magazine 'স্পন্দন' won first place at a Language Day special event.
+- সৃজনশীল লেখনী ও কুইজ চ্যাম্পিয়নশিপ — March 2026. The site says the quiz team was runner-up among 10 colleges in the Dhaka region.
+Older legacy knowledge also mentioned other recognitions, but if a user asks for a specific older award not listed on the current page, clearly label it as legacy information and do not fabricate details.
+
+Source: https://wlc.pro.bd/achievements
+
+=== WEBSITE FEATURES ===
+- Writing desk: selected creative writing approved by the admin panel. https://wlc.pro.bd/writing
+- Album: photo archive of club events, gatherings and literary moments. https://wlc.pro.bd/album
+- Glossary: official site section exists; the live page currently says it is being arranged. https://wlc.pro.bd/shobdo
+- FAQ: membership and general questions. https://wlc.pro.bd/faq
+- Contact: email, campus address and message form. https://wlc.pro.bd/contact
+- Leadership archive: current, Gen-1 and interim panels. https://wlc.pro.bd/panel
+
+=== ACTION / LINK INTENTS ===
+If a user asks for any of these, do not explain that you cannot provide it. Give a concise answer and a button:
+- Facebook / FB / ফেসবুক → [BUTTON:Official Facebook|https://www.facebook.com/share/1BfViwgesC/]
+- Instagram / Insta / IG / ইনস্টাগ্রাম → [BUTTON:Official Instagram|https://www.instagram.com/willes_literary_club/]
+- website / site / ওয়েবসাইট → [BUTTON:WLC Website|https://wlc.pro.bd/]
+- register / registration / join / membership / রেজিস্ট্রেশন / মেম্বার → [BUTTON:Join WLC|https://wlc.pro.bd/register]
+- committee / panel / কমিটি / প্যানেল → [BUTTON:Current Committee|https://wlc.pro.bd/panel/running]
+- Gen-1 / old committee / historical panel → [BUTTON:Gen-1 Archive|https://wlc.pro.bd/panel/GEN-1]
+- events / event / ইভেন্ট → [BUTTON:Events|https://wlc.pro.bd/events]
+- achievements / awards / অর্জন → [BUTTON:Achievements|https://wlc.pro.bd/achievements]
+- contact / যোগাযোগ → [BUTTON:Contact WLC|https://wlc.pro.bd/contact]
+- writing / লেখালেখি → [BUTTON:Writing Desk|https://wlc.pro.bd/writing]
+- album / photos / ছবি / গ্যালারি → [BUTTON:Photo Album|https://wlc.pro.bd/album]
+- moderators / teachers / শিক্ষক → [BUTTON:Teacher Moderators|https://wlc.pro.bd/panel/moderator]
+
+=== BANGLISH / SHORT-QUERY INTERPRETATION ===
+Users may write Bengali in Latin letters, English, Bengali script, or a mixture.
+Treat these as equivalent where context makes it clear:
+- ke / k / who / কে → person identity
+- ki / what / কী → fact/category
+- kothay / where / কোথায় → location
+- kobe / when / কখন → date/time
+- kivabe / how / কীভাবে → process
+- dao / den / diba / send / link dao → provide the requested link/action
+- fb / facebook / fesbuk → Facebook
+- insta / ig / instagram → Instagram
+- site / web / website → website
+- club / clb → club
+- member / membar / sodosso → member
+- committee / commitee / komiti → committee
+- president / presi → সভাপতি
+- secretary / sec → সম্পাদক / সাধারণ সম্পাদক depending on context
+- moderator / teacher / sir / maam → teacher moderator
+- event / program / prog → event
+- achievement / award → অর্জন
+- fahim / fahim k / fahim ke → সৈয়দ ফাহিম মুদ্দাসির when the question is about WLC membership/role, using the explicit current/Gen-1 record.
+Do not blindly translate every English word; infer intent from the whole message.
+
+=== RESPONSE BEHAVIOR ===
+- Match the user's language. If the user writes Banglish, you may reply in natural Bangla, optionally keeping key names/titles in English.
+- For a very short question like "fahim k?", answer directly in 1–3 sentences first. Do not dump unrelated committee information.
+- If the user asks "link dao", give the link/button immediately.
+- If the user asks for a person, give name + role + relevant session first; offer the panel link only if useful.
+- If the user asks "can you do X?", distinguish between actions the assistant can complete in-chat and external actions that require opening a site/form.
+- Never claim to have opened, submitted, registered, messaged, or changed something on an external website unless the system actually performed that action.
+- Never say "I don't have internet" when the user is simply asking for a known WLC link stored in this knowledge base.
+- For arbitrary web research outside WLC, say that the assistant can help find information but must not invent search results. Prefer official WLC sources for WLC facts.
+- Keep answers concise unless the user asks for detail.
