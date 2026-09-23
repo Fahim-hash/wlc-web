@@ -8,7 +8,13 @@ type ChatMessage = {
   content: string;
 };
 
-type WebResult = {\n  title: string;\n  url: string;\n  content: string;\n};\n\ntype KnowledgeChunk = {
+type WebResult = {
+  title: string;
+  url: string;
+  content: string;
+};
+
+type KnowledgeChunk = {
   text: string;
   normalized: string;
   tokens: Set<string>;
@@ -98,7 +104,6 @@ function retrieveKnowledge(query: string, chunks: KnowledgeChunk[], limit = 3) {
 
     return { text: chunk.text, score };
   });
-
   return scored
     .filter((item) => item.score > 0)
     .sort((a, b) => b.score - a.score)
@@ -197,8 +202,7 @@ async function searchWeb(query: string): Promise<WebResult[]> {
             url: String(item.url || ""),
             content: String(item.content || ""),
           }))
-          .filter((item: { url: string }) => /^https?:\/\//i.test(item.url))
-      : [];
+          .filter((item: { url: string }) => /^https?:\/\//i.test(item.url))      : [];
   } catch (error) {
     console.error("Web search error:", error);
     return [];
