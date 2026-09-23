@@ -8,11 +8,14 @@ interface Message {
   content: string;
 }
 
+const SAFE_URL = /^https?:\/\//i;
+
 export default function KothasokhiPage() {
   const [messages, setMessages] = useState<Message[]>([
     {
       role: "assistant",
-      content: "স্বাগতম! আমি 'সাহিত্যসখী'—উইল্‌স সাহিত্য ক্লাবের ডিজিটাল সখী। সাহিত্য, অবস্থান কিংবা ক্লাব সংক্রান্ত যেকোনো বিষয়ে কীভাবে সাহায্য করতে পারি?",
+      content:
+        "স্বাগতম! আমি 'সাহিত্যসখী'—উইল্‌স সাহিত্য ক্লাবের ডিজিটাল সহকারী। Banglish, বাংলা বা English-এ প্রশ্ন করতে পারো। WLC-এর তথ্য, কমিটি, ইভেন্ট, সদস্যপদ বা official link—যা দরকার বলো।",
     },
   ]);
   const [input, setInput] = useState("");
@@ -23,58 +26,70 @@ export default function KothasokhiPage() {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, loading]);
 
-  // 🛠️ ডায়নামিক টেক্সট, বাটন ও ইমেজ পার্সার ফাংশন
   const renderFormattedMessage = (content: string) => {
-    // Regex দিয়ে [BUTTON:...] ও [IMAGE:...] ট্যাগগুলোকে আলাদা করা
     const parts = content.split(/(\[BUTTON:.*?\|.*?\]|\[IMAGE:.*?\|.*?\])/g);
 
     return (
       <div className="space-y-3">
         {parts.map((part, idx) => {
-          // ১. বাটন রেন্ডারিং
           if (part.startsWith("[BUTTON:") && part.endsWith("]")) {
             const inner = part.slice(8, -1);
-            const [label, url] = inner.split("|");
+            const separator = inner.indexOf("|");
+            const label = separator >= 0 ? inner.slice(0, separator) : inner;
+            const url = separator >= 0 ? inner.slice(separator + 1).trim() : "";
+
+            if (!SAFE_URL.test(url)) return null;
+
             return (
               <div key={idx} className="pt-1 pb-1">
                 <a
-                  href={url?.trim()}
+                  href={url}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-2 bg-rose-900 hover:bg-stone-900 text-white font-semibold text-xs sm:text-sm px-4 py-2.5 rounded-xl shadow-md transition-all active:scale-95"
                 >
-                  🔗 {label?.trim()}
+                  🔗 {label.trim()}
                 </a>
               </div>
             );
           }
 
-          // ২. ইমেজ কার্ড রেন্ডারিং
           if (part.startsWith("[IMAGE:") && part.endsWith("]")) {
             const inner = part.slice(7, -1);
-            const [src, alt] = inner.split("|");
+            const separator = inner.indexOf("|");
+            const src = separator >= 0 ? inner.slice(0, separator).trim() : "";
+            const alt = separator >= 0 ? inner.slice(separator + 1).trim() : "Panel Member";
+
+            if (!src.startsWith("/")) return null;
+
             return (
-              <div key={idx} className="my-2 overflow-hidden rounded-2xl border border-stone-200 bg-stone-50 p-1.5 shadow-sm max-w-xs">
+              <div
+                key={idx}
+                className="my-2 overflow-hidden rounded-2xl border border-stone-200 bg-stone-50 p-1.5 shadow-sm max-w-xs"
+              >
                 <div className="relative w-full h-48 rounded-xl overflow-hidden bg-stone-200">
                   <Image
-                    src={src?.trim()}
-                    alt={alt?.trim() || "Panel Member"}
+                    src={src}
+                    alt={alt || "Panel Member"}
                     fill
                     className="object-cover"
                   />
                 </div>
                 {alt && (
                   <p className="text-[11px] font-semibold text-stone-600 text-center mt-1.5 pb-0.5">
-                    {alt.trim()}
+                    {alt}
                   </p>
                 )}
               </div>
             );
           }
 
-          // ৩. সাধারণ টেক্সট রেন্ডারিং
           if (!part.trim()) return null;
-          return <span key={idx} className="whitespace-pre-line">{part}</span>;
+          return (
+            <span key={idx} className="whitespace-pre-line">
+              {part}
+            </span>
+          );
         })}
       </div>
     );
@@ -92,7 +107,7 @@ export default function KothasokhiPage() {
     setLoading(true);
 
     try {
-      const apiPayload = updatedMessages.map((m) => ({
+      const apiPayload = updatedMessages.slice(-8).map((m) => ({
         role: m.role,
         content: m.content,
       }));
@@ -106,17 +121,26 @@ export default function KothasokhiPage() {
       const data = await res.json();
 
       if (data.reply) {
-        setMessages((prev) => [...prev, { role: "assistant", content: data.reply }]);
+        setMessages((prev) => [
+          ...prev,
+          { role: "assistant", content: data.reply },
+        ]);
       } else {
         setMessages((prev) => [
           ...prev,
-          { role: "assistant", content: "দুঃখিত, কোনো সমস্যা হয়েছে। আবার চেষ্টা করুন।" },
+          {
+            role: "assistant",
+            content: "দুঃখিত, কোনো সমস্যা হয়েছে। আবার চেষ্টা করুন।",
+          },
         ]);
       }
-    } catch (err) {
+    } catch {
       setMessages((prev) => [
         ...prev,
-        { role: "assistant", content: "দুঃখিত, সার্ভারের সাথে সংযোগ বিচ্ছিন্ন হয়েছে।" },
+        {
+          role: "assistant",
+          content: "দুঃখিত, সার্ভারের সাথে সংযোগ বিচ্ছিন্ন হয়েছে।",
+        },
       ]);
     } finally {
       setLoading(false);
@@ -125,18 +149,12 @@ export default function KothasokhiPage() {
 
   return (
     <main className="w-full min-h-screen pt-20 sm:pt-24 pb-6 px-3 sm:px-6 bg-[#FAFAFA] text-stone-800 font-sans flex flex-col items-center justify-center relative overflow-x-hidden select-none">
-      
-      {/* ব্যাকগ্রাউন্ড সফ্ট গ্লো */}
       <div className="absolute top-[-10%] left-[-10%] w-[40vw] h-[40vw] bg-rose-100/30 rounded-full blur-[120px] pointer-events-none" />
       <div className="absolute bottom-[-10%] right-[-10%] w-[40vw] h-[40vw] bg-stone-200/40 rounded-full blur-[100px] pointer-events-none" />
 
-      {/* চ্যাটবক্স কার্ড */}
       <div className="max-w-3xl w-full flex flex-col bg-white border border-stone-200/80 rounded-[2rem] shadow-2xl relative overflow-hidden z-10 h-[78vh] min-h-[500px]">
-        
-        {/* টপ মেটালিক অ্যান্ড নিওন এক্সেন্ট */}
         <div className="absolute top-0 inset-x-0 h-1.5 bg-gradient-to-r from-rose-900 via-stone-900 to-rose-700 z-20" />
 
-        {/* 🔮 হেডার বার */}
         <header className="p-4 sm:p-5 border-b border-stone-100 flex items-center justify-between bg-white/95 backdrop-blur-md shrink-0 z-10">
           <div className="flex items-center gap-3">
             <div className="relative w-10 h-10 sm:w-11 sm:h-11 bg-stone-50 rounded-2xl p-1.5 border border-stone-200/60 flex items-center justify-center shadow-sm select-none shrink-0">
@@ -164,7 +182,7 @@ export default function KothasokhiPage() {
             </div>
           </div>
 
-          <button 
+          <button
             onClick={() => window.location.reload()}
             title="নতুন সেশন শুরু করুন"
             className="text-stone-500 hover:text-stone-900 bg-stone-50 hover:bg-stone-100 p-2 sm:px-3.5 sm:py-2 rounded-xl border border-stone-200/60 transition-all text-xs font-semibold flex items-center gap-1.5 active:scale-95 shrink-0"
@@ -173,7 +191,6 @@ export default function KothasokhiPage() {
           </button>
         </header>
 
-        {/* 💬 চ্যাট এলাকা */}
         <div className="flex-1 p-4 sm:p-6 overflow-y-auto space-y-3.5 bg-[#FAFAFA]/50 text-xs sm:text-sm scroll-smooth">
           {messages.map((msg, index) => (
             <div
@@ -187,9 +204,8 @@ export default function KothasokhiPage() {
                     : "bg-white text-stone-800 border border-stone-200/70 rounded-bl-none"
                 }`}
               >
-                {/* 🎯 অ্যাসিস্ট্যান্ট মেসেজের জন্য ডায়নামিক রেন্ডারিং */}
-                {msg.role === "assistant" 
-                  ? renderFormattedMessage(msg.content) 
+                {msg.role === "assistant"
+                  ? renderFormattedMessage(msg.content)
                   : msg.content}
               </div>
             </div>
@@ -207,14 +223,14 @@ export default function KothasokhiPage() {
           <div ref={messagesEndRef} />
         </div>
 
-        {/* 📥 ইনপুট বার */}
         <footer className="p-3 sm:p-4 bg-white border-t border-stone-200/80 shrink-0 z-10">
           <form onSubmit={handleSend} className="flex items-center gap-2 max-w-3xl mx-auto">
             <input
               type="text"
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              placeholder="সাহিত্যসখীকে আপনার প্রশ্নটি লিখুন..."
+              placeholder="বাংলা, Banglish বা English-এ প্রশ্ন করুন..."
+              aria-label="Ask সাহিত্যসখী"
               className="flex-1 bg-stone-50 border border-stone-200 text-stone-800 text-xs sm:text-sm rounded-xl px-4 py-3 outline-none focus:border-rose-900 focus:bg-white transition-all font-medium placeholder:text-stone-400"
             />
             <button
@@ -226,7 +242,6 @@ export default function KothasokhiPage() {
             </button>
           </form>
         </footer>
-
       </div>
     </main>
   );
