@@ -1,73 +1,105 @@
 // app/api/webhook/telegram/route.ts
 import { NextResponse } from "next/server";
-import fs from "fs";
-import path from "path";
+import { collection, doc, setDoc } from "firebase/firestore/lite";
+import { db } from "@/lib/firebase";
 
-const dataFilePath = path.join(process.cwd(), "public", "telegram-data.json");
+type TelegramPhoto = {
+  file_id: string;
+  file_unique_id?: string;
+  width?: number;
+  height?: number;
+};
 
-// JSON ফাইল রিড ও রাইট করার হেল্পার ফাংশন
-function getSavedData(): string[] {
-  try {
-    if (fs.existsSync(dataFilePath)) {
-      const fileContent = fs.readFileSync(dataFilePath, "utf-8");
-      return JSON.parse(fileContent) || [];
-    }
-  } catch (e) {
-    console.error("Error reading JSON file", e);
-  }
-  return [];
+type TelegramPost = {
+  message_id: number;
+  date?: number;
+  chat?: { id?: number | string; username?: string; title?: string };
+  document?: {
+    file_id: string;
+    file_unique_id?: string;
+    file_name?: string;
+    mime_type?: string;
+  };
+  photo?: TelegramPhoto[];
+  caption?: string;
+  media_group_id?: string;
+};
+
+function getWebhookSecret(request: Request) {
+  return (
+    request.headers.get("x-telegram-bot-api-secret-token") ||
+    request.headers.get("x-telegram-webhook-secret")
+  );
 }
 
-function saveData(data: string[]) {
-  try {
-    fs.writeFileSync(dataFilePath, JSON.stringify(data, null, 2), "utf-8");
-  } catch (e) {
-    console.error("Error writing JSON file", e);
+function getImageFromPost(post: TelegramPost) {
+  if (post.document?.file_id && post.document.mime_type?.startsWith("image/")) {
+    return {
+      fileId: post.document.file_id,
+      fileUniqueId: post.document.file_unique_id ?? "",
+      fileName: post.document.file_name ?? "telegram-image",
+      mimeType: post.document.mime_type ?? "image/*",
+    };
   }
+
+  if (post.photo && post.photo.length > 0) {
+    const photo = post.photo[post.photo.length - 1];
+    return {
+      fileId: photo.file_id,
+      fileUniqueId: photo.file_unique_id ?? "",
+      fileName: `telegram-${post.message_id}.jpg`,
+      mimeType: "image/jpeg",
+    };
+  }
+
+  return null;
 }
 
 export async function POST(request: Request) {
   try {
-    const botToken = process.env.TELEGRAM_BOT_TOKEN;
-    const body = await request.json();
-
-    // ১. নতুন পোস্ট বা ডকুমেন্ট হ্যান্ডেল করা
-    const post = body.channel_post || body.edited_channel_post;
-    
-    if (post) {
-      const document = post.document;
-      const photoArray = post.photo;
-      let fileId = "";
-
-      if (document && document.mime_type?.startsWith("image/")) {
-        fileId = document.file_id;
-      } else if (photoArray && photoArray.length > 0) {
-        fileId = photoArray[photoArray.length - 1].file_id;
-      }
-
-      if (fileId) {
-        // টেলিগ্রাম থেকে ডিরেক্ট ফাইল পাথ নেওয়া
-        const fileRes = await fetch(`https://api.telegram.org/bot${botToken}/getFile?file_id=${fileId}`);
-        const fileData = await fileRes.json();
-
-        if (fileData.ok && fileData.result.file_path) {
-          const directUrl = `https://api.telegram.org/file/bot${botToken}/${fileData.result.file_path}`;
-          
-          let currentImages = getSavedData();
-          if (!currentImages.includes(directUrl)) {
-            currentImages.unshift(directUrl); // নতুন ছবি সবার আগে পুশ হবে
-            saveData(currentImages);
-          }
-        }
+    const expectedSecret = process.env.TELEGRAM_WEBHOOK_SECRET;
+    if (expectedSecret) {
+      const receivedSecret = getWebhookSecret(request);
+      if (!receivedSecret || receivedSecret !== expectedSecret) {
+        return NextResponse.json({ ok: false }, { status: 401 });
       }
     }
 
-    // ২. যদি চ্যানেল থেকে কোনো পোস্ট ডিলিট করা হয় (অটোমেটিক রিমুভাল)
-    // নোট: কিছু ক্ষেত্রে টেলিগ্রাম ডিলিট হওয়া মেসেজের ডিরেক্ট ফাইল আইডি দেয় না, 
-    // তবে এটি সেফসাইড ট্র্যাকিং এর জন্য রাখা হলো।
+    const body = await request.json();
+    const post = (body.channel_post || body.edited_channel_post) as TelegramPost | undefined;
+
+    if (!post?.message_id) {
+      return NextResponse.json({ ok: true, ignored: true });
+    }
+
+    const image = getImageFromPost(post);
+    if (!image) {
+      return NextResponse.json({ ok: true, ignored: true });
+    }
+
+    const chatId = post.chat?.id ?? process.env.TELEGRAM_CHAT_ID;
+    const documentId = `${String(chatId)}_${post.message_id}`;
+
+    await setDoc(
+      doc(collection(db, "telegram_media"), documentId),
+      {
+        messageId: post.message_id,
+        chatId: String(chatId ?? ""),
+        fileId: image.fileId,
+        fileUniqueId: image.fileUniqueId,
+        fileName: image.fileName,
+        mimeType: image.mimeType,
+        caption: post.caption ?? "",
+        mediaGroupId: post.media_group_id ?? null,
+        createdAt: (post.date ?? Math.floor(Date.now() / 1000)) * 1000,
+        updatedAt: Date.now(),
+      },
+      { merge: true }
+    );
+
     return NextResponse.json({ ok: true });
   } catch (error) {
-    console.error("Webhook Error:", error);
+    console.error("Telegram webhook error:", error);
     return NextResponse.json({ ok: false }, { status: 500 });
   }
 }
