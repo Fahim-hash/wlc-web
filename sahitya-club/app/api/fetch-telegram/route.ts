@@ -1,60 +1,56 @@
 // app/api/fetch-telegram/route.ts
 import { NextResponse } from "next/server";
+import { collection, getDocs, orderBy, query } from "firebase/firestore/lite";
+import { db } from "@/lib/firebase";
+
+export const dynamic = "force-dynamic";
+
+type TelegramMedia = {
+  messageId: number;
+  fileId: string;
+  fileName?: string;
+  mimeType?: string;
+  caption?: string;
+  createdAt?: number;
+};
 
 export async function GET() {
   try {
-    const botToken = process.env.TELEGRAM_BOT_TOKEN;
-    const chatId = process.env.TELEGRAM_CHAT_ID;
+    const mediaQuery = query(
+      collection(db, "telegram_media"),
+      orderBy("createdAt", "desc")
+    );
 
-    if (!botToken || !chatId) {
-      return NextResponse.json({ error: "কনফিগারেশন পাওয়া যায়নি।" }, { status: 500 });
-    }
+    const snapshot = await getDocs(mediaQuery);
 
-    // ১. টেলিগ্রাম চ্যানেল থেকে সাম্প্রতিক মেসেজগুলো ফেচ করা
-    const res = await fetch(`https://api.telegram.org/bot${botToken}/getUpdates?offset=-100`);
-    const data = await res.json();
+    const images = snapshot.docs
+      .map((doc) => {
+        const data = doc.data() as TelegramMedia;
+        if (!data.fileId || !data.messageId) return null;
 
-    if (!data.ok) {
-      return NextResponse.json({ error: "টেলিগ্রাম থেকে ডাটা আনতে ব্যর্থ।" }, { status: 500 });
-    }
+        return {
+          id: doc.id,
+          messageId: data.messageId,
+          fileId: data.fileId,
+          fileName: data.fileName ?? "telegram-image",
+          caption: data.caption ?? "",
+          // IMPORTANT: never store Telegram's temporary file URL.
+          // The proxy resolves a fresh file_path on every request.
+          url: `/api/telegram-image?fileId=${encodeURIComponent(data.fileId)}`,
+          createdAt: data.createdAt ?? 0,
+        };
+      })
+      .filter(Boolean);
 
-    const images: string[] = [];
-
-    // ২. মেসেজগুলো থেকে ছবির ডিরেক্ট লিংক জেনারেট করা
-    for (const update of data.result) {
-      // ওয়েবসাইট থেকে বা ম্যানুয়ালি ডকুমেন্ট হিসেবে আপলোড করা ফাইল চেক
-      const document = update.channel_post?.document;
-      // সরাসরি ছবি হিসেবে আপলোড করা ফাইল চেক (ম্যানুয়াল আপলোড)
-      const photoArray = update.channel_post?.photo;
-
-      let fileId = "";
-
-      if (document && document.mime_type.startsWith("image/")) {
-        fileId = document.file_id;
-      } else if (photoArray && photoArray.length > 0) {
-        // সবচেয়ে হাই-কোয়ালিটি (সবচেয়ে বড় সাইজ) ছবিটির আইডি নেওয়া
-        fileId = photoArray[photoArray.length - 1].file_id;
-      }
-
-      if (fileId) {
-        // ৩. file_id দিয়ে টেলিগ্রামের নিজস্ব সোর্স পাথ বের করা
-        const fileRes = await fetch(`https://api.telegram.org/bot${botToken}/getFile?file_id=${fileId}`);
-        const fileData = await fileRes.json();
-
-        if (fileData.ok && fileData.result.file_path) {
-          const directImageUrl = `https://api.telegram.org/file/bot${botToken}/${fileData.result.file_path}`;
-          images.unshift(directImageUrl); // নতুন ছবিগুলো গ্যালারির শুরুতে দেখাবে
-        }
-      }
-    }
-
-    // ক্যাশিং এড়াতে no-store রেসপন্স পাঠানো হচ্ছে
-    return NextResponse.json({ success: true, images }, {
-      headers: { "Cache-Control": "no-store, max-age=0" }
-    });
-
+    return NextResponse.json(
+      { success: true, images },
+      { headers: { "Cache-Control": "no-store, max-age=0" } }
+    );
   } catch (error) {
-    console.error("Fetch Error:", error);
-    return NextResponse.json({ error: "সার্ভার ইন্টারনাল এরর।" }, { status: 500 });
+    console.error("Fetch Telegram media error:", error);
+    return NextResponse.json(
+      { error: "টেলিগ্রাম অ্যালবাম লোড করতে ব্যর্থ।" },
+      { status: 500 }
+    );
   }
 }
