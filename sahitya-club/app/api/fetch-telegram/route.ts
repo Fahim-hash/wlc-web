@@ -14,8 +14,41 @@ type TelegramMedia = {
   createdAt?: number;
 };
 
-export async function GET() {
+async function ensureTelegramWebhook(request: Request) {
+  const botToken = process.env.TELEGRAM_BOT_TOKEN;
+  if (!botToken) return;
+
+  const origin = new URL(request.url).origin;
+  const webhookUrl = `${origin}/api/webhook/telegram`;
+  const secret = process.env.TELEGRAM_WEBHOOK_SECRET;
+
+  const body = new URLSearchParams({ url: webhookUrl });
+  if (secret) body.set("secret_token", secret);
+  body.set("allowed_updates", JSON.stringify(["channel_post", "edited_channel_post"]));
+  body.set("max_connections", "10");
+
+  const response = await fetch(
+    `https://api.telegram.org/bot${botToken}/setWebhook`,
+    {
+      method: "POST",
+      body,
+      cache: "no-store",
+    }
+  );
+
+  const result = await response.json();
+  if (!result.ok) {
+    console.error("Telegram webhook setup failed:", result);
+  }
+}
+
+export async function GET(request: Request) {
   try {
+    // Automatically register/repair the webhook using the existing bot token.
+    // This makes the album self-healing if the Telegram webhook was missing
+    // or pointing at an old deployment.
+    await ensureTelegramWebhook(request);
+
     const mediaQuery = query(
       collection(db, "telegram_media"),
       orderBy("createdAt", "desc")
@@ -34,8 +67,6 @@ export async function GET() {
           fileId: data.fileId,
           fileName: data.fileName ?? "telegram-image",
           caption: data.caption ?? "",
-          // IMPORTANT: never store Telegram's temporary file URL.
-          // The proxy resolves a fresh file_path on every request.
           url: `/api/telegram-image?fileId=${encodeURIComponent(data.fileId)}`,
           createdAt: data.createdAt ?? 0,
         };
