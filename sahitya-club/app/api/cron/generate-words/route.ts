@@ -13,9 +13,7 @@ import {
 import Groq from "groq-sdk";
 
 const TOTAL_TARGET = 100;
-const BATCH_SIZE = 10;
-const MAX_BATCH_ATTEMPTS = 3;
-const MAX_BATCHES = 20;
+const MAX_GENERATION_ATTEMPTS = 3;
 const LOCK_TTL_MS = 10 * 60 * 1000;
 
 const WORD_CATEGORIES = [
@@ -51,7 +49,7 @@ function normalize(value: unknown): string {
   return typeof value === "string" ? value.replace(/\s+/g, " ").trim() : "";
 }
 
-function validateBatch(value: unknown): GeneratedWord[] {
+function validateWords(value: unknown): GeneratedWord[] {
   if (!Array.isArray(value)) return [];
 
   const unique = new Map<string, GeneratedWord>();
@@ -67,88 +65,83 @@ function validateBatch(value: unknown): GeneratedWord[] {
     if (!word || !meaning || !sentence) continue;
 
     const key = word.toLocaleLowerCase("bn-BD");
-    if (!unique.has(key)) {
-      unique.set(key, { word, meaning, sentence });
-    }
+    if (!unique.has(key)) unique.set(key, { word, meaning, sentence });
   }
 
   return Array.from(unique.values());
 }
 
-async function generateBatch(
+async function generateWords(
   groq: Groq,
-  batchNumber: number,
-  category: string
+  attempt: number
 ): Promise<GeneratedWord[]> {
-  // Previous batches are intentionally NEVER included in this prompt.
   const prompt =
-    "Generate exactly " + BATCH_SIZE + " different, real Bengali literary vocabulary words.\n" +
-    "Focus this batch on: " + category + ".\n" +
-    "Use established Bengali words found in reputable Bengali dictionaries or literature. Do not invent, combine, or fabricate words.\n" +
-    "Prefer uncommon and elegant words that are genuinely useful for a Bengali vocabulary page.\n" +
+    "Generate exactly 100 UNIQUE Bengali literary vocabulary words in ONE response.\n" +
+    "Cover a broad mix of these areas: " + WORD_CATEGORIES.join(" | ") + ".\n" +
+    "Use only established Bengali words found in reputable Bengali dictionaries or recognized Bengali literature.\n" +
+    "Do NOT invent, fabricate, merge, mechanically combine, or create pseudo-words.\n" +
+    "Do NOT repeat any word, including spelling variants that represent the same word.\n" +
+    "Prefer uncommon, elegant, useful literary Bengali vocabulary rather than ordinary everyday words.\n" +
     "For every word provide a concise accurate Bengali meaning and one natural Bengali example sentence.\n" +
-    "Return only the requested JSON object. No markdown, explanation, comments, or extra text.\n" +
-    "The words array must contain exactly " + BATCH_SIZE + " items.\n" +
-    "Each item must contain exactly word, meaning, and sentence.";
+    "Return ONLY one JSON object with a top-level 'words' array containing exactly 100 objects.\n" +
+    "Each object must contain ONLY: word, meaning, sentence.\n" +
+    "No markdown, explanation, comments, headings, or extra text.\n" +
+    "This is generation attempt " + attempt + " of " + MAX_GENERATION_ATTEMPTS + ".";
 
-  const schema = {
-    type: "object",
-    properties: {
-      words: {
-        type: "array",
-        minItems: BATCH_SIZE,
-        maxItems: BATCH_SIZE,
-        items: {
-          type: "object",
-          properties: {
-            word: { type: "string" },
-            meaning: { type: "string" },
-            sentence: { type: "string" },
-          },
-          required: ["word", "meaning", "sentence"],
-          additionalProperties: false,
-        },
-      },
-    },
-    required: ["words"],
-    additionalProperties: false,
-  };
-
-  for (let attempt = 1; attempt <= MAX_BATCH_ATTEMPTS; attempt++) {
+  for (let retry = 1; retry <= 2; retry++) {
     try {
       const completion = await groq.chat.completions.create({
         messages: [{ role: "user", content: prompt }],
         model: "openai/gpt-oss-120b",
-        temperature: 0.55,
+        temperature: 0.45,
+        max_completion_tokens: 12000,
         response_format: {
           type: "json_schema",
           json_schema: {
-            name: "bengali_vocabulary_batch",
+            name: "bengali_vocabulary",
             strict: true,
-            schema,
+            schema: {
+              type: "object",
+              properties: {
+                words: {
+                  type: "array",
+                  minItems: TOTAL_TARGET,
+                  maxItems: TOTAL_TARGET,
+                  items: {
+                    type: "object",
+                    properties: {
+                      word: { type: "string" },
+                      meaning: { type: "string" },
+                      sentence: { type: "string" },
+                    },
+                    required: ["word", "meaning", "sentence"],
+                    additionalProperties: false,
+                  },
+                },
+              },
+              required: ["words"],
+              additionalProperties: false,
+            },
           },
-        },
+        } as any,
       });
 
       const responseText = completion.choices[0]?.message?.content?.trim() || "";
       const parsed = JSON.parse(responseText);
-      const result = validateBatch(parsed?.words);
+      const words = validateWords(parsed?.words);
 
-      if (result.length === BATCH_SIZE) {
-        console.log(
-          "✓ Batch " + batchNumber + " (" + category + "), attempt " +
-          attempt + ": " + result.length + " words."
-        );
-        return result;
+      if (words.length === TOTAL_TARGET) {
+        console.log("✓ Generated exactly 100 unique words in one prompt on attempt " + attempt + ".");
+        return words;
       }
 
       console.warn(
-        "⚠ Batch " + batchNumber + " attempt " + attempt +
-        ": expected " + BATCH_SIZE + ", got " + result.length + "."
+        "⚠ Attempt " + attempt + ", API retry " + retry +
+        ": got " + words.length + " unique valid words; expected 100."
       );
     } catch (error: any) {
       console.error(
-        "✕ Batch " + batchNumber + " attempt " + attempt + " failed:",
+        "✕ Attempt " + attempt + ", API retry " + retry + " failed:",
         error?.message || error
       );
     }
@@ -232,43 +225,11 @@ export async function GET(request: Request) {
       timeZone: "Asia/Dhaka",
     });
 
-    const allWords: GeneratedWord[] = [];
-    const seenWords = new Set<string>();
+    let allWords: GeneratedWord[] = [];
 
-    // Generate independent batches from different semantic categories.
-    // No previous generated words are ever sent to Groq.
-    for (
-      let batchNumber = 1;
-      batchNumber <= MAX_BATCHES && allWords.length < TOTAL_TARGET;
-      batchNumber++
-    ) {
-      const category = WORD_CATEGORIES[(batchNumber - 1) % WORD_CATEGORIES.length];
-      const generatedBatch = await generateBatch(groq, batchNumber, category);
-
-      if (generatedBatch.length === 0) {
-        console.warn(
-          "⚠ Batch " + batchNumber +
-          " produced no usable words; continuing with another independent batch."
-        );
-        continue;
-      }
-
-      let added = 0;
-
-      for (const item of generatedBatch) {
-        const key = item.word.toLocaleLowerCase("bn-BD");
-
-        if (!seenWords.has(key) && allWords.length < TOTAL_TARGET) {
-          seenWords.add(key);
-          allWords.push(item);
-          added++;
-        }
-      }
-
-      console.log(
-        "Generation progress: " + allWords.length + "/" + TOTAL_TARGET +
-        " unique words (" + added + " added from batch " + batchNumber + ")."
-      );
+    for (let attempt = 1; attempt <= MAX_GENERATION_ATTEMPTS; attempt++) {
+      allWords = await generateWords(groq, attempt);
+      if (allWords.length === TOTAL_TARGET) break;
     }
 
     if (allWords.length < TOTAL_TARGET) {
@@ -278,13 +239,13 @@ export async function GET(request: Request) {
           generated: allWords.length,
           required: TOTAL_TARGET,
           message:
-            "Could not produce 100 unique valid words after multiple independent category batches. Existing daily data was not changed.",
+            "Could not produce exactly 100 unique valid words after multiple single-prompt attempts. Existing daily data was not changed.",
         },
         { status: 502 }
       );
     }
 
-    // Replace today's data only after all 100 words are ready.
+
     const existingQuery = query(
       collection(db, "daily_words"),
       where("date", "==", today)
