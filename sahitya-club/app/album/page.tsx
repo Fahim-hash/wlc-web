@@ -2,7 +2,6 @@
 
 import React, { useCallback, useEffect, useState } from "react";
 import Image from "next/image";
-import { Metadata } from "next";
 
 type TelegramImage = {
   id: string;
@@ -20,6 +19,7 @@ export default function AlbumPage() {
   const [telegramImages, setTelegramImages] = useState<TelegramImage[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [localImages, setLocalImages] = useState<string[]>([]);
 
   const loadTelegramImages = useCallback(async () => {
     try {
@@ -46,6 +46,11 @@ export default function AlbumPage() {
   }, []);
 
   useEffect(() => {
+    fetch("/api/local-images", { cache: "no-store" })
+      .then((res) => res.ok ? res.json() : { images: [] })
+      .then((data) => setLocalImages(Array.isArray(data.images) ? data.images : []))
+      .catch(() => setLocalImages([]));
+
     loadTelegramImages();
 
     // Keep the album fresh while the page is open. The webhook stores new
@@ -54,9 +59,6 @@ export default function AlbumPage() {
     return () => window.clearInterval(interval);
   }, [loadTelegramImages]);
 
-  const localImages: string[] = [];
-  // Local static images are intentionally kept below the live Telegram feed.
-  // They are rendered from the public/pic directory by the existing static build.
 
   return (
     <div className="w-full bg-stone-50 py-12 min-h-screen">
@@ -93,6 +95,14 @@ export default function AlbumPage() {
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+            {localImages.map((fileName, index) => (
+              <div key={`local-${fileName}`} className="group relative bg-white border border-stone-200/60 rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300">
+                <div className="relative aspect-video w-full bg-stone-100 overflow-hidden">
+                  <Image src={`/pic/${encodeURIComponent(fileName)}`} alt={`WLC Moment - ${fileName}`} fill sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw" className="object-cover transition-transform duration-500 group-hover:scale-105" priority={index < 6} />
+                </div>
+                <div className="p-4 bg-white"><p className="text-xs font-medium text-stone-500 truncate uppercase tracking-wider">{fileName.split(".")[0].replace(/[-_]/g, " ")}</p></div>
+              </div>
+            ))}
             {telegramImages.map((image, index) => (
               <div
                 key={image.id}
