@@ -5,8 +5,9 @@ import { collection, writeBatch, doc, getDocs, query, where } from "firebase/fir
 import Groq from "groq-sdk";
 
 const TOTAL_TARGET = 100;
-const BATCH_SIZE = 25;
-const MAX_BATCH_ATTEMPTS = 3;
+const BATCH_SIZE = 10;
+const MAX_BATCH_ATTEMPTS = 5;
+const MAX_BATCHES = 14;
 
 type GeneratedWord = {
   word: string;
@@ -14,68 +15,72 @@ type GeneratedWord = {
   sentence: string;
 };
 
-function normalizeWord(value: unknown): string {
-  return typeof value === "string" ? value.trim() : "";
+function normalize(value: unknown): string {
+  return typeof value === "string" ? value.replace(/\s+/g, " ").trim() : "";
 }
 
 function validateBatch(value: unknown): GeneratedWord[] {
   if (!Array.isArray(value)) return [];
-  return value
-    .filter((item): item is Record<string, unknown> => !!item && typeof item === "object")
-    .map((item) => ({
-      word: normalizeWord(item.word),
-      meaning: normalizeWord(item.meaning),
-      sentence: normalizeWord(item.sentence),
-    }))
-    .filter((item) => item.word && item.meaning && item.sentence);
+
+  const unique = new Map<string, GeneratedWord>();
+
+  for (const item of value) {
+    if (!item || typeof item !== "object") continue;
+
+    const row = item as Record<string, unknown>;
+    const word = normalize(row.word);
+    const meaning = normalize(row.meaning);
+    const sentence = normalize(row.sentence);
+
+    if (!word || !meaning || !sentence) continue;
+
+    const key = word.toLocaleLowerCase("bn-BD");
+    if (!unique.has(key)) {
+      unique.set(key, { word, meaning, sentence });
+    }
+  }
+
+  return Array.from(unique.values());
 }
 
 async function generateBatch(groq: Groq, batchNumber: number): Promise<GeneratedWord[]> {
-  // Each batch is independent. Previous batches are never included in the prompt.
+  // IMPORTANT: every request is independent. No previous batch is sent to Groq.
   const prompt =
-    "Generate exactly " + BATCH_SIZE + " unique Bengali literary vocabulary words.\n\n" +
-    "Requirements:\n" +
-    "- Use real, established Bengali literary words suitable for a vocabulary page.\n" +
-    "- Prefer uncommon, elegant, meaningful words, but do not invent words.\n" +
-    "- Every word in this batch must be different.\n" +
-    "- For each word provide a concise Bengali meaning and one natural Bengali example sentence.\n" +
-    "- Return ONLY a JSON object with a words key.\n" +
-    "- The words array must contain exactly " + BATCH_SIZE + " items.\n" +
-    "- Every item must contain exactly these fields: word, meaning, sentence.\n" +
-    "- Do not add any text before or after the JSON.\n\n" +
-    "Example shape:\n" +
-    '{"words":[{"word":"অনির্বাণ","meaning":"যা কখনো নেভে না","sentence":"শহীদদের স্মৃতি মানুষের হৃদয়ে অনির্বাণ হয়ে থাকবে।"}]}';
+    "Generate exactly " + BATCH_SIZE + " different, real Bengali literary vocabulary words.\n" +
+    "Use established Bengali words; do not invent words. Prefer uncommon and elegant words.\n" +
+    "For every word give a short accurate Bengali meaning and one natural Bengali example sentence.\n" +
+    "Return ONLY valid JSON. No markdown, comments, explanation, or extra text.\n" +
+    "JSON shape: {\"words\":[{\"word\":\"...\",\"meaning\":\"...\",\"sentence\":\"...\"}]}\n" +
+    "The words array MUST contain exactly " + BATCH_SIZE + " items.\n" +
+    "Each item MUST contain exactly: word, meaning, sentence.";
 
   for (let attempt = 1; attempt <= MAX_BATCH_ATTEMPTS; attempt++) {
     try {
       const completion = await groq.chat.completions.create({
         messages: [{ role: "user", content: prompt }],
         model: "openai/gpt-oss-120b",
-        temperature: 0.55,
+        temperature: 0.3,
         response_format: { type: "json_object" },
       });
 
       const responseText = completion.choices[0]?.message?.content?.trim() || "";
       const parsed = JSON.parse(responseText);
-      const words = validateBatch(parsed.words);
+      const result = validateBatch(parsed?.words);
 
-      const uniqueWords = new Map<string, GeneratedWord>();
-      for (const item of words) {
-        const key = item.word.replace(/\s+/g, " ").trim();
-        if (!uniqueWords.has(key)) uniqueWords.set(key, item);
-      }
-
-      const result = Array.from(uniqueWords.values());
       if (result.length === BATCH_SIZE) {
-        console.log("✓ Batch " + batchNumber + ": " + result.length + " words generated.");
+        console.log("✓ Batch " + batchNumber + " attempt " + attempt + ": " + result.length + " words.");
         return result;
       }
 
-      console.warn("⚠ Batch " + batchNumber + ", attempt " + attempt +
-        ": expected " + BATCH_SIZE + ", got " + result.length + ".");
+      console.warn(
+        "⚠ Batch " + batchNumber + " attempt " + attempt +
+        ": expected " + BATCH_SIZE + ", got " + result.length + "."
+      );
     } catch (error: any) {
-      console.error("✕ Batch " + batchNumber + ", attempt " + attempt + " failed:",
-        error?.message || error);
+      console.error(
+        "✕ Batch " + batchNumber + " attempt " + attempt + " failed:",
+        error?.message || error
+      );
     }
   }
 
@@ -109,50 +114,57 @@ export async function GET(request: Request) {
     const allWords: GeneratedWord[] = [];
     const seenWords = new Set<string>();
 
-    // Four independent batches = 100 words.
-    for (let batchNumber = 1; batchNumber <= TOTAL_TARGET / BATCH_SIZE; batchNumber++) {
+    // Generate small independent batches until we have exactly 100 unique words.
+    // Previous batches are NEVER included in any prompt.
+    for (let batchNumber = 1; batchNumber <= MAX_BATCHES && allWords.length < TOTAL_TARGET; batchNumber++) {
       const generatedBatch = await generateBatch(groq, batchNumber);
 
       if (generatedBatch.length === 0) {
-        return NextResponse.json(
-          {
-            error: "Generation incomplete.",
-            generated: allWords.length,
-            required: TOTAL_TARGET,
-            failedBatch: batchNumber,
-            message: "A batch failed after retries. Existing daily data was not changed.",
-          },
-          { status: 502 }
-        );
+        console.warn("⚠ Batch " + batchNumber + " produced no usable words; continuing with a fresh independent batch.");
+        continue;
       }
 
+      let added = 0;
       for (const item of generatedBatch) {
-        const key = item.word.replace(/\s+/g, " ").trim();
+        const key = item.word.toLocaleLowerCase("bn-BD");
+
         if (!seenWords.has(key) && allWords.length < TOTAL_TARGET) {
           seenWords.add(key);
           allWords.push(item);
+          added++;
         }
       }
 
-      console.log("Generation progress: " + allWords.length + "/" + TOTAL_TARGET + " unique words.");
+      console.log(
+        "Generation progress: " + allWords.length + "/" + TOTAL_TARGET +
+        " unique words (" + added + " added from batch " + batchNumber + ")."
+      );
     }
 
     if (allWords.length < TOTAL_TARGET) {
       return NextResponse.json(
-        { error: "Generation incomplete.", generated: allWords.length, required: TOTAL_TARGET },
+        {
+          error: "Generation incomplete.",
+          generated: allWords.length,
+          required: TOTAL_TARGET,
+          message: "Could not produce 100 unique valid words after multiple independent attempts. Existing daily data was not changed.",
+        },
         { status: 502 }
       );
     }
 
     // Replace today's data only after a complete set of 100 is ready.
-    const existingQuery = query(collection(db, "daily_words"), where("date", "==", today));
+    const existingQuery = query(
+      collection(db, "daily_words"),
+      where("date", "==", today)
+    );
     const existingSnapshot = await getDocs(existingQuery);
-    const batch = writeBatch(db);
+    const firestoreBatch = writeBatch(db);
 
-    existingSnapshot.forEach((docSnap) => batch.delete(docSnap.ref));
+    existingSnapshot.forEach((docSnap) => firestoreBatch.delete(docSnap.ref));
 
     allWords.slice(0, TOTAL_TARGET).forEach((item) => {
-      batch.set(doc(collection(db, "daily_words")), {
+      firestoreBatch.set(doc(collection(db, "daily_words")), {
         word: item.word,
         meaning: item.meaning,
         sentence: item.sentence,
@@ -161,7 +173,7 @@ export async function GET(request: Request) {
       });
     });
 
-    await batch.commit();
+    await firestoreBatch.commit();
 
     return NextResponse.json({
       success: true,
@@ -171,6 +183,7 @@ export async function GET(request: Request) {
     });
   } catch (error: any) {
     console.error("Systemic Cron Operations Failure:", error);
+
     return NextResponse.json(
       { error: error?.message || "Unknown generation failure." },
       { status: 500 }
