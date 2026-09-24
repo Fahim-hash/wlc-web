@@ -18,7 +18,7 @@ async function ensureTelegramWebhook(request: Request) {
   const botToken = process.env.TELEGRAM_BOT_TOKEN;
   if (!botToken) return;
 
-  const origin = new URL(request.url).origin;
+  const origin = process.env.NEXT_PUBLIC_SITE_URL || "https://wlc.pro.bd";
   const webhookUrl = `${origin}/api/webhook/telegram`;
   const secret = process.env.TELEGRAM_WEBHOOK_SECRET;
 
