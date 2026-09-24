@@ -63,7 +63,7 @@ export async function GET(request: Request) {
 
       const chatCompletion = await groq.chat.completions.create({
         messages: [{ role: 'user', content: prompt }],
-        model: 'llama-3.3-70b-versatile', 
+        model: 'openai/gpt-oss-120b', 
         temperature: 0.7, // বৈচিত্র্য বাড়াতে টেম্পারেচার কিছুটা বাড়ানো হলো
         response_format: { type: "json_object" }
       });
