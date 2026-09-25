@@ -68,25 +68,30 @@ export default function RootLayout({
   children: React.ReactNode;
   popup: React.ReactNode; // 👈 ৩. টাইপ ডিফাইন করা হলো
 }) {
-  // ডেক্সটপ প্রধান লিঙ্কসমূহ
-  const desktopMainLinks: NavLink[] = [
+  // 🌐 একটি master navigation list — desktop ও mobile দুই জায়গাতেই একই থাকবে
+  const navigationLinks: NavLink[] = [
     { name: "হোম", path: "/" },
     { name: "আমাদের কথা", path: "/about" },
     { name: "আর্কাইভ ও প্যানেল", path: "/panel" },
     { name: "শিক্ষক মডারেটর", path: "/panel/moderator" },
-  ];
-
-  // ড্রপডাউন এবং মোবাইলের বর্ধিত লিঙ্কসমূহ
-  const extendedLinks: NavLink[] = [
+    { name: "চলমান প্যানেল", path: "/panel/running", emoji: "👥" },
+    { name: "অস্থায়ী প্যানেল", path: "/panel/temporary", emoji: "📋" },
     { name: "মুক্ত লেখনী ডেস্ক", path: "/writing", emoji: "✍️" },
+    { name: "কথাসখী", path: "/kothasokhi", emoji: "💬" },
     { name: "সদস্য নিবন্ধন", path: "/register", emoji: "📝" },
     { name: "ইভেন্টস", path: "/events", emoji: "📅" },
-    { name: "অর্জনসমূহ", path: "/achievement", emoji: "🏆" },
+    { name: "অর্জনসমূহ", path: "/achievements", emoji: "🏆" },
     { name: "অ্যালবাম", path: "/album", emoji: "🖼️" },
     { name: "শব্দকোষ", path: "/shobdo", emoji: "📖" },
+    { name: "নবীনবরণ", path: "/nobinboron", emoji: "🌸" },
+    { name: "কনট্রিবিউটর", path: "/contributor", emoji: "🤝" },
     { name: "সাধারণ জিজ্ঞাসা (FAQ)", path: "/faq", emoji: "❓" },
     { name: "যোগাযোগ", path: "/contact", emoji: "📞" },
   ];
+
+  // Desktop-এ প্রথম কয়েকটি সরাসরি থাকবে, বাকিগুলো একই master list-এর dropdown-এ থাকবে
+  const desktopMainLinks = navigationLinks.slice(0, 4);
+  const extendedLinks = navigationLinks.slice(4);
 
   const jsonLd = {
     "@context": "https://schema.org",
@@ -166,7 +171,7 @@ export default function RootLayout({
                 </button>
 
                 {/* ড্রপডাউন মেনু প্যানেল */}
-                <div className="absolute right-0 top-full mt-2 w-56 bg-white border border-stone-200 rounded-2xl shadow-xl py-2 opacity-0 invisible translate-y-2 group-hover/desktop:opacity-100 group-hover/desktop:visible group-hover/desktop:translate-y-0 transition-all duration-200 z-50">
+                <div className="absolute right-0 top-full mt-2 w-64 bg-white border border-stone-200 rounded-2xl shadow-xl py-2 opacity-0 invisible translate-y-2 group-hover/desktop:opacity-100 group-hover/desktop:visible group-hover/desktop:translate-y-0 transition-all duration-200 z-50">
                   {extendedLinks.map((link, idx) => (
                     <Link
                       key={idx}
@@ -199,7 +204,7 @@ export default function RootLayout({
                 ওয়েবসাইট ডিরেক্টরি 📖
               </span>
               <nav className="flex flex-col gap-1">
-                {[...desktopMainLinks, ...extendedLinks].map((link: NavLink, idx) => (
+                {navigationLinks.map((link: NavLink, idx) => (
                   <Link
                     key={idx}
                     href={link.path}
