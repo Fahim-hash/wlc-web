@@ -24,3 +24,50 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+
+/* নবীনবরণ পেজটি নিজস্ব পূর্ণ-পর্দার অভিজ্ঞতা হিসেবে চলে */
+body:has(.nobinboron-page) {
+  background: #08090b !important;
+}
+
+body:has(.nobinboron-page) > header,
+body:has(.nobinboron-page) > footer {
+  display: none !important;
+}
+
+body:has(.nobinboron-page) > main {
+  z-index: auto;
+}
+
+.nobi-literary-mark {
+  color: rgba(216, 164, 93, 0.10);
+  filter: blur(0.2px);
+  transform: rotate(-8deg);
+  animation: nobiLiteraryFloat 16s ease-in-out infinite;
+}
+
+.nobi-literary-mark:nth-child(3n) {
+  color: rgba(168, 62, 67, 0.10);
+  animation-duration: 21s;
+}
+
+.nobi-literary-mark:nth-child(4n) {
+  color: rgba(247, 240, 228, 0.055);
+  animation-duration: 25s;
+}
+
+@keyframes nobiLiteraryFloat {
+  0%, 100% {
+    transform: translate3d(0, 0, 0) rotate(-8deg);
+  }
+  50% {
+    transform: translate3d(18px, -26px, 0) rotate(4deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .nobi-literary-mark {
+    animation: none;
+  }
+}
