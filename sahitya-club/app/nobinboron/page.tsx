@@ -5,8 +5,8 @@ import { useEffect, useMemo, useState } from "react";
 import { AnimatePresence, motion, useScroll, useTransform } from "framer-motion";
 
 const EVENT_CONFIG = {
-  title: "সাহিত্য সাহিত্য নবীনবরণ ’২৬",
-  shortTitle: "সাহিত্য নবীনবরণ ’২৬",
+  title: "সাহিত্যের নবীনবরণ ’২৬",
+  shortTitle: "সাহিত্যের নবীনবরণ ’২৬",
   date: "শীঘ্রই",
   dateLabel: "তারিখ শীঘ্রই জানানো হবে",
   tagline: "নতুন মুখ। নতুন গল্প। নতুন অধ্যায়।",
@@ -497,7 +497,7 @@ export default function NobinBoronPage() {
           <p className="text-[10px] font-semibold tracking-[0.25em] text-[#d8a45d]">আমাদের গল্পের শুরু</p>
           <h2 className="mt-6 text-5xl font-semibold leading-[1.02] tracking-[-0.05em] sm:text-7xl md:text-8xl">আজ তুমি নবীন।<br /><span className="text-[#d8a45d]">কাল তুমি গল্প।</span></h2>
           <div className="mx-auto mt-10 h-px w-24 bg-[#d8a45d]/40" />
-          <div className="relative mx-auto mt-10 h-32 w-32 sm:h-40 sm:w-40"><Image src={EVENT_CONFIG.logo} alt="সাহিত্য সাহিত্য নবীনবরণ ’২৬ লোগো" fill sizes="160px" className="object-contain" /></div>
+          <div className="relative mx-auto mt-10 h-32 w-32 sm:h-40 sm:w-40"><Image src={EVENT_CONFIG.logo} alt="সাহিত্যের নবীনবরণ ’২৬ লোগো" fill sizes="160px" className="object-contain" /></div>
           <p className="mt-7 text-sm text-white/35">{EVENT_CONFIG.host} · {EVENT_CONFIG.shortTitle}</p>
           <div className="mt-9 flex flex-col items-center justify-center gap-3 sm:flex-row"><a href="#quest" className="rounded-full bg-[#f7f0e4] px-6 py-3 text-sm font-semibold text-[#111]">আবার অভিযান খেলো</a><a href="#story" className="rounded-full border border-white/15 px-6 py-3 text-sm font-semibold text-white/70 transition hover:border-white/30 hover:text-white">↑ শুরুতে ফিরো</a></div>
         </motion.div>
