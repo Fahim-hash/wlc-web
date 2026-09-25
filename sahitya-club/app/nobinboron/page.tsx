@@ -324,19 +324,19 @@ export default function NobinBoronPage() {
             <Image src={EVENT_CONFIG.logo} alt="নবীনবরণ ২০২৬" fill priority sizes="(max-width: 640px) 78vw, 560px" className="object-contain drop-shadow-[0_30px_70px_rgba(0,0,0,.65)]" />
           </div>
           <div className="mt-3 flex items-center gap-4 text-[9px] tracking-[0.24em] text-white/35"><span className="h-px w-10 bg-white/15" />একটি নতুন গল্পের শুরু<span className="h-px w-10 bg-white/15" /></div>
+          <div className="mb-6 w-full max-w-xl">
+            <div className="flex items-center justify-center gap-2 text-[9px] tracking-[0.2em] text-[#d8a45d]"><span className="h-1.5 w-1.5 animate-pulse rounded-full bg-[#d8a45d]" />অনুষ্ঠানের কাউন্টডাউন</div>
+            <div className="mt-4 grid grid-cols-4 gap-2 sm:gap-3">
+              {(["দিন", "ঘণ্টা", "মিনিট", "সেকেন্ড"] as const).map((label, index) => { const value = [timeLeft.days, timeLeft.hours, timeLeft.minutes, timeLeft.seconds][index]; return <div key={label} className="rounded-2xl border border-white/10 bg-black/25 px-2 py-3 backdrop-blur-xl sm:px-4 sm:py-4"><div className="text-2xl font-semibold tabular-nums tracking-[-0.04em] sm:text-4xl">{value}</div><div className="mt-1 text-[9px] text-white/30">{label}</div></div>; })}
+            </div>
+            <p className="mt-3 text-[10px] text-white/30">{countdownExpired ? "অনুষ্ঠানের সময় এসে গেছে।" : EVENT_DATE ? EVENT_CONFIG.dateLabel : "তারিখ শীঘ্রই জানানো হবে · তারিখ সেট করলেই কাউন্টডাউন শুরু হবে"}</p>
+          </div>
           <h1 className="mt-6 max-w-4xl text-4xl font-semibold leading-[1.08] tracking-[-0.04em] sm:text-6xl md:text-7xl lg:text-8xl">নতুন মুখ।<br /><span className="text-[#d8a45d]">নতুন গল্প।</span></h1>
           <p className="mt-6 max-w-xl text-sm leading-7 text-white/55 sm:text-base">{EVENT_CONFIG.tagline} এবার নবীনবরণ শুধু একটি অনুষ্ঠান নয়—একটি জীবন্ত সাহিত্য-অভিজ্ঞতা।</p>
           <div className="mt-8 flex flex-col items-center gap-3 sm:flex-row">
             <a href="#story" className="rounded-full bg-[#f7f0e4] px-6 py-3 text-sm font-semibold text-[#111] transition hover:scale-[1.02]">গল্পে প্রবেশ ↓</a>
             <a href="#quest" className="rounded-full border border-white/15 px-6 py-3 text-sm font-semibold text-white/80 transition hover:border-[#d8a45d]/50 hover:text-white">নবীন অভিযান খেলো</a>
           </div>
-          <div className="mt-10 w-full max-w-xl">
-  <div className="flex items-center justify-center gap-2 text-[9px] tracking-[0.2em] text-[#d8a45d]"><span className="h-1.5 w-1.5 animate-pulse rounded-full bg-[#d8a45d]" />অনুষ্ঠানের কাউন্টডাউন</div>
-  <div className="mt-4 grid grid-cols-4 gap-2 sm:gap-3">
-    {(["দিন", "ঘণ্টা", "মিনিট", "সেকেন্ড"] as const).map((label, index) => { const value = [timeLeft.days, timeLeft.hours, timeLeft.minutes, timeLeft.seconds][index]; return <div key={label} className="rounded-2xl border border-white/10 bg-black/25 px-2 py-3 backdrop-blur-xl sm:px-4 sm:py-4"><div className="text-2xl font-semibold tabular-nums tracking-[-0.04em] sm:text-4xl">{value}</div><div className="mt-1 text-[9px] text-white/30">{label}</div></div>; })}
-  </div>
-  <p className="mt-3 text-[10px] text-white/30">{countdownExpired ? "অনুষ্ঠানের সময় এসে গেছে।" : EVENT_DATE ? EVENT_CONFIG.dateLabel : "তারিখ শীঘ্রই জানানো হবে · তারিখ সেট করলেই কাউন্টডাউন শুরু হবে"}</p>
-</div>
         </motion.div>
         <div className="absolute bottom-7 left-1/2 -translate-x-1/2 text-[9px] tracking-[0.25em] text-white/25">নিচে এগিয়ে চলো</div>
       </section>
