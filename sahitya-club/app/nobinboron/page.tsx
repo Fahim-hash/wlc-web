@@ -6,8 +6,7 @@ import { useEffect, useState } from "react";
 
 /**
  * ============================================================
- * NOBINBORON '26 — EVENT CONFIG
- * Edit these values when the final event details are confirmed.
+ * NOBINBORON '26 — EDITABLE EVENT CONFIG
  * ============================================================
  */
 const EVENT_CONFIG = {
@@ -17,7 +16,11 @@ const EVENT_CONFIG = {
   dateLabel: "তারিখ শীঘ্রই জানানো হবে",
   tagline: "নতুন মুখ, নতুন গল্প, নতুন অধ্যায়।",
   logo: "/nobinboron26.png",
+  host: "Willes Sahitto Club",
 };
+
+const EVENT_DATE: string | null = null;
+// Example when confirmed: "2026-11-08T10:00:00+06:00"
 
 export default function NobinBoronPage() {
   const [timeLeft, setTimeLeft] = useState({
@@ -28,13 +31,9 @@ export default function NobinBoronPage() {
   });
 
   useEffect(() => {
-    // Set EVENT_DATE to an ISO date such as "2026-11-08T10:00:00+06:00"
-    // once the final event date is confirmed. Until then the UI stays TBA.
-    const EVENT_DATE: string | null = null;
-
     if (!EVENT_DATE) return;
 
-    const updateCountdown = () => {
+    const update = () => {
       const distance = new Date(EVENT_DATE).getTime() - Date.now();
 
       if (distance <= 0) {
@@ -50,189 +49,221 @@ export default function NobinBoronPage() {
       });
     };
 
-    updateCountdown();
-    const timer = window.setInterval(updateCountdown, 1000);
+    update();
+    const timer = window.setInterval(update, 1000);
     return () => window.clearInterval(timer);
   }, []);
 
+  const chapters = [
+    ["০১", "পরিচয়", "অচেনা মুখগুলো ধীরে ধীরে পরিচিত হয়ে উঠবে।"],
+    ["০২", "কবিতা", "শব্দের ভেতর দিয়ে শুরু হবে নতুন এক সাহিত্যযাত্রা।"],
+    ["০৩", "আড্ডা", "গল্প, হাসি আর স্মৃতিতে ভরে উঠবে সাহিত্যের উঠোন।"],
+    ["০৪", "চমক", "সব গল্প আগে থেকে বলা যায় না। কিছু মুহূর্ত সেদিনের জন্য।"],
+  ];
+
   return (
-    <main className="min-h-screen overflow-x-hidden bg-[#faf7f0] text-stone-900 selection:bg-amber-200 selection:text-stone-950">
-      {/* Hero */}
-      <section className="relative isolate min-h-[calc(100vh-5rem)] overflow-hidden flex items-center justify-center px-5 py-20">
-        <div className="absolute inset-0 -z-20 bg-[#faf7f0]" />
-        <div className="absolute inset-0 -z-10 opacity-50 [background-image:radial-gradient(circle_at_20%_20%,rgba(154,115,55,.14),transparent_28%),radial-gradient(circle_at_80%_70%,rgba(93,64,35,.12),transparent_30%)]" />
-        <div className="absolute inset-0 -z-10 opacity-[0.18] [background-image:linear-gradient(rgba(70,50,30,.12)_1px,transparent_1px),linear-gradient(90deg,rgba(70,50,30,.12)_1px,transparent_1px)] [background-size:42px_42px]" />
+    <main className="min-h-screen overflow-x-hidden bg-[#f4ecdc] text-[#241914] selection:bg-[#7a1f2b] selection:text-[#fff8ec]">
+      {/* Paper grain + manuscript atmosphere */}
+      <div className="pointer-events-none fixed inset-0 z-50 opacity-[0.035] [background-image:radial-gradient(#241914_0.7px,transparent_0.7px)] [background-size:5px_5px]" />
 
-        <div className="absolute left-[-8rem] top-16 h-64 w-64 rounded-full border border-amber-900/10" />
-        <div className="absolute right-[-10rem] bottom-10 h-96 w-96 rounded-full border border-amber-900/10" />
+      {/* HERO — designed around the 1024x1024 square logo */}
+      <section className="relative min-h-[calc(100vh-5rem)] overflow-hidden border-b border-[#6d1c28]/15">
+        <div className="absolute inset-0 bg-[#f4ecdc]" />
+        <div className="absolute inset-y-0 left-0 w-full bg-[radial-gradient(circle_at_50%_38%,rgba(255,250,239,.98)_0%,rgba(244,236,220,.86)_34%,rgba(244,236,220,0)_70%)]" />
+        <div className="absolute left-1/2 top-1/2 h-[min(75vw,760px)] w-[min(75vw,760px)] -translate-x-1/2 -translate-y-1/2 rounded-full border border-[#7a1f2b]/10" />
+        <div className="absolute left-1/2 top-1/2 h-[min(62vw,620px)] w-[min(62vw,620px)] -translate-x-1/2 -translate-y-1/2 rounded-full border border-[#7a1f2b]/10" />
 
-        <div className="relative z-10 mx-auto flex w-full max-w-6xl flex-col items-center text-center">
-          <div className="mb-8 inline-flex items-center gap-2 rounded-full border border-amber-900/15 bg-white/55 px-4 py-2 text-xs font-semibold tracking-[0.22em] text-stone-600 uppercase backdrop-blur-sm">
-            <span className="h-1.5 w-1.5 rounded-full bg-amber-700" />
-            Wiles Sahitto Club presents
+        <div className="relative mx-auto flex min-h-[calc(100vh-5rem)] w-full max-w-7xl flex-col items-center justify-center px-5 py-16 text-center">
+          <div className="mb-7 flex items-center gap-3 text-[10px] font-bold tracking-[0.35em] text-[#6d1c28] uppercase sm:text-xs">
+            <span className="h-px w-10 bg-[#6d1c28]/35" />
+            {EVENT_CONFIG.host}
+            <span className="h-px w-10 bg-[#6d1c28]/35" />
           </div>
 
-          <div className="relative mb-8 h-56 w-56 sm:h-64 sm:w-64 md:h-72 md:w-72">
-            <div className="absolute inset-5 rounded-full bg-amber-700/10 blur-2xl" />
+          <div className="relative mb-5 h-[min(72vw,500px)] w-[min(72vw,500px)] sm:h-[430px] sm:w-[430px] md:h-[480px] md:w-[480px]">
+            <div className="absolute inset-[13%] rounded-full bg-[#7a1f2b]/12 blur-3xl" />
+            <div className="absolute inset-[7%] rounded-full border border-[#7a1f2b]/10" />
             <Image
               src={EVENT_CONFIG.logo}
-              alt="Nobinboron '26 logo"
+              alt="Nobinboron '26"
               fill
               priority
-              sizes="(max-width: 640px) 224px, (max-width: 768px) 256px, 288px"
-              className="object-contain drop-shadow-[0_18px_28px_rgba(63,43,20,.15)]"
+              sizes="(max-width: 640px) 72vw, (max-width: 768px) 430px, 480px"
+              className="object-contain drop-shadow-[0_24px_34px_rgba(53,26,20,.16)]"
             />
           </div>
 
-          <p className="mb-3 font-serif text-sm tracking-[0.2em] text-stone-500">
-            WELCOME, NEW BEGINNINGS
+          <p className="font-serif text-xs font-semibold tracking-[0.3em] text-[#7a1f2b] uppercase">
+            নবীনদের জন্য · সাহিত্যের আয়োজনে
           </p>
 
-          <h1 className="max-w-4xl font-serif text-4xl font-bold leading-tight tracking-tight text-stone-950 sm:text-5xl md:text-6xl lg:text-7xl">
+          <h1 className="mt-4 max-w-4xl font-serif text-4xl font-bold leading-[1.08] text-[#291916] sm:text-5xl md:text-6xl">
             {EVENT_CONFIG.title}
           </h1>
 
-          <p className="mt-5 max-w-2xl font-serif text-lg leading-relaxed text-stone-600 sm:text-xl">
+          <p className="mt-5 max-w-2xl font-serif text-base leading-8 text-[#66554a] sm:text-lg">
             {EVENT_CONFIG.tagline}
           </p>
 
-          <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
-            <div className="rounded-full border border-stone-300 bg-white/65 px-5 py-2.5 text-sm font-semibold text-stone-700 shadow-sm backdrop-blur-sm">
-              📅 {EVENT_CONFIG.date}
-            </div>
-            <div className="rounded-full border border-stone-300 bg-white/65 px-5 py-2.5 text-sm font-semibold text-stone-700 shadow-sm backdrop-blur-sm">
-              ✦ {EVENT_CONFIG.shortTitle}
-            </div>
+          <div className="mt-7 inline-flex items-center gap-3 border-y border-[#7a1f2b]/25 px-7 py-3 font-serif text-sm text-[#7a1f2b]">
+            <span>✦</span>
+            <span>{EVENT_CONFIG.date}</span>
+            <span>✦</span>
           </div>
 
           <a
             href="#story"
-            className="mt-12 inline-flex items-center gap-2 rounded-full border border-stone-300 bg-stone-950 px-6 py-3 text-sm font-semibold text-white shadow-lg transition hover:-translate-y-0.5 hover:bg-stone-800"
+            className="mt-9 font-serif text-sm font-semibold text-[#291916] underline decoration-[#7a1f2b]/45 underline-offset-8 transition hover:text-[#7a1f2b]"
           >
-            Explore the beginning
-            <span aria-hidden="true">↓</span>
+            গল্পের শুরুটা পড়ুন ↓
           </a>
         </div>
 
-        <div className="absolute bottom-6 left-1/2 hidden -translate-x-1/2 text-xs tracking-widest text-stone-400 sm:block">
-          SCROLL TO DISCOVER
+        <div className="absolute bottom-5 left-1/2 -translate-x-1/2 text-[9px] tracking-[0.35em] text-[#6d1c28]/45 uppercase">
+          A new chapter begins
         </div>
       </section>
 
-      {/* Story */}
-      <section id="story" className="border-y border-stone-200/80 bg-white px-5 py-24 sm:py-28">
-        <div className="mx-auto grid w-full max-w-6xl gap-12 md:grid-cols-[.8fr_1.2fr] md:items-center">
-          <div>
-            <p className="mb-3 text-xs font-bold tracking-[0.25em] text-amber-800 uppercase">A new chapter</p>
-            <h2 className="font-serif text-4xl font-bold leading-tight text-stone-950 sm:text-5xl">
-              যেখানে পরিচয় হয় গল্পের সঙ্গে।
-            </h2>
-          </div>
+      {/* ORNAMENT */}
+      <div className="flex items-center justify-center gap-4 py-5 text-[#7a1f2b]/55">
+        <span className="h-px w-16 bg-current sm:w-28" />
+        <span className="font-serif text-xl">❦</span>
+        <span className="h-px w-16 bg-current sm:w-28" />
+      </div>
 
-          <div className="font-serif text-base leading-8 text-stone-600 sm:text-lg">
-            <p>
-              নবীনবরণ শুধু নতুনদের স্বাগত জানানোর একটি অনুষ্ঠান নয়। এটি একটি
-              নতুন যাত্রার শুরু—নতুন মানুষ, নতুন বন্ধুত্ব, নতুন সৃষ্টিশীলতা এবং
-              সাহিত্যের সঙ্গে আরও গভীরভাবে পরিচিত হওয়ার একটি মুহূর্ত।
-            </p>
-            <p className="mt-5">
-              {EVENT_CONFIG.shortTitle} সেই শুরুর গল্পটাকেই উদযাপন করবে।
-              বিস্তারিত আয়োজন ও সময়সূচি খুব শীঘ্রই প্রকাশ করা হবে।
-            </p>
+      {/* STORY */}
+      <section id="story" className="px-5 py-20 sm:py-28">
+        <div className="mx-auto max-w-5xl">
+          <div className="grid gap-12 md:grid-cols-[.72fr_1.28fr] md:gap-20">
+            <div>
+              <p className="text-[10px] font-bold tracking-[0.3em] text-[#7a1f2b] uppercase">
+                নবীনবরণ '২৬
+              </p>
+              <h2 className="mt-4 font-serif text-4xl font-bold leading-tight text-[#291916] sm:text-5xl">
+                একটি নতুন
+                <br />
+                গল্পের প্রথম পাতা।
+              </h2>
+            </div>
+
+            <div className="relative border-l border-[#7a1f2b]/20 pl-7 font-serif text-base leading-8 text-[#66554a] sm:pl-10 sm:text-lg">
+              <span className="absolute -left-[11px] top-0 font-serif text-2xl text-[#7a1f2b]">“</span>
+              <p>
+                নবীনবরণ মানে শুধু নতুনদের স্বাগত জানানো নয়। একটি ক্লাবে,
+                একটি বন্ধুত্বে, একটি সৃষ্টিশীল জগতে—প্রথমবারের মতো নিজের
+                জায়গা খুঁজে নেওয়া।
+              </p>
+              <p className="mt-6">
+                {EVENT_CONFIG.shortTitle} সেই প্রথম পরিচয়ের মুহূর্তটাকে
+                স্মরণীয় করে তুলতে Willes Sahitto Club-এর একটি বিশেষ আয়োজন।
+              </p>
+            </div>
           </div>
         </div>
       </section>
 
-      {/* Countdown / TBA */}
-      <section className="relative overflow-hidden px-5 py-24">
-        <div className="absolute inset-0 bg-[#efe5d1]" />
-        <div className="absolute -left-20 top-10 h-52 w-52 rounded-full border border-amber-900/10" />
-        <div className="absolute -right-20 bottom-0 h-72 w-72 rounded-full border border-amber-900/10" />
+      {/* DATE / TBA */}
+      <section className="relative overflow-hidden border-y border-[#7a1f2b]/15 bg-[#2b1718] px-5 py-20 text-[#f8efdf] sm:py-24">
+        <div className="absolute inset-0 opacity-25 [background-image:linear-gradient(90deg,transparent_49.8%,rgba(248,239,223,.16)_50%,transparent_50.2%),linear-gradient(transparent_49.8%,rgba(248,239,223,.16)_50%,transparent_50.2%)] [background-size:70px_70px]" />
 
         <div className="relative mx-auto max-w-5xl text-center">
-          <p className="text-xs font-bold tracking-[0.3em] text-amber-900 uppercase">Mark your calendar</p>
-          <h2 className="mt-3 font-serif text-3xl font-bold text-stone-950 sm:text-4xl">The date is coming.</h2>
-          <p className="mx-auto mt-4 max-w-xl text-sm leading-7 text-stone-600">
-            {EVENT_CONFIG.dateLabel}. Final date ঘোষণা হলে শুধু EVENT_CONFIG-এর
-            date এবং countdown-এর EVENT_DATE পরিবর্তন করলেই হবে।
+          <p className="text-[10px] font-bold tracking-[0.35em] text-[#d9a96e] uppercase">
+            তারিখ
+          </p>
+          <h2 className="mt-4 font-serif text-4xl font-bold sm:text-5xl">
+            {EVENT_CONFIG.date}
+          </h2>
+          <p className="mx-auto mt-4 max-w-lg font-serif text-sm leading-7 text-[#d7c6b0]">
+            {EVENT_CONFIG.dateLabel}। আয়োজনের বিস্তারিত তথ্য প্রকাশিত হলে
+            এই অংশ থেকেই সহজেই আপডেট করা যাবে।
           </p>
 
-          <div className="mt-10 grid grid-cols-2 gap-3 sm:grid-cols-4">
+          <div className="mt-10 grid grid-cols-2 gap-px overflow-hidden border border-[#d9a96e]/20 bg-[#d9a96e]/20 sm:grid-cols-4">
             {[
-              [timeLeft.days, "DAYS"],
-              [timeLeft.hours, "HOURS"],
-              [timeLeft.minutes, "MINUTES"],
-              [timeLeft.seconds, "SECONDS"],
+              [timeLeft.days, "দিন"],
+              [timeLeft.hours, "ঘণ্টা"],
+              [timeLeft.minutes, "মিনিট"],
+              [timeLeft.seconds, "সেকেন্ড"],
             ].map(([value, label]) => (
-              <div key={label} className="rounded-2xl border border-stone-300/80 bg-white/65 px-4 py-6 shadow-sm backdrop-blur">
-                <div className="font-serif text-3xl font-bold text-stone-950 sm:text-4xl">{value}</div>
-                <div className="mt-2 text-[10px] font-bold tracking-[0.22em] text-stone-500">{label}</div>
+              <div key={label} className="bg-[#2b1718] px-4 py-7">
+                <div className="font-serif text-3xl font-bold">{value}</div>
+                <div className="mt-2 text-[10px] tracking-[0.2em] text-[#bca992]">{label}</div>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Experience cards */}
-      <section className="bg-[#faf7f0] px-5 py-24 sm:py-28">
+      {/* CHAPTERS */}
+      <section className="px-5 py-24 sm:py-28">
         <div className="mx-auto max-w-6xl">
-          <div className="max-w-2xl">
-            <p className="text-xs font-bold tracking-[0.25em] text-amber-800 uppercase">What awaits</p>
-            <h2 className="mt-3 font-serif text-4xl font-bold text-stone-950 sm:text-5xl">
-              একটা দিন। অনেক গল্প।
+          <div className="mx-auto max-w-2xl text-center">
+            <p className="text-[10px] font-bold tracking-[0.3em] text-[#7a1f2b] uppercase">
+              পাতায় পাতায়
+            </p>
+            <h2 className="mt-3 font-serif text-4xl font-bold text-[#291916] sm:text-5xl">
+              যে গল্পগুলো অপেক্ষায়।
             </h2>
           </div>
 
-          <div className="mt-12 grid gap-5 md:grid-cols-2 lg:grid-cols-4">
-            {[
-              ["01", "পরিচয়", "নতুন বন্ধু, নতুন মুখ, নতুন পরিচয়ের শুরু।"],
-              ["02", "সাহিত্য", "শব্দ, গল্প, কবিতা আর সৃষ্টিশীলতার সঙ্গে সময়।"],
-              ["03", "আড্ডা", "সিনিয়র-জুনিয়র মিলিয়ে একসঙ্গে কিছু স্মরণীয় মুহূর্ত।"],
-              ["04", "চমক", "কারণ নবীনবরণের গল্পে কিছু surprise থাকতেই পারে।"],
-            ].map(([number, title, description]) => (
+          <div className="mt-14 grid border-y border-[#7a1f2b]/15 md:grid-cols-2">
+            {chapters.map(([number, title, description], index) => (
               <article
                 key={number}
-                className="group rounded-3xl border border-stone-200 bg-white p-7 shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-xl"
+                className={`group relative p-7 sm:p-9 ${index % 2 === 0 ? "md:border-r" : ""} ${index < 2 ? "border-b" : ""} border-[#7a1f2b]/15`}
               >
-                <span className="font-mono text-xs text-amber-800">{number}</span>
-                <h3 className="mt-10 font-serif text-2xl font-bold text-stone-950">{title}</h3>
-                <p className="mt-3 text-sm leading-7 text-stone-500">{description}</p>
-                <div className="mt-8 h-px w-10 bg-stone-300 transition-all duration-300 group-hover:w-full" />
+                <div className="flex items-start justify-between">
+                  <span className="font-serif text-sm text-[#7a1f2b]">{number}</span>
+                  <span className="font-serif text-xl text-[#7a1f2b]/30 transition group-hover:text-[#7a1f2b]">❧</span>
+                </div>
+                <h3 className="mt-12 font-serif text-3xl font-bold text-[#291916]">{title}</h3>
+                <p className="mt-3 max-w-md font-serif text-sm leading-7 text-[#76655a]">{description}</p>
               </article>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Closing */}
-      <section className="relative overflow-hidden bg-stone-950 px-5 py-28 text-center text-white sm:py-36">
-        <div className="absolute inset-0 opacity-20 [background-image:radial-gradient(circle_at_50%_20%,rgba(217,173,92,.55),transparent_35%)]" />
-        <div className="relative mx-auto max-w-4xl">
-          <p className="text-xs font-bold tracking-[0.3em] text-amber-300/80 uppercase">Your story starts here</p>
-          <h2 className="mt-5 font-serif text-4xl font-bold leading-tight sm:text-5xl md:text-6xl">
-            “আজ তুমি নবীন।
+      {/* CLOSING — book-cover feeling */}
+      <section className="relative overflow-hidden bg-[#f9f1e3] px-5 py-24 text-center sm:py-32">
+        <div className="absolute inset-5 border border-[#7a1f2b]/10 sm:inset-8" />
+        <div className="relative mx-auto flex max-w-3xl flex-col items-center">
+          <p className="text-[10px] font-bold tracking-[0.35em] text-[#7a1f2b] uppercase">
+            The first page is yours
+          </p>
+
+          <h2 className="mt-6 font-serif text-4xl font-bold leading-tight text-[#291916] sm:text-5xl md:text-6xl">
+            আজ তুমি নবীন,
             <br />
-            একদিন তোমার গল্পই হবে স্মৃতি।”
+            কাল তুমি গল্প।
           </h2>
 
-          <div className="mx-auto mt-12 h-px w-20 bg-amber-400/50" />
+          <div className="my-9 flex items-center gap-4 text-[#7a1f2b]/60">
+            <span className="h-px w-12 bg-current" />
+            <span className="font-serif text-xl">❦</span>
+            <span className="h-px w-12 bg-current" />
+          </div>
 
-          <div className="mt-10 flex flex-col items-center gap-6">
+          <div className="relative h-36 w-36 sm:h-44 sm:w-44">
             <Image
               src={EVENT_CONFIG.logo}
-              alt="Nobinboron '26"
-              width={150}
-              height={150}
-              className="object-contain opacity-95"
+              alt="Nobinboron '26 logo"
+              fill
+              sizes="176px"
+              className="object-contain"
             />
-            <p className="text-sm text-stone-400">Wiles Sahitto Club · Nobinboron '26</p>
-            <Link
-              href="/"
-              className="rounded-full border border-white/15 px-5 py-2.5 text-sm font-medium text-stone-300 transition hover:border-white/30 hover:text-white"
-            >
-              ← মূল ওয়েবসাইটে ফিরে যান
-            </Link>
           </div>
+
+          <p className="mt-5 font-serif text-sm text-[#76655a]">
+            {EVENT_CONFIG.host} · {EVENT_CONFIG.shortTitle}
+          </p>
+
+          <Link
+            href="/"
+            className="mt-8 border-b border-[#7a1f2b]/40 pb-1 font-serif text-sm font-semibold text-[#7a1f2b] transition hover:border-[#7a1f2b] hover:text-[#4d131d]"
+          >
+            ← মূল ওয়েবসাইটে ফিরে যান
+          </Link>
         </div>
       </section>
     </main>
