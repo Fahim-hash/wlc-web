@@ -3,8 +3,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { db } from "@/lib/firebase";
-import { collection, getDocs, limit, query, where } from "firebase/firestore/lite";
+
 
 // এফএকিউ (FAQ) ডেটা স্ট্রাকচার
 const faqs = [
@@ -16,81 +15,6 @@ const faqs = [
 export default function WillesSahityaClub() {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const [openFaq, setOpenFaq] = useState<number | null>(null);
-  const [featuredWriting, setFeaturedWriting] = useState<{
-    title: string;
-    category: string;
-    content: string;
-    penName?: string;
-  } | null>(null);
-  const [wordOfDay, setWordOfDay] = useState<{
-    word: string;
-    meaning: string;
-    sentence?: string;
-  } | null>(null);
-  const [featuredLoading, setFeaturedLoading] = useState(true);
-
-  useEffect(() => {
-    const loadHomepageFeatures = async () => {
-      try {
-        const today = new Date().toLocaleDateString("en-CA", {
-          timeZone: "Asia/Dhaka",
-        });
-
-        const [writingSnapshot, wordSnapshot] = await Promise.all([
-          getDocs(
-            query(
-              collection(db, "writings"),
-              where("status", "==", "approved"),
-              limit(5)
-            )
-          ),
-          getDocs(
-            query(
-              collection(db, "daily_words"),
-              where("date", "==", today),
-              limit(1)
-            )
-          ),
-        ]);
-
-        const writings = writingSnapshot.docs.map((doc) => {
-          const data = doc.data();
-          return {
-            title: data.title || "",
-            category: data.category || "",
-            content: data.content || "",
-            penName: data.penName || "",
-            createdAt:
-              typeof data.createdAt === "object" && data.createdAt && "seconds" in data.createdAt
-                ? Number(data.createdAt.seconds)
-                : new Date(data.createdAt || 0).getTime() / 1000,
-          };
-        });
-
-        writings.sort((a, b) => b.createdAt - a.createdAt);
-
-        if (writings[0]) {
-          setFeaturedWriting(writings[0]);
-        }
-
-        const word = wordSnapshot.docs[0]?.data();
-        if (word?.word) {
-          setWordOfDay({
-            word: word.word,
-            meaning: word.meaning || "",
-            sentence: word.sentence || "",
-          });
-        }
-      } catch (error) {
-        console.error("Homepage feature loading error:", error);
-      } finally {
-        setFeaturedLoading(false);
-      }
-    };
-
-    loadHomepageFeatures();
-  }, []);
-
   // 🎭 Falling Bangla Characters Effect (Matrix Style but Aesthetic)
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -197,127 +121,7 @@ export default function WillesSahityaClub() {
         </p>
       </section>
 
-      {/* ================= ৩. HOMEPAGE FEATURES ================= */}
-      <section className="max-w-6xl mx-auto px-4 py-12">
-        <div className="text-center space-y-2 mb-8">
-          <span className="text-xs font-bold text-rose-900 uppercase tracking-widest">
-            আজকের বিশেষ
-          </span>
-          <h3 className="text-2xl md:text-3xl font-extrabold text-stone-950">
-            সাহিত্য, শব্দ ও সঙ্গ
-          </h3>
-          <div className="w-12 h-1 bg-rose-900/30 mx-auto rounded-full" />
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {/* কথাসখী */}
-          <div className="bg-stone-950 text-white rounded-3xl p-7 shadow-sm flex flex-col justify-between min-h-[270px]">
-            <div className="space-y-4">
-              <span className="inline-flex text-[10px] font-bold uppercase tracking-widest text-rose-300 bg-white/10 border border-white/10 px-2.5 py-1 rounded-full">
-                Digital Companion
-              </span>
-              <div>
-                <h4 className="text-2xl font-bold">কথাসখী</h4>
-                <p className="text-stone-400 text-sm leading-relaxed mt-2">
-                  WLC-এর তথ্য, সাহিত্য, ইভেন্ট ও ক্লাব নিয়ে তোমার প্রশ্নের উত্তর দেবে আমাদের ডিজিটাল সঙ্গী।
-                </p>
-              </div>
-            </div>
-            <Link
-              href="/kothasokhi"
-              className="mt-6 inline-flex items-center justify-center px-5 py-3 rounded-xl bg-white text-stone-950 hover:bg-rose-50 text-xs font-bold transition-all"
-            >
-              কথাসখীর সাথে কথা বলুন →
-            </Link>
-          </div>
-
-          {/* Featured */}
-          <div className="bg-white border border-stone-200/70 rounded-3xl p-7 shadow-sm flex flex-col justify-between min-h-[270px]">
-            <div>
-              <div className="flex items-center justify-between gap-3 mb-5">
-                <span className="text-[10px] font-bold uppercase tracking-widest text-rose-900 bg-rose-50 border border-rose-100 px-2.5 py-1 rounded-full">
-                  Featured
-                </span>
-                <span className="text-[10px] text-stone-400 font-medium">
-                  নির্বাচিত সাহিত্য
-                </span>
-              </div>
-
-              {featuredLoading ? (
-                <p className="text-sm text-stone-400">নির্বাচিত লেখা লোড হচ্ছে...</p>
-              ) : featuredWriting ? (
-                <>
-                  <h4 className="text-xl font-bold font-serif text-stone-950 leading-snug">
-                    {featuredWriting.title}
-                  </h4>
-                  <p className="mt-2 text-xs text-stone-400 font-medium">
-                    {featuredWriting.penName || "অনামী সাহিত্যিক"}
-                  </p>
-                  <p className="mt-4 text-sm text-stone-600 leading-relaxed font-serif line-clamp-4">
-                    {featuredWriting.content}
-                  </p>
-                </>
-              ) : (
-                <div className="space-y-2">
-                  <h4 className="text-xl font-bold font-serif text-stone-950">
-                    নতুন সাহিত্যকর্ম আসছে
-                  </h4>
-                  <p className="text-sm text-stone-500 leading-relaxed">
-                    অনুমোদিত লেখা প্রকাশিত হলে এখানেই একটি নির্বাচিত লেখা দেখা যাবে।
-                  </p>
-                </div>
-              )}
-            </div>
-
-            <Link
-              href="/writing"
-              className="mt-6 inline-flex items-center text-xs font-bold text-stone-600 hover:text-rose-900 transition-colors"
-            >
-              সব লেখা দেখুন →
-            </Link>
-          </div>
-
-          {/* Word of the Day — exactly one */}
-          <div className="bg-rose-50/70 border border-rose-100 rounded-3xl p-7 shadow-sm flex flex-col justify-between min-h-[270px]">
-            <div>
-              <span className="text-[10px] font-bold uppercase tracking-widest text-rose-900">
-                Word of the Day
-              </span>
-
-              {featuredLoading ? (
-                <p className="mt-5 text-sm text-stone-400">আজকের শব্দ খোঁজা হচ্ছে...</p>
-              ) : wordOfDay ? (
-                <>
-                  <h4 className="mt-4 text-3xl font-black font-serif text-stone-950">
-                    {wordOfDay.word}
-                  </h4>
-                  <p className="mt-3 text-sm font-medium text-stone-700 leading-relaxed">
-                    {wordOfDay.meaning}
-                  </p>
-                  {wordOfDay.sentence && (
-                    <p className="mt-3 text-xs italic text-stone-500 leading-relaxed">
-                      “{wordOfDay.sentence}”
-                    </p>
-                  )}
-                </>
-              ) : (
-                <p className="mt-5 text-sm text-stone-500 leading-relaxed">
-                  আজকের শব্দটি এখনও প্রকাশিত হয়নি।
-                </p>
-              )}
-            </div>
-
-            <Link
-              href="/shobdo"
-              className="mt-6 inline-flex items-center text-xs font-bold text-rose-900 hover:text-stone-950 transition-colors"
-            >
-              শব্দকোষে যান →
-            </Link>
-          </div>
-        </div>
-      </section>
-
-      {/* ================= ৪. WRITING & SHOBDO SECTION (সাহিত্য চর্চা ও শব্দকোষ) ================= */}
+      {/* ================= ৩. WRITING & SHOBDO SECTION (সাহিত্য চর্চা ও শব্দকোষ) ================= */}
       <section className="max-w-6xl mx-auto px-4 py-12 grid grid-cols-1 md:grid-cols-2 gap-8">
         {/* লেখালেখি ডেস্ক */}
         <div className="bg-white border border-stone-200/60 p-8 rounded-2xl shadow-sm flex flex-col justify-between space-y-6 hover:border-stone-300 transition-all">
