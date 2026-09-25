@@ -124,11 +124,11 @@ export default function RootLayout({
 
         {/* ================= GLOBAL HEADER / NAVBAR ================= */}
         <header className="sticky top-0 z-50 w-full bg-white/80 backdrop-blur-md border-b border-stone-200/60">
-          <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between relative">
+          <div className="max-w-6xl mx-auto w-full px-3 sm:px-4 h-16 flex items-center justify-between relative gap-3">
 
             {/* ব্র্যান্ড লোগো */}
-            <Link href="/" className="flex items-center gap-3 group z-50">
-              <div className="relative w-10 h-10 md:w-11 md:h-11 transition-transform duration-300 group-hover:scale-110">
+            <Link href="/" className="flex min-w-0 items-center gap-2 sm:gap-3 group z-50">
+              <div className="relative shrink-0 w-9 h-9 sm:w-10 sm:h-10 md:w-11 md:h-11 transition-transform duration-300 group-hover:scale-110">
                 <Image 
                   src="/logo.png" 
                   alt="উইল্‌স সাহিত্য ক্লাব লোগো" 
@@ -138,7 +138,7 @@ export default function RootLayout({
               </div>
 
               <div className="flex flex-col">
-                <span className="font-bold text-base md:text-lg tracking-tight text-stone-950 group-hover:text-rose-900 transition-colors">
+                <span className="font-bold text-sm sm:text-base md:text-lg tracking-tight text-stone-950 group-hover:text-rose-900 transition-colors truncate max-w-[190px] sm:max-w-none">
                   উইল্‌স সাহিত্য ক্লাব
                 </span>
                 <span className="text-[10px] uppercase tracking-widest text-stone-400 font-medium -mt-0.5">
@@ -148,12 +148,12 @@ export default function RootLayout({
             </Link>
 
             {/* 🖥️ ডেক্সটপ নেভিগেশন */}
-            <nav className="hidden md:flex items-center gap-1 bg-stone-100 p-1 rounded-xl border border-stone-200/40 relative">
+            <nav className="hidden lg:flex items-center gap-1 bg-stone-100 p-1 rounded-xl border border-stone-200/40 relative shrink-0">
               {desktopMainLinks.map((link, idx) => (
                 <Link 
                   key={idx} 
                   href={link.path}
-                  className="text-stone-600 hover:text-stone-950 px-3.5 py-2 rounded-lg text-sm font-medium transition-all duration-200 hover:bg-white"
+                  className="text-stone-600 hover:text-stone-950 px-2.5 xl:px-3.5 py-2 rounded-lg text-xs xl:text-sm font-medium whitespace-nowrap transition-all duration-200 hover:bg-white"
                 >
                   {link.name}
                 </Link>
@@ -161,7 +161,7 @@ export default function RootLayout({
 
               {/* ▾ পিওর সিএসএস ডেক্সটপ ড্রপডাউন (Hover Triggered) */}
               <div className="relative group/desktop">
-                <button className="text-stone-600 group-hover/desktop:text-stone-950 px-3.5 py-2 rounded-lg text-sm font-semibold transition-all duration-200 flex items-center gap-1 group-hover/desktop:bg-white">
+                <button className="text-stone-600 group-hover/desktop:text-stone-950 px-2.5 xl:px-3.5 py-2 rounded-lg text-xs xl:text-sm font-semibold whitespace-nowrap transition-all duration-200 flex items-center gap-1 group-hover/desktop:bg-white">
                   অন্যান্য ডিরেক্টরি <span className="text-[10px] text-stone-400 transition-transform group-hover/desktop:rotate-180">▼</span>
                 </button>
 
@@ -182,19 +182,19 @@ export default function RootLayout({
             </nav>
 
             {/* ================= FIXED PURE CSS HAMBURGER & DROPDOWN SYSTEM (MOBILE) ================= */}
-            <input type="checkbox" id="menu-toggle" className="peer hidden" />
+            <input type="checkbox" id="menu-toggle" className="peer sr-only" />
 
             <label 
               htmlFor="menu-toggle" 
-              className="flex md:hidden flex-col justify-between w-6 h-4 cursor-pointer z-50 relative p-0.5"
+              className="flex lg:hidden shrink-0 flex-col justify-between w-9 h-9 items-center justify-center gap-1.5 cursor-pointer z-[60] relative rounded-lg hover:bg-stone-100 transition-colors"
             >
-              <span className="w-full h-0.5 bg-stone-950 rounded-full transition-all duration-300 transform origin-center peer-checked:bg-stone-950 peer-checked:rotate-45 peer-checked:translate-y-1.5"></span>
-              <span className="w-full h-0.5 bg-stone-950 rounded-full transition-all duration-300 peer-checked:opacity-0"></span>
-              <span className="w-full h-0.5 bg-stone-950 rounded-full transition-all duration-300 transform origin-center peer-checked:bg-stone-950 peer-checked:-rotate-45 peer-checked:-translate-y-2"></span>
+              <span className="w-5 h-0.5 bg-stone-950 rounded-full transition-all duration-300 transform origin-center peer-checked:rotate-45 peer-checked:translate-y-2"></span>
+              <span className="w-5 h-0.5 bg-stone-950 rounded-full transition-all duration-300 peer-checked:opacity-0"></span>
+              <span className="w-5 h-0.5 bg-stone-950 rounded-full transition-all duration-300 transform origin-center peer-checked:-rotate-45 peer-checked:-translate-y-2"></span>
             </label>
 
             {/* 📱 মোবাইল ড্রপডাউন প্যানেল */}
-            <div className="fixed inset-x-0 top-0 h-screen bg-white/95 backdrop-blur-xl border-b border-stone-200 transition-all duration-300 ease-in-out z-40 md:hidden flex flex-col pt-24 px-6 overflow-y-auto pb-8 shadow-xl translate-y-[-100%] opacity-0 invisible peer-checked:translate-y-0 peer-checked:opacity-100 peer-checked:visible">
+            <div className="fixed inset-0 h-dvh bg-white/95 backdrop-blur-xl border-b border-stone-200 transition-all duration-300 ease-in-out z-50 lg:hidden flex flex-col pt-24 px-5 sm:px-6 overflow-y-auto overscroll-contain pb-8 shadow-xl translate-y-[-100%] opacity-0 invisible peer-checked:translate-y-0 peer-checked:opacity-100 peer-checked:visible">
               <span className="text-[10px] font-bold uppercase tracking-widest text-rose-900 border-b border-stone-100 pb-2 mb-4">
                 ওয়েবসাইট ডিরেক্টরি 📖
               </span>
@@ -220,13 +220,13 @@ export default function RootLayout({
         </header>
 
         {/* ================= MAIN CONTENT AREA ================= */}
-        <main className="flex-grow w-full block relative z-10">
+        <main className="flex-grow w-full min-w-0 block relative z-10 overflow-x-hidden">
           {children}
         </main>
 
         {/* ================= GLOBAL FOOTER ================= */}
         <footer className="w-full bg-white border-t border-stone-200/60 py-10 mt-auto relative z-20">
-          <div className="max-w-6xl mx-auto px-4 grid grid-cols-1 md:grid-cols-3 gap-8 items-center text-center md:text-left">
+          <div className="max-w-6xl mx-auto w-full px-4 grid grid-cols-1 md:grid-cols-3 gap-8 items-center text-center md:text-left">
 
             {/* কপিরাইট */}
             <div className="flex flex-col gap-1">
