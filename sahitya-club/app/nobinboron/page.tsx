@@ -45,13 +45,14 @@ const QUESTS = [
     points: 150,
   },
   {
-    id: "riddle",
-    type: "riddle",
-    title: "আমি কী?",
-    text: "আমার পাতা আছে, কিন্তু গাছ নই। আমার মলাট আছে, কিন্তু দরজা নই। আমাকে খুললে অনেক মানুষ কথা বলে।",
-    options: ["বই", "জানালা", "ডায়েরি"],
+    id: "visual",
+    type: "visual",
+    title: "ছবির ভেতর কবিতাটি পড়ো",
+    text: "তিনটি দৃশ্য একসঙ্গে দেখো। এগুলো মিলিয়ে কোন শব্দটি লুকিয়ে আছে?",
+    options: ["বই", "চিঠি", "মঞ্চ"],
     answer: "বই",
-    points: 150,
+    points: 175,
+    poem: ["পাতা খুললে শব্দ জাগে", "নীরব অক্ষর কথা বলে", "মলাট পেরিয়ে গল্প নামে"],
   },
   {
     id: "door",
@@ -82,6 +83,7 @@ export default function NobinBoronPage() {
   const [seconds, setSeconds] = useState(15);
   const [hintUsed, setHintUsed] = useState(false);
   const [streak, setStreak] = useState(0);
+  const [draggedLetter, setDraggedLetter] = useState<number | null>(null);
 
   const { scrollYProgress } = useScroll();
   const heroY = useTransform(scrollYProgress, [0, 0.28], [0, 130]);
@@ -191,6 +193,21 @@ export default function NobinBoronPage() {
     setLetterOrder((order) => {
       if (order.includes(currentQuest.letters![index])) return order;
       return [...order, currentQuest.letters![index]];
+    });
+  }
+
+  function removeLetter(letter: string) {
+    if (selected) return;
+    setLetterOrder((order) => order.filter((item) => item !== letter));
+  }
+
+  function moveLetter(from: number, to: number) {
+    if (selected || from === to || from < 0 || to < 0) return;
+    setLetterOrder((order) => {
+      const next = [...order];
+      const [item] = next.splice(from, 1);
+      next.splice(to, 0, item);
+      return next;
     });
   }
 
@@ -360,7 +377,7 @@ export default function NobinBoronPage() {
                 <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full border border-[#d8a45d]/30 bg-[#d8a45d]/5 text-3xl">✦</div>
                 <p className="mt-7 text-[10px] font-semibold tracking-[0.25em] text-[#d8a45d]">নবীন অভিযান · ৫ ধাপ</p>
                 <h3 className="mt-3 text-3xl font-semibold sm:text-4xl">তোমার গল্পের দরজা খুলো।</h3>
-                <p className="mx-auto mt-4 max-w-lg text-sm leading-7 text-white/45">প্রতিটি ধাপের জন্য ১৫ সেকেন্ড। ইঙ্গিত নিলে পয়েন্ট কমবে। ধারাবাহিকভাবে সঠিক উত্তর দিলে অতিরিক্ত পয়েন্ট পাবে।</p>
+                <p className="mx-auto mt-4 max-w-lg text-sm leading-7 text-white/45">প্রতিটি ধাপের জন্য ১৫ সেকেন্ডের দৃশ্যমান টাইমার। ইঙ্গিত নিলে পয়েন্ট কমবে। ধারাবাহিকভাবে সঠিক উত্তর দিলে অতিরিক্ত পয়েন্ট পাবে।</p>
                 <div className="mt-7 flex flex-wrap justify-center gap-2 text-[10px] tracking-[0.12em] text-white/30"><span className="rounded-full border border-white/10 px-3 py-2">৫ ধাপ</span><span className="rounded-full border border-white/10 px-3 py-2">সময়</span><span className="rounded-full border border-white/10 px-3 py-2">ইঙ্গিত</span><span className="rounded-full border border-white/10 px-3 py-2">সেরা স্কোর</span></div>
                 <button onClick={startQuest} className="mt-8 rounded-full bg-[#f7f0e4] px-7 py-3 text-sm font-semibold text-[#111] transition hover:scale-[1.02]">অভিযান শুরু করো →</button>
                 {bestScore !== null && <p className="mt-5 text-xs text-white/30">তোমার সেরা স্কোর: {bestScore}</p>}
@@ -376,9 +393,12 @@ export default function NobinBoronPage() {
               </motion.div>
             ) : (
               <>
-                <div className="mb-5 flex items-center justify-between text-[10px] tracking-[0.16em] text-white/35">
-                  <span>ধাপ {questIndex + 1} / {QUESTS.length}</span>
-                  <span className={seconds <= 5 ? "text-[#e18b74]" : ""}>সময় {seconds} সেকেন্ড</span>
+                <div className="mb-6 flex items-center justify-between gap-4">
+                  <div><p className="text-[10px] tracking-[0.16em] text-white/35">ধাপ {questIndex + 1} / ${QUESTS.length}</p><p className="mt-1 text-[10px] text-white/20">এই ধাপের সময়</p></div>
+                  <div className={`relative flex h-16 w-16 shrink-0 items-center justify-center rounded-full border ${seconds <= 5 ? "border-[#e18b74]/70 bg-[#e18b74]/10 text-[#e18b74]" : "border-[#d8a45d]/35 bg-[#d8a45d]/[.06] text-[#d8a45d]"}`}>
+                    <svg className="absolute inset-0 h-full w-full -rotate-90" viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="27" fill="none" stroke="currentColor" strokeOpacity=".12" strokeWidth="2" /><circle cx="32" cy="32" r="27" fill="none" stroke="currentColor" strokeWidth="2.5" strokeDasharray="169.6" strokeDashoffset={169.6 * (1 - seconds / 15)} strokeLinecap="round" className="transition-all duration-1000" /></svg>
+                    <span className="text-sm font-bold tabular-nums">{seconds}</span>
+                  </div>
                 </div>
                 <div className="mb-6 h-1.5 overflow-hidden rounded-full bg-white/10"><div className="h-full rounded-full bg-[#d8a45d] transition-all duration-300" style={{ width: `${progress}%` }} /></div>
                 <div className="mb-8 flex items-center justify-between text-[10px] text-white/35"><span>স্কোর: {questScore}</span><span>ধারাবাহিক সঠিক: {streak}</span></div>
@@ -390,19 +410,27 @@ export default function NobinBoronPage() {
 
                     {currentQuest.type === "letters" ? (
                       <div className="mt-8">
-                        <div className="mb-6 flex min-h-16 flex-wrap justify-center gap-2 rounded-2xl border border-[#d8a45d]/15 bg-[#d8a45d]/[0.03] p-3">
-                          {letterOrder.length ? letterOrder.map((letter, index) => <span key={`${letter}-${index}`} className="flex h-12 min-w-12 items-center justify-center rounded-xl border border-[#d8a45d]/35 bg-[#d8a45d]/10 px-3 text-xl font-semibold">{letter}</span>) : <span className="py-3 text-xs text-white/20">এখানে তোমার শব্দটি তৈরি হবে</span>}
+                        <p className="mb-3 text-center text-[10px] tracking-[0.16em] text-white/25">টেনে সাজাও · অথবা ট্যাপ করে অক্ষর যোগ করো</p>
+                        <div className="mb-6 flex min-h-20 flex-wrap justify-center gap-2 rounded-2xl border border-[#d8a45d]/20 bg-[#d8a45d]/[0.04] p-3">
+                          {letterOrder.length ? letterOrder.map((letter, index) => <button key={letter + index} type="button" draggable={!selected} onDragStart={() => setDraggedLetter(index)} onDragOver={(event) => { event.preventDefault(); if (draggedLetter !== null && draggedLetter !== index) { moveLetter(draggedLetter, index); setDraggedLetter(index); } }} onDragEnd={() => setDraggedLetter(null)} onClick={() => removeLetter(letter)} className="flex h-14 min-w-14 cursor-grab touch-none items-center justify-center rounded-xl border border-[#d8a45d]/40 bg-[#d8a45d]/10 px-3 text-2xl font-semibold transition active:cursor-grabbing hover:-translate-y-0.5">{letter}</button>) : <span className="py-4 text-xs text-white/20">এখানে অক্ষরগুলো এনে শব্দ তৈরি করো</span>}
                         </div>
                         <div className="flex justify-center gap-3">
-                          {currentQuest.letters!.map((letter, index) => {
-                            const used = letterOrder.includes(letter);
-                            return <button key={`${letter}-${index}`} onClick={() => chooseLetter(index)} disabled={used || Boolean(selected)} className={`flex h-16 min-w-16 items-center justify-center rounded-2xl border text-2xl font-semibold transition ${used ? "border-white/5 bg-white/5 text-white/15" : "border-white/10 bg-white/[.03] hover:-translate-y-1 hover:border-[#d8a45d]/50"}`}>{letter}</button>;
-                          })}
+                          {currentQuest.letters!.map((letter, index) => { const used = letterOrder.includes(letter); return <button key={letter + index} onClick={() => chooseLetter(index)} disabled={used || Boolean(selected)} className={`flex h-16 min-w-16 items-center justify-center rounded-2xl border text-2xl font-semibold transition ${used ? "border-white/5 bg-white/5 text-white/15" : "border-white/10 bg-white/[.03] hover:-translate-y-1 hover:border-[#d8a45d]/50"}`}>{letter}</button>; })}
                         </div>
                         <div className="mt-4 flex gap-2">
                           <button onClick={clearLetters} className="flex-1 rounded-2xl border border-white/10 px-4 py-3 text-xs text-white/50 transition hover:text-white">আবার সাজাও</button>
                           <button onClick={submitLetters} disabled={!letterOrder.length} className="flex-1 rounded-2xl bg-[#f7f0e4] px-4 py-3 text-xs font-semibold text-[#111] disabled:opacity-30">উত্তর দাও →</button>
                         </div>
+                      </div>
+                    ) : currentQuest.type === "visual" ? (
+                      <div className="mt-8">
+                        <div className="grid grid-cols-3 gap-2">
+                          {["পাতা", "মলাট", "অক্ষর"].map((label, index) => <div key={label} className="relative overflow-hidden rounded-2xl border border-[#d8a45d]/15 bg-[#d8a45d]/[.04] p-4 text-center"><div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full border border-white/10 bg-black/20 text-2xl text-[#d8a45d]">{["▤", "▥", "অ"][index]}</div><p className="text-xs text-white/45">{label}</p></div>)}
+                        </div>
+                        <div className="mt-4 rounded-2xl border border-white/10 bg-white/[.025] p-5 text-center">
+                          {currentQuest.poem!.map((line, index) => <p key={line} className="text-sm leading-8 text-white/55"><span className="mr-2 text-[#d8a45d]/60">{index + 1}</span>{line}</p>)}
+                        </div>
+                        <div className="mt-5 grid gap-3">{currentQuest.options!.map((option) => <button key={option} onClick={() => answer(option)} disabled={Boolean(selected)} className={`rounded-2xl border px-5 py-4 text-left text-sm transition ${selected === "correct" && option === currentQuest.answer ? "border-[#d8a45d]/70 bg-[#d8a45d]/10" : selected ? "border-white/5 opacity-45" : "border-white/10 bg-white/[.02] hover:border-white/25 hover:bg-white/[.04]"}`}>{option}</button>)}</div>
                       </div>
                     ) : (
                       <div className="mt-8 grid gap-3">
