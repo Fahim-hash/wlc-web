@@ -29,7 +29,7 @@ export function getAdminDb() {
   const app =
     getApps().length > 0
       ? getApps()[0]
-      : initializeApp(cert(getServiceAccount()));
+      : initializeApp({ credential: cert(getServiceAccount()) });
 
   adminDb = getFirestore(app);
   return adminDb;
