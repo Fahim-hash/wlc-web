@@ -142,7 +142,7 @@ async function handleCallback(callback: TelegramCallbackQuery) {
     );
     await sendText(
       chatId,
-      `🧪 Test complete\\nSent: ${result.sent}\\nExpired removed: ${result.removed}\\nFailed: ${result.failed}`
+      `🧪 Test complete\nSent: ${result.sent}\nExpired removed: ${result.removed}\nFailed: ${result.failed}`
     );
     return;
   }
@@ -150,7 +150,7 @@ async function handleCallback(callback: TelegramCallbackQuery) {
   if (action === "wlc:stats") {
     await answerCallback(callback.id);
     const count = await getPushSubscriberCount();
-    await sendText(chatId, `📊 Global Push Subscribers\\n\\nActive subscriptions: ${count}`);
+    await sendText(chatId, `📊 Global Push Subscribers\n\nActive subscriptions: ${count}`);
     return;
   }
 
@@ -162,7 +162,7 @@ async function handleCallback(callback: TelegramCallbackQuery) {
 
   if (action === "wlc:confirm") {
     const preview = callback.message?.text || "";
-    const match = preview.match(/🔔 উইল্‌স সাহিত্য ক্লাব\\n([\\s\\S]*?)\\n\\nসব subscribed website users-কে পাঠানো হবে/);
+    const match = preview.match(/🔔 উইল্‌স সাহিত্য ক্লাব\n([\\s\\S]*?)\n\nসব subscribed website users-কে পাঠানো হবে/);
 
     if (!match?.[1]) {
       await answerCallback(callback.id, "Draft expired. আবার /notify দিয়ে পাঠান।");
@@ -185,7 +185,7 @@ async function handleCallback(callback: TelegramCallbackQuery) {
 
     await sendText(
       chatId,
-      `✅ Global push sent\\n\\nSent: ${result.sent}\\nExpired removed: ${result.removed}\\nFailed: ${result.failed}`
+      `✅ Global push sent\n\nSent: ${result.sent}\nExpired removed: ${result.removed}\nFailed: ${result.failed}`
     );
   }
 }
@@ -204,7 +204,7 @@ async function handleMessage(message: TelegramMessage) {
     if (!isAdmin(userId)) {
       await sendText(
         chatId,
-        `⛔ WLC Control Hub access is not enabled for this Telegram account.\\n\\nYour Telegram ID: ${userId}\\n\\nAdd this number to Vercel → TELEGRAM_ADMIN_IDS, then redeploy.\\n\\nIf you already added it, run /start again after the latest deployment.`
+        `⛔ WLC Control Hub access is not enabled for this Telegram account.\n\nYour Telegram ID: ${userId}\n\nAdd this number to Vercel → TELEGRAM_ADMIN_IDS, then redeploy.\n\nIf you already added it, run /start again after the latest deployment.`
       );
       return;
     }
@@ -217,7 +217,7 @@ async function handleMessage(message: TelegramMessage) {
     if (!isAdmin(userId)) {
       await sendText(
         chatId,
-        `⛔ Access denied.\\n\\nYour Telegram ID: ${userId}\\nAdd it to TELEGRAM_ADMIN_IDS in Vercel and redeploy.`
+        `⛔ Access denied.\n\nYour Telegram ID: ${userId}\nAdd it to TELEGRAM_ADMIN_IDS in Vercel and redeploy.`
       );
       return;
     }
@@ -251,7 +251,7 @@ async function handleMessage(message: TelegramMessage) {
 
     await sendText(
       chatId,
-      `Preview:\n\n🔔 উইল্‌স সাহিত্য ক্লাব\n${draft}\n\nসব subscribed website users-কে পাঠানো হবে।`,
+      `Preview:\n\n🔔 উইল্‌স সাহিত্য ক্লাব\n${draft}${url !== "/" ? ` [link:${url}]` : ""}\n\nসব subscribed website users-কে পাঠানো হবে।`,
       [
         [
           { text: "✅ SEND TO EVERYONE", callback_data: "wlc:confirm" },
@@ -261,6 +261,8 @@ async function handleMessage(message: TelegramMessage) {
     );
     return;
   }
+
+}
 
 function getImageFromPost(post: TelegramPost) {
   if (post.document?.file_id && post.document.mime_type?.startsWith("image/")) {
