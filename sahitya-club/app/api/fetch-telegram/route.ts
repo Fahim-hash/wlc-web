@@ -20,11 +20,9 @@ async function ensureTelegramWebhook(request: Request) {
 
   const origin = process.env.NEXT_PUBLIC_SITE_URL || "https://wlc.pro.bd";
   const webhookUrl = `${origin}/api/webhook/telegram`;
-  const secret = process.env.TELEGRAM_WEBHOOK_SECRET;
-  if (!secret) {
-    console.error("Telegram webhook setup skipped: TELEGRAM_WEBHOOK_SECRET is not configured.");
-    return;
-  }
+  const secret =
+    process.env.TELEGRAM_WEBHOOK_SECRET?.trim() ||
+    (await import("crypto")).createHash("sha256").update(botToken).digest("hex");
 
   const body = new URLSearchParams({ url: webhookUrl });
   body.set("secret_token", secret);
