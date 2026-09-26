@@ -1,7 +1,6 @@
 import crypto from "node:crypto";
 import webpush from "web-push";
-import { collection, deleteDoc, doc, getDocs, setDoc } from "firebase/firestore/lite";
-import { db } from "@/lib/firebase";
+import { adminDb } from "@/lib/firebase-admin";
 
 export type PushSubscriptionJSON = {
   endpoint: string;
@@ -44,7 +43,7 @@ export async function savePushSubscription(subscription: PushSubscriptionJSON) {
 
   const id = subscriptionId(subscription.endpoint);
   await setDoc(
-    doc(collection(db, "push_subscriptions"), id),
+    adminDb.collection("push_subscriptions").doc(id),
     {
       endpoint: subscription.endpoint,
       expirationTime: subscription.expirationTime ?? null,
@@ -58,7 +57,7 @@ export async function savePushSubscription(subscription: PushSubscriptionJSON) {
 }
 
 export async function getPushSubscriberCount() {
-  const snapshot = await getDocs(collection(db, "push_subscriptions"));
+  const snapshot = await adminDb.collection("push_subscriptions").get();
   return snapshot.size;
 }
 
@@ -104,7 +103,7 @@ export async function sendGlobalPushNotification(
               : 0;
 
           if (statusCode === 404 || statusCode === 410) {
-            await deleteDoc(doc(collection(db, "push_subscriptions"), id));
+            await adminDb.collection("push_subscriptions").doc(id).delete();
             removed += 1;
           } else {
             failed += 1;
