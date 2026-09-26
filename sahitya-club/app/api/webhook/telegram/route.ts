@@ -1,12 +1,12 @@
 import { NextResponse } from "next/server";
 import crypto from "crypto";
-import { collection, deleteDoc, doc, getDoc, setDoc } from "firebase/firestore/lite";
+import { collection, doc, setDoc } from "firebase/firestore/lite";
 import { db } from "@/lib/firebase";
 import { sendGlobalPushNotification, getPushSubscriberCount } from "@/lib/push";
 
 type TelegramUser = { id: number };
 type TelegramMessage = { message_id: number; text?: string; from?: TelegramUser; chat?: { id?: number | string } };
-type TelegramCallbackQuery = { id: string; data?: string; from: TelegramUser; message?: { chat?: { id?: number | string } } };
+type TelegramCallbackQuery = { id: string; data?: string; from: TelegramUser; message?: { chat?: { id?: number | string }; text?: string } };
 type TelegramPhoto = { file_id: string; file_unique_id?: string; width?: number; height?: number };
 type TelegramPost = {
   message_id: number;
@@ -107,10 +107,6 @@ function parseNotificationDraft(text: string) {
   return { message, url };
 }
 
-function sessionRef(userId: number) {
-  return doc(collection(db, "telegram_control_sessions"), String(userId));
-}
-
 async function handleCallback(callback: TelegramCallbackQuery) {
   const userId = callback.from.id;
   const chatId = callback.message?.chat?.id;
@@ -124,11 +120,14 @@ async function handleCallback(callback: TelegramCallbackQuery) {
   const action = callback.data || "";
 
   if (action === "wlc:push") {
-    await setDoc(sessionRef(userId), { state: "awaiting_message", updatedAt: Date.now() });
     await answerCallback(callback.id);
     await sendText(
       chatId,
-      "📢 Push message পাঠাও।\n\nশুধু message লিখলেই হবে। নির্দিষ্ট page খুলতে চাইলে শেষে [link:/events] এভাবে দাও।\n\n/cancel দিয়ে বাতিল করতে পারো।"
+      "📢 Push পাঠাতে:
+/notify Your message [link:/optional-page]
+
+Example:
+/notify নতুন আপডেট এসেছে! [link:/events]"
     );
     return;
   }
@@ -142,7 +141,7 @@ async function handleCallback(callback: TelegramCallbackQuery) {
     );
     await sendText(
       chatId,
-      `🧪 Test complete\nSent: ${result.sent}\nExpired removed: ${result.removed}\nFailed: ${result.failed}`
+      `🧪 Test complete\\nSent: ${result.sent}\\nExpired removed: ${result.removed}\\nFailed: ${result.failed}`
     );
     return;
   }
@@ -150,37 +149,42 @@ async function handleCallback(callback: TelegramCallbackQuery) {
   if (action === "wlc:stats") {
     await answerCallback(callback.id);
     const count = await getPushSubscriberCount();
-    await sendText(chatId, `📊 Global Push Subscribers\n\nActive subscriptions: ${count}`);
+    await sendText(chatId, `📊 Global Push Subscribers\\n\\nActive subscriptions: ${count}`);
     return;
   }
 
   if (action === "wlc:cancel") {
-    await deleteDoc(sessionRef(userId));
     await answerCallback(callback.id, "Cancelled");
     await sendControlMenu(chatId);
     return;
   }
 
   if (action === "wlc:confirm") {
-    const session = await getDoc(sessionRef(userId));
-    const data = session.exists() ? session.data() : null;
+    const preview = callback.message?.text || "";
+    const match = preview.match(/🔔 উইল্‌স সাহিত্য ক্লাব\\n([\\s\\S]*?)\\n\\nসব subscribed website users-কে পাঠানো হবে/);
 
-    if (!data || data.state !== "confirm" || typeof data.message !== "string") {
-      await answerCallback(callback.id, "Draft expired. আবার Send Push চাপুন।");
+    if (!match?.[1]) {
+      await answerCallback(callback.id, "Draft expired. আবার /notify দিয়ে পাঠান।");
+      return;
+    }
+
+    const { message: draft, url } = parseNotificationDraft(match[1]);
+
+    if (!draft || draft.length > 300) {
+      await answerCallback(callback.id, "Invalid draft.");
       return;
     }
 
     await answerCallback(callback.id, "Sending...");
     const result = await sendGlobalPushNotification(
       "উইল্‌স সাহিত্য ক্লাব",
-      data.message,
-      typeof data.url === "string" ? data.url : "/"
+      draft,
+      url
     );
 
-    await deleteDoc(sessionRef(userId));
     await sendText(
       chatId,
-      `✅ Global push sent\n\nSent: ${result.sent}\nExpired removed: ${result.removed}\nFailed: ${result.failed}`
+      `✅ Global push sent\\n\\nSent: ${result.sent}\\nExpired removed: ${result.removed}\\nFailed: ${result.failed}`
     );
   }
 }
@@ -225,7 +229,6 @@ async function handleMessage(message: TelegramMessage) {
   if (!isAdmin(userId)) return;
 
   if (text === "/cancel") {
-    await deleteDoc(sessionRef(userId));
     await sendText(chatId, "Cancelled.");
     return;
   }
@@ -266,116 +269,4 @@ async function handleMessage(message: TelegramMessage) {
     return;
   }
 
-  const session = await getDoc(sessionRef(userId));
-  const data = session.exists() ? session.data() : null;
 
-  if (data?.state === "awaiting_message") {
-    const { message: draft, url } = parseNotificationDraft(text);
-
-    if (!draft || draft.length > 300) {
-      await sendText(chatId, "Message 1–300 characters হতে হবে।");
-      return;
-    }
-
-    await setDoc(sessionRef(userId), {
-      state: "confirm",
-      message: draft,
-      url,
-      updatedAt: Date.now(),
-    });
-
-    await sendText(
-      chatId,
-      `Preview:\n\n🔔 উইল্‌স সাহিত্য ক্লাব\n${draft}\n\nসব subscribed website users-কে পাঠানো হবে।`,
-      [
-        [
-          { text: "✅ SEND TO EVERYONE", callback_data: "wlc:confirm" },
-          { text: "❌ CANCEL", callback_data: "wlc:cancel" },
-        ],
-      ]
-    );
-  }
-}
-
-function getImageFromPost(post: TelegramPost) {
-  if (post.document?.file_id && post.document.mime_type?.startsWith("image/")) {
-    return {
-      fileId: post.document.file_id,
-      fileUniqueId: post.document.file_unique_id ?? "",
-      fileName: post.document.file_name ?? "telegram-image",
-      mimeType: post.document.mime_type ?? "image/*",
-    };
-  }
-
-  if (post.photo && post.photo.length > 0) {
-    const photo = post.photo[post.photo.length - 1];
-    return {
-      fileId: photo.file_id,
-      fileUniqueId: photo.file_unique_id ?? "",
-      fileName: `telegram-${post.message_id}.jpg`,
-      mimeType: "image/jpeg",
-    };
-  }
-
-  return null;
-}
-
-export async function POST(request: Request) {
-  try {
-    const expectedSecret = getExpectedWebhookSecret();
-    const receivedSecret = getWebhookSecret(request);
-
-    if (!receivedSecret || receivedSecret !== expectedSecret) {
-      return NextResponse.json({ ok: false }, { status: 401 });
-    }
-
-    const body = (await request.json()) as TelegramUpdate;
-
-    if (body.callback_query) {
-      await handleCallback(body.callback_query);
-      return NextResponse.json({ ok: true });
-    }
-
-    if (body.message) {
-      await handleMessage(body.message);
-      return NextResponse.json({ ok: true });
-    }
-
-    const post = (body.channel_post || body.edited_channel_post) as TelegramPost | undefined;
-
-    if (!post?.message_id) {
-      return NextResponse.json({ ok: true, ignored: true });
-    }
-
-    const image = getImageFromPost(post);
-
-    if (!image) {
-      return NextResponse.json({ ok: true, ignored: true });
-    }
-
-    const chatId = post.chat?.id ?? process.env.TELEGRAM_CHAT_ID;
-    const documentId = `${String(chatId)}_${post.message_id}`;
-
-    await setDoc(
-      doc(collection(db, "telegram_media"), documentId),
-      {
-        messageId: post.message_id,
-        chatId: String(chatId ?? ""),
-        fileId: image.fileId,
-        fileUniqueId: image.fileUniqueId,
-        fileName: image.fileName,
-        mimeType: image.mimeType,
-        caption: post.caption ?? "",
-        mediaGroupId: post.media_group_id ?? null,
-        createdAt: (post.date ?? Math.floor(Date.now() / 1000)) * 1000,
-        updatedAt: Date.now(),
-      },
-      { merge: true }
-    );
-
-    return NextResponse.json({ ok: true });
-  } catch (error) {
-    console.error("Telegram webhook error:", error);
-    return NextResponse.json({ ok: false }, { status: 500 });
-  }
-}
