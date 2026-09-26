@@ -162,7 +162,7 @@ async function handleCallback(callback: TelegramCallbackQuery) {
 
   if (action === "wlc:confirm") {
     const preview = callback.message?.text || "";
-    const match = preview.match(/🔔 উইল্‌স সাহিত্য ক্লাব\n([\\s\\S]*?)\n\nসব subscribed website users-কে পাঠানো হবে/);
+    const match = preview.match(/🔔 উইল্‌স সাহিত্য ক্লাব\n([\s\S]*?)\n\nসব subscribed website users-কে পাঠানো হবে/);
 
     if (!match?.[1]) {
       await answerCallback(callback.id, "Draft expired. আবার /notify দিয়ে পাঠান।");
@@ -323,8 +323,7 @@ export async function POST(request: Request) {
     const chatId = post.chat?.id ?? process.env.TELEGRAM_CHAT_ID;
     const documentId = `${String(chatId)}_${post.message_id}`;
 
-    await setDoc(
-      doc(collection(db, "telegram_media"), documentId),
+    await adminDb.collection("telegram_media").doc(documentId).set(
       {
         messageId: post.message_id,
         chatId: String(chatId ?? ""),
