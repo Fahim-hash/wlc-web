@@ -42,16 +42,12 @@ export async function savePushSubscription(subscription: PushSubscriptionJSON) {
   }
 
   const id = subscriptionId(subscription.endpoint);
-  await setDoc(
-    adminDb.collection("push_subscriptions").doc(id),
-    {
-      endpoint: subscription.endpoint,
-      expirationTime: subscription.expirationTime ?? null,
-      keys: subscription.keys,
-      updatedAt: Date.now(),
-    },
-    { merge: true }
-  );
+  await adminDb.collection("push_subscriptions").doc(id).set({
+    endpoint: subscription.endpoint,
+    expirationTime: subscription.expirationTime ?? null,
+    keys: subscription.keys,
+    updatedAt: Date.now(),
+  }, { merge: true });
 
   return id;
 }
@@ -68,7 +64,7 @@ export async function sendGlobalPushNotification(
 ) {
   configureWebPush();
 
-  const snapshot = await getDocs(collection(db, "push_subscriptions"));
+  const snapshot = await adminDb.collection("push_subscriptions").get();
   const subscriptions = snapshot.docs.map((item) => ({
     id: item.id,
     data: item.data() as PushSubscriptionJSON,
