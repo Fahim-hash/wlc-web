@@ -98,6 +98,9 @@ async function sendControlMenu(chatId: number | string) {
       ],
       [
         { text: "📊 Subscribers", callback_data: "wlc:stats" },
+        { text: "🖼️ Album", callback_data: "wlc:album_list" },
+      ],
+      [
         { text: "❌ Cancel", callback_data: "wlc:cancel" },
       ],
     ]
@@ -114,7 +117,7 @@ function parseNotificationDraft(text: string) {
 async function setControlSession(
   userId: number,
   chatId: number | string,
-  data: { state: "awaiting_message" | "preview"; draft?: string; url?: string }
+  data: { state: "awaiting_message" | "preview" | "awaiting_album_caption"; draft?: string; url?: string }
 ) {
   await getAdminDb().collection("telegram_control_sessions").doc(String(userId)).set(
     {
@@ -158,6 +161,66 @@ ${draft}${url !== "/" ? ` [link:${url}]` : ""}
 সব subscribed website users-কে পাঠানো হবে।`;
 }
 
+async function sendAlbumList(chatId: number | string) {
+  const snapshot = await getAdminDb().collection("telegram_media").get();
+  const items = snapshot.docs
+    .map((doc) => doc.data() as {
+      messageId?: number;
+      chatId?: string;
+      caption?: string;
+      fileId?: string;
+      mimeType?: string;
+      updatedAt?: number;
+      createdAt?: number;
+    })
+    .filter((item) => item.messageId && item.fileId && item.mimeType?.startsWith("image/"))
+    .sort((a, b) => (b.updatedAt ?? b.createdAt ?? 0) - (a.updatedAt ?? a.createdAt ?? 0))
+    .slice(0, 12);
+
+  if (!items.length) {
+    await sendText(chatId, "🖼️ Album Manager\n\nকোনো image পাওয়া যায়নি।");
+    return;
+  }
+
+  await sendText(
+    chatId,
+    "🖼️ Album Manager\n\nRecent " + items.length + " photos — caption দিয়ে যেটা edit করতে চান সেটি select করুন:",
+    items.map((item) => [{
+      text: "📸 #" + item.messageId + " — " + (item.caption || "No caption").replace(/\s+/g, " ").slice(0, 55),
+      callback_data: "wlc:album:" + item.messageId,
+    }])
+  );
+}
+
+async function sendSelectedAlbumPhoto(chatId: number | string, messageId: number) {
+  const doc = await getAdminDb().collection("telegram_media")
+    .doc(String(process.env.TELEGRAM_CHAT_ID) + "_" + messageId)
+    .get();
+
+  if (!doc.exists) {
+    await sendText(chatId, "⚠️ এই photo-র media record পাওয়া যায়নি। /album আবার দিন।");
+    return;
+  }
+
+  const data = doc.data() as { fileId?: string; caption?: string };
+  if (!data.fileId) {
+    await sendText(chatId, "⚠️ এই photo-র Telegram file ID পাওয়া যায়নি।");
+    return;
+  }
+
+  await telegramApi("sendPhoto", {
+    chat_id: chatId,
+    photo: data.fileId,
+    caption: "🖼️ Telegram #" + messageId + "\n\n" + (data.caption || "No caption"),
+    reply_markup: {
+      inline_keyboard: [
+        [{ text: "✏️ Edit Caption", callback_data: "wlc:album_edit:" + messageId }],
+        [{ text: "⬅️ Back to Album", callback_data: "wlc:album_list" }],
+      ],
+    },
+  });
+}
+
 async function sendPushPreview(chatId: number | string, draft: string, url: string) {
   await sendText(
     chatId,
@@ -187,6 +250,41 @@ async function handleCallback(callback: TelegramCallbackQuery) {
   const action = callback.data || "";
 
   try {
+    if (action === "wlc:album_list") {
+      await answerCallback(callback.id);
+      await sendAlbumList(chatId);
+      return;
+    }
+
+    if (action.startsWith("wlc:album:")) {
+      await answerCallback(callback.id);
+      const messageId = Number(action.slice("wlc:album:"));
+      if (!Number.isInteger(messageId)) {
+        await sendText(chatId, "⚠️ Invalid album selection.");
+        return;
+      }
+      await sendSelectedAlbumPhoto(chatId, messageId);
+      return;
+    }
+
+    if (action.startsWith("wlc:album_edit:")) {
+      await answerCallback(callback.id);
+      const messageId = Number(action.slice("wlc:album_edit:"));
+      if (!Number.isInteger(messageId)) {
+        await sendText(chatId, "⚠️ Invalid photo selection.");
+        return;
+      }
+      await setControlSession(userId, chatId, {
+        state: "awaiting_album_caption",
+        albumMessageId: messageId,
+      });
+      await sendText(
+        chatId,
+        "✏️ Telegram #" + messageId + " selected.\n\nনতুন caption পাঠান।\n\nCaption খালি করতে /clearcaption লিখুন।\n❌ /cancel দিয়ে বাতিল করুন."
+      );
+      return;
+    }
+
     if (action === "wlc:push") {
       await answerCallback(callback.id);
       await sendText(
@@ -327,6 +425,11 @@ async function handleMessage(message: TelegramMessage) {
 
   if (!isAdmin(userId)) return;
 
+  if (text === "/album") {
+    await sendAlbumList(chatId);
+    return;
+  }
+
   if (text === "/cancel") {
     await clearControlSession(userId);
     await sendText(chatId, "❌ Cancelled.", [
@@ -339,6 +442,42 @@ async function handleMessage(message: TelegramMessage) {
   }
 
   const session = await getControlSession(userId);
+
+  if (session?.state === "awaiting_album_caption") {
+    const messageId = session.albumMessageId;
+    if (!messageId) {
+      await clearControlSession(userId);
+      await sendText(chatId, "⚠️ Photo selection expired. /album দিয়ে আবার select করুন।");
+      return;
+    }
+
+    const newCaption = text === "/clearcaption" ? "" : text;
+    if (newCaption.length > 1024) {
+      await sendText(chatId, "⚠️ Telegram caption সর্বোচ্চ 1024 characters হতে পারে।");
+      return;
+    }
+
+    await telegramApi("editMessageCaption", {
+      chat_id: process.env.TELEGRAM_CHAT_ID,
+      message_id: messageId,
+      caption: newCaption,
+    });
+
+    await getAdminDb().collection("telegram_media")
+      .doc(String(process.env.TELEGRAM_CHAT_ID) + "_" + messageId)
+      .set({ caption: newCaption, updatedAt: Date.now() }, { merge: true });
+
+    await clearControlSession(userId);
+    await sendText(
+      chatId,
+      "✅ Caption updated!\n\nTelegram #" + messageId + " এখন নতুন caption-এ updated হয়েছে.",
+      [[
+        { text: "🖼️ Edit Another", callback_data: "wlc:album_list" },
+        { text: "🏠 Control Hub", callback_data: "wlc:cancel" },
+      ]]
+    );
+    return;
+  }
 
   if (session?.state === "awaiting_message") {
     const { message: draft, url } = parseNotificationDraft(text);
