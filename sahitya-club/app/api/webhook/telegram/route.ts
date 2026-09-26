@@ -1,28 +1,27 @@
-// app/api/webhook/telegram/route.ts
 import { NextResponse } from "next/server";
-import { collection, doc, setDoc } from "firebase/firestore/lite";
+import { collection, deleteDoc, doc, getDoc, setDoc } from "firebase/firestore/lite";
 import { db } from "@/lib/firebase";
+import { sendGlobalPushNotification, getPushSubscriberCount } from "@/lib/push";
 
-type TelegramPhoto = {
-  file_id: string;
-  file_unique_id?: string;
-  width?: number;
-  height?: number;
-};
-
+type TelegramUser = { id: number };
+type TelegramMessage = { message_id: number; text?: string; from?: TelegramUser; chat?: { id?: number | string } };
+type TelegramCallbackQuery = { id: string; data?: string; from: TelegramUser; message?: { chat?: { id?: number | string } } };
+type TelegramPhoto = { file_id: string; file_unique_id?: string; width?: number; height?: number };
 type TelegramPost = {
   message_id: number;
   date?: number;
   chat?: { id?: number | string; username?: string; title?: string };
-  document?: {
-    file_id: string;
-    file_unique_id?: string;
-    file_name?: string;
-    mime_type?: string;
-  };
+  document?: { file_id: string; file_unique_id?: string; file_name?: string; mime_type?: string };
   photo?: TelegramPhoto[];
   caption?: string;
   media_group_id?: string;
+};
+
+type TelegramUpdate = {
+  message?: TelegramMessage;
+  callback_query?: TelegramCallbackQuery;
+  channel_post?: TelegramPost;
+  edited_channel_post?: TelegramPost;
 };
 
 function getWebhookSecret(request: Request) {
@@ -30,6 +29,235 @@ function getWebhookSecret(request: Request) {
     request.headers.get("x-telegram-bot-api-secret-token") ||
     request.headers.get("x-telegram-webhook-secret")
   );
+}
+
+function isAdmin(userId: number) {
+  const admins = (process.env.TELEGRAM_ADMIN_IDS || "")
+    .split(",")
+    .map((value) => value.trim())
+    .filter(Boolean);
+  return admins.includes(String(userId));
+}
+
+async function telegramApi(method: string, payload: Record<string, unknown>) {
+  const token = process.env.TELEGRAM_BOT_TOKEN;
+  if (!token) throw new Error("TELEGRAM_BOT_TOKEN is not configured");
+
+  const response = await fetch(`https://api.telegram.org/bot${token}/${method}`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+    cache: "no-store",
+  });
+
+  const result = await response.json();
+  if (!result.ok) {
+    throw new Error(`Telegram ${method} failed: ${JSON.stringify(result)}`);
+  }
+  return result;
+}
+
+async function sendText(chatId: number | string, text: string, keyboard?: unknown[][]) {
+  return telegramApi("sendMessage", {
+    chat_id: chatId,
+    text,
+    disable_web_page_preview: true,
+    ...(keyboard ? { reply_markup: { inline_keyboard: keyboard } } : {}),
+  });
+}
+
+async function answerCallback(callbackId: string, text?: string) {
+  return telegramApi("answerCallbackQuery", {
+    callback_query_id: callbackId,
+    ...(text ? { text } : {}),
+  });
+}
+
+async function sendControlMenu(chatId: number | string) {
+  return sendText(
+    chatId,
+    "WLC Control Hub\n\nGlobal browser push notifications এবং ভবিষ্যৎ website controls এখান থেকেই পরিচালনা করা যাবে।",
+    [
+      [
+        { text: "📢 Send Push", callback_data: "wlc:push" },
+        { text: "🧪 Test Push", callback_data: "wlc:test" },
+      ],
+      [
+        { text: "📊 Subscribers", callback_data: "wlc:stats" },
+        { text: "❌ Cancel", callback_data: "wlc:cancel" },
+      ],
+    ]
+  );
+}
+
+function parseNotificationDraft(text: string) {
+  const linkMatch = text.match(/\[link:(\/[^\]]*)\]\s*$/i);
+  const url = linkMatch ? linkMatch[1] : "/";
+  const message = text.replace(/\s*\[link:\/[^\]]*\]\s*$/i, "").trim();
+  return { message, url };
+}
+
+function sessionRef(userId: number) {
+  return doc(collection(db, "telegram_control_sessions"), String(userId));
+}
+
+async function handleCallback(callback: TelegramCallbackQuery) {
+  const userId = callback.from.id;
+  const chatId = callback.message?.chat?.id;
+  if (!chatId) return;
+
+  if (!isAdmin(userId)) {
+    await answerCallback(callback.id, "অনুমতি নেই।");
+    return;
+  }
+
+  const action = callback.data || "";
+
+  if (action === "wlc:push") {
+    await setDoc(sessionRef(userId), { state: "awaiting_message", updatedAt: Date.now() });
+    await answerCallback(callback.id);
+    await sendText(
+      chatId,
+      "📢 Push message পাঠাও।\n\nশুধু message লিখলেই হবে। নির্দিষ্ট page খুলতে চাইলে শেষে [link:/events] এভাবে দাও।\n\n/cancel দিয়ে বাতিল করতে পারো।"
+    );
+    return;
+  }
+
+  if (action === "wlc:test") {
+    await answerCallback(callback.id, "Test push পাঠানো হচ্ছে...");
+    const result = await sendGlobalPushNotification(
+      "উইল্‌স সাহিত্য ক্লাব",
+      "WLC global push system is working.",
+      "/"
+    );
+    await sendText(
+      chatId,
+      `🧪 Test complete\nSent: ${result.sent}\nExpired removed: ${result.removed}\nFailed: ${result.failed}`
+    );
+    return;
+  }
+
+  if (action === "wlc:stats") {
+    await answerCallback(callback.id);
+    const count = await getPushSubscriberCount();
+    await sendText(chatId, `📊 Global Push Subscribers\n\nActive subscriptions: ${count}`);
+    return;
+  }
+
+  if (action === "wlc:cancel") {
+    await deleteDoc(sessionRef(userId));
+    await answerCallback(callback.id, "Cancelled");
+    await sendControlMenu(chatId);
+    return;
+  }
+
+  if (action === "wlc:confirm") {
+    const session = await getDoc(sessionRef(userId));
+    const data = session.exists() ? session.data() : null;
+
+    if (!data || data.state !== "confirm" || typeof data.message !== "string") {
+      await answerCallback(callback.id, "Draft expired. আবার Send Push চাপুন।");
+      return;
+    }
+
+    await answerCallback(callback.id, "Sending...");
+    const result = await sendGlobalPushNotification(
+      "উইল্‌স সাহিত্য ক্লাব",
+      data.message,
+      typeof data.url === "string" ? data.url : "/"
+    );
+
+    await deleteDoc(sessionRef(userId));
+    await sendText(
+      chatId,
+      `✅ Global push sent\n\nSent: ${result.sent}\nExpired removed: ${result.removed}\nFailed: ${result.failed}`
+    );
+  }
+}
+
+async function handleMessage(message: TelegramMessage) {
+  const userId = message.from?.id;
+  const chatId = message.chat?.id;
+  const text = message.text?.trim();
+
+  if (!userId || !chatId || !text || !isAdmin(userId)) return;
+
+  if (text === "/start" || text === "/control") {
+    await sendControlMenu(chatId);
+    return;
+  }
+
+  if (text === "/cancel") {
+    await deleteDoc(sessionRef(userId));
+    await sendText(chatId, "Cancelled.");
+    return;
+  }
+
+  if (text.startsWith("/notify")) {
+    const draftText = text.slice("/notify".length).trim();
+
+    if (!draftText) {
+      await setDoc(sessionRef(userId), { state: "awaiting_message", updatedAt: Date.now() });
+      await sendText(chatId, "📢 Push message পাঠাও। /cancel দিয়ে বাতিল করতে পারো।");
+      return;
+    }
+
+    const { message: draft, url } = parseNotificationDraft(draftText);
+
+    if (!draft || draft.length > 300) {
+      await sendText(chatId, "Message 1–300 characters হতে হবে।");
+      return;
+    }
+
+    await setDoc(sessionRef(userId), {
+      state: "confirm",
+      message: draft,
+      url,
+      updatedAt: Date.now(),
+    });
+
+    await sendText(
+      chatId,
+      `Preview:\n\n🔔 উইল্‌স সাহিত্য ক্লাব\n${draft}\n\nসব subscribed website users-কে পাঠানো হবে।`,
+      [
+        [
+          { text: "✅ SEND TO EVERYONE", callback_data: "wlc:confirm" },
+          { text: "❌ CANCEL", callback_data: "wlc:cancel" },
+        ],
+      ]
+    );
+    return;
+  }
+
+  const session = await getDoc(sessionRef(userId));
+  const data = session.exists() ? session.data() : null;
+
+  if (data?.state === "awaiting_message") {
+    const { message: draft, url } = parseNotificationDraft(text);
+
+    if (!draft || draft.length > 300) {
+      await sendText(chatId, "Message 1–300 characters হতে হবে।");
+      return;
+    }
+
+    await setDoc(sessionRef(userId), {
+      state: "confirm",
+      message: draft,
+      url,
+      updatedAt: Date.now(),
+    });
+
+    await sendText(
+      chatId,
+      `Preview:\n\n🔔 উইল্‌স সাহিত্য ক্লাব\n${draft}\n\nসব subscribed website users-কে পাঠানো হবে।`,
+      [
+        [
+          { text: "✅ SEND TO EVERYONE", callback_data: "wlc:confirm" },
+          { text: "❌ CANCEL", callback_data: "wlc:cancel" },
+        ],
+      ]
+    );
+  }
 }
 
 function getImageFromPost(post: TelegramPost) {
@@ -58,14 +286,32 @@ function getImageFromPost(post: TelegramPost) {
 export async function POST(request: Request) {
   try {
     const expectedSecret = process.env.TELEGRAM_WEBHOOK_SECRET;
-    if (expectedSecret) {
-      const receivedSecret = getWebhookSecret(request);
-      if (!receivedSecret || receivedSecret !== expectedSecret) {
-        return NextResponse.json({ ok: false }, { status: 401 });
-      }
+
+    if (!expectedSecret) {
+      return NextResponse.json(
+        { ok: false, error: "Telegram webhook secret is not configured." },
+        { status: 503 }
+      );
     }
 
-    const body = await request.json();
+    const receivedSecret = getWebhookSecret(request);
+
+    if (!receivedSecret || receivedSecret !== expectedSecret) {
+      return NextResponse.json({ ok: false }, { status: 401 });
+    }
+
+    const body = (await request.json()) as TelegramUpdate;
+
+    if (body.callback_query) {
+      await handleCallback(body.callback_query);
+      return NextResponse.json({ ok: true });
+    }
+
+    if (body.message) {
+      await handleMessage(body.message);
+      return NextResponse.json({ ok: true });
+    }
+
     const post = (body.channel_post || body.edited_channel_post) as TelegramPost | undefined;
 
     if (!post?.message_id) {
@@ -73,6 +319,7 @@ export async function POST(request: Request) {
     }
 
     const image = getImageFromPost(post);
+
     if (!image) {
       return NextResponse.json({ ok: true, ignored: true });
     }
