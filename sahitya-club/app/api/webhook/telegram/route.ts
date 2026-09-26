@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { after, NextResponse } from "next/server";
 import crypto from "crypto";
 import { getAdminDb } from "@/lib/firebase-admin";
 import { sendGlobalPushNotification, getPushSubscriberCount } from "@/lib/push";
@@ -236,6 +236,7 @@ async function handleCallback(callback: TelegramCallbackQuery) {
     }
 
     if (action === "wlc:confirm") {
+      await answerCallback(callback.id, "Sending...");
       const session = await getControlSession(userId);
 
       if (!session?.draft) {
@@ -243,7 +244,6 @@ async function handleCallback(callback: TelegramCallbackQuery) {
         return;
       }
 
-      await answerCallback(callback.id, "Sending...");
       const result = await sendGlobalPushNotification(
         "উইল্‌স সাহিত্য ক্লাব",
         session.draft,
@@ -403,46 +403,49 @@ export async function POST(request: Request) {
 
     const body = (await request.json()) as TelegramUpdate;
 
-    if (body.callback_query) {
-      await handleCallback(body.callback_query);
-      return NextResponse.json({ ok: true });
-    }
+    // Telegram retries webhooks when the endpoint takes too long. Acknowledge
+    // immediately and do the Firestore/Telegram work after the response.
+    after(async () => {
+      try {
+        if (body.callback_query) {
+          await handleCallback(body.callback_query);
+          return;
+        }
 
-    if (body.message) {
-      await handleMessage(body.message);
-      return NextResponse.json({ ok: true });
-    }
+        if (body.message) {
+          await handleMessage(body.message);
+          return;
+        }
 
-    const post = (body.channel_post || body.edited_channel_post) as TelegramPost | undefined;
+        const post = (body.channel_post || body.edited_channel_post) as TelegramPost | undefined;
 
-    if (!post?.message_id) {
-      return NextResponse.json({ ok: true, ignored: true });
-    }
+        if (!post?.message_id) return;
 
-    const image = getImageFromPost(post);
+        const image = getImageFromPost(post);
+        if (!image) return;
 
-    if (!image) {
-      return NextResponse.json({ ok: true, ignored: true });
-    }
+        const chatId = post.chat?.id ?? process.env.TELEGRAM_CHAT_ID;
+        const documentId = `${String(chatId)}_${post.message_id}`;
 
-    const chatId = post.chat?.id ?? process.env.TELEGRAM_CHAT_ID;
-    const documentId = `${String(chatId)}_${post.message_id}`;
-
-    await getAdminDb().collection("telegram_media").doc(documentId).set(
-      {
-        messageId: post.message_id,
-        chatId: String(chatId ?? ""),
-        fileId: image.fileId,
-        fileUniqueId: image.fileUniqueId,
-        fileName: image.fileName,
-        mimeType: image.mimeType,
-        caption: post.caption ?? "",
-        mediaGroupId: post.media_group_id ?? null,
-        createdAt: (post.date ?? Math.floor(Date.now() / 1000)) * 1000,
-        updatedAt: Date.now(),
-      },
-      { merge: true }
-    );
+        await getAdminDb().collection("telegram_media").doc(documentId).set(
+          {
+            messageId: post.message_id,
+            chatId: String(chatId ?? ""),
+            fileId: image.fileId,
+            fileUniqueId: image.fileUniqueId,
+            fileName: image.fileName,
+            mimeType: image.mimeType,
+            caption: post.caption ?? "",
+            mediaGroupId: post.media_group_id ?? null,
+            createdAt: (post.date ?? Math.floor(Date.now() / 1000)) * 1000,
+            updatedAt: Date.now(),
+          },
+          { merge: true }
+        );
+      } catch (error) {
+        console.error("Telegram background webhook error:", error);
+      }
+    });
 
     return NextResponse.json({ ok: true });
   } catch (error) {
