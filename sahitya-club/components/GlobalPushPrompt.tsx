@@ -97,9 +97,9 @@ export default function GlobalPushPrompt() {
           🔔
         </div>
         <div className="min-w-0 flex-1">
-          <p className="text-sm font-bold text-stone-950">WLC আপডেট পেতে চান?</p>
+          <p className="text-sm font-bold text-stone-950">উইল্‌স সাহিত্য ক্লাবের আপডেট পেতে চান?</p>
           <p className="mt-1 text-xs leading-5 text-stone-500">
-            গুরুত্বপূর্ণ WLC ঘোষণা ও ইভেন্ট আপডেট সরাসরি আপনার browser-এ পেতে
+            গুরুত্বপূর্ণ ঘোষণা ও ইভেন্ট আপডেট সরাসরি আপনার ব্রাউজারে পেতে
             notifications চালু করুন।
           </p>
           <div className="mt-3 flex items-center gap-2">
