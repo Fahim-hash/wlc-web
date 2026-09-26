@@ -258,7 +258,7 @@ async function handleCallback(callback: TelegramCallbackQuery) {
 
     if (action.startsWith("wlc:album:")) {
       await answerCallback(callback.id);
-      const messageId = Number(action.slice("wlc:album:"));
+      const messageId = Number(action.slice("wlc:album:".length));
       if (!Number.isInteger(messageId)) {
         await sendText(chatId, "⚠️ Invalid album selection.");
         return;
@@ -269,7 +269,7 @@ async function handleCallback(callback: TelegramCallbackQuery) {
 
     if (action.startsWith("wlc:album_edit:")) {
       await answerCallback(callback.id);
-      const messageId = Number(action.slice("wlc:album_edit:"));
+      const messageId = Number(action.slice("wlc:album_edit:".length));
       if (!Number.isInteger(messageId)) {
         await sendText(chatId, "⚠️ Invalid photo selection.");
         return;
