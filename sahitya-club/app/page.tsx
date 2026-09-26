@@ -7,7 +7,7 @@ import Link from "next/link";
 
 // এফএকিউ (FAQ) ডেটা স্ট্রাকচার
 const faqs = [
-  { q: "উইল্‌স সাহিত্য ক্লাবের সদস্য কীভাবে হবো?", a: "আমাদের হোমপেজের 'নিবন্ধন' সেকশন থেকে সরাসরি ফর্ম পূরণ করে ক্লাবের অফিশিয়াল সদস্য হওয়া যাবে।" },
+  { q: "উইল্‌স সাহিত্য ক্লাবের সদস্য কীভাবে হবো?", a: "আমাদের ওয়েবসাইটের 'নিবন্ধন' সেকশন থেকে সরাসরি ফর্ম পূরণ করে ক্লাবের অফিশিয়াল সদস্য হওয়া যাবে।" },
   { q: "লেখা জমা দেওয়ার জন্য কি কোনো ফি দিতে হয়?", a: "না, লেখা জমা দেওয়া বা সাহিত্য চর্চার জন্য কোনো প্রকার ফি-র প্রয়োজন নেই। এটি সম্পূর্ণ উন্মুক্ত প্রাঙ্গণ।" },
   { q: "আমি কি গল্প বা কবিতা ছাড়া অন্য কিছু সাবমিট করতে পারি?", a: "অবশ্যই! প্রবন্ধ, অনুবাদ সাহিত্য, অনুভূতির ডায়েরি, বুক রিভিউ কিংবা যেকোনো সৃজনশীল লেখনী সাবমিট করা যাবে।" }
 ];
@@ -102,9 +102,9 @@ export default function WillesSahityaClub() {
 
           {/* ব্যাজ */}
           <div className="flex items-center gap-3 text-xs md:text-sm text-stone-500 font-bold tracking-widest uppercase bg-stone-100 border border-stone-200/50 px-5 py-2 rounded-full shadow-sm">
-            <span>ESTD 2024</span>
+            <span>স্থাপিত ২০২৪</span>
             <span className="text-stone-300">•</span>
-            <span>WLFSC</span>
+            <span>উইলস লিটল ফ্লাওয়ার স্কুল অ্যান্ড কলেজ</span>
           </div>
         </div>
       </section>
@@ -162,7 +162,7 @@ export default function WillesSahityaClub() {
             </span>
             <h3 className="text-2xl md:text-3xl font-extrabold text-white">নতুন মেম্বার রেজিস্ট্রেশন</h3>
             <p className="text-stone-400 text-xs md:text-sm leading-relaxed font-medium">
-              উইলসিয়ানদের সৃজনশীলতার সবচেয়ে বড় পরিবারে যুক্ত হতে তুমি কি প্রস্তুত? ক্লাবের বিভিন্ন ইভেন্ট ম্যানেজমেন্ট, দেয়ালিকা প্রকাশনা কিংবা কো-কারিকুলার লিডারশিপের অংশ হতে আজই তোমার আবেদন সম্পন্ন করো।
+              উইলিয়ানদের সৃজনশীলতার সবচেয়ে বড় পরিবারে যুক্ত হতে তুমি কি প্রস্তুত? ক্লাবের বিভিন্ন ইভেন্ট ম্যানেজমেন্ট, দেয়ালিকা প্রকাশনা কিংবা কো-কারিকুলার লিডারশিপের অংশ হতে আজই তোমার আবেদন সম্পন্ন করো।
             </p>
             <div className="pt-2">
               <Link href="/register" className="inline-block px-8 py-3 bg-white text-stone-950 hover:bg-stone-100 font-bold text-sm rounded-xl transition-all shadow-md">
@@ -218,7 +218,7 @@ export default function WillesSahityaClub() {
             <div key={num} className="relative aspect-square overflow-hidden rounded-2xl border border-stone-200 bg-stone-100 group shadow-sm">
               <Image 
                 src={`/album/${num}.jpg`}
-                alt={`WLC মুহূর্ত ${num}`}
+                alt={`মুহূর্ত ${num}`}
                 fill
                 sizes="(max-w-768px) 100vw, 20vw"
                 className="object-cover transition-transform duration-500 group-hover:scale-105"
