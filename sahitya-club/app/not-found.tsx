@@ -21,7 +21,7 @@ export default function NotFound() {
             ভুল ঠিকানা!
           </h1>
           <p className="text-sm text-gray-600 leading-relaxed max-w-sm mx-auto font-medium">
-            "সাহিত্যচর্চার এই গলিতে কোনো লেখা নেই ভাই! সম্ভবত তুমি ভুল ঠিকানায় চলে এসেছ।"
+            "সাহিত্যচর্চার এই গলিতে কোনো কিছু নেই! সম্ভবত তুমি ভুল ঠিকানায় চলে এসেছ।"
           </p>
         </div>
 
@@ -31,7 +31,7 @@ export default function NotFound() {
             href="/"
             className="inline-flex items-center justify-center bg-stone-950 text-white text-xs font-semibold px-6 py-3.5 rounded-xl hover:bg-rose-900 transition-colors shadow-md tracking-wide"
           >
-            ← মূল বৈঠকখানায় ফিরে চলো
+            ← মূল সাইটে ফিরে চলো
           </Link>
         </div>
 
