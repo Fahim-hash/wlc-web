@@ -69,10 +69,9 @@ export async function GET(request: Request) {
   const commands = await telegramRequest(token, "setMyCommands", {
     commands: [
       { command: "start", description: "Open WLC Control Hub" },
-      { command: "control", description: "Open WLC Control Hub" },
+      { command: "album", description: "Open Album Control Hub" },
       { command: "notify", description: "Send a global push notification" },
       { command: "cancel", description: "Cancel the current action" },
-      { command: "id", description: "Show your Telegram ID" },
     ],
   });
 
