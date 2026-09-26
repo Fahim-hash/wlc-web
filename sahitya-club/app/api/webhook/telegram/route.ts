@@ -77,10 +77,15 @@ async function sendText(chatId: number | string, text: string, keyboard?: unknow
 }
 
 async function answerCallback(callbackId: string, text?: string) {
-  return telegramApi("answerCallbackQuery", {
-    callback_query_id: callbackId,
-    ...(text ? { text } : {}),
-  });
+  try {
+    return await telegramApi("answerCallbackQuery", {
+      callback_query_id: callbackId,
+      ...(text ? { text } : {}),
+    });
+  } catch (error) {
+    console.warn("Telegram callback acknowledgement skipped:", error);
+    return null;
+  }
 }
 
 async function sendControlMenu(chatId: number | string) {
@@ -237,8 +242,7 @@ async function handleMessage(message: TelegramMessage) {
     const draftText = text.slice("/notify".length).trim();
 
     if (!draftText) {
-      await setDoc(sessionRef(userId), { state: "awaiting_message", updatedAt: Date.now() });
-      await sendText(chatId, "📢 Push message পাঠাও। /cancel দিয়ে বাতিল করতে পারো।");
+      await sendText(chatId, "📢 Format: /notify Your message [link:/optional-page]");
       return;
     }
 
@@ -248,13 +252,6 @@ async function handleMessage(message: TelegramMessage) {
       await sendText(chatId, "Message 1–300 characters হতে হবে।");
       return;
     }
-
-    await setDoc(sessionRef(userId), {
-      state: "confirm",
-      message: draft,
-      url,
-      updatedAt: Date.now(),
-    });
 
     await sendText(
       chatId,
