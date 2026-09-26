@@ -12,7 +12,7 @@ export default function ChatWidget() {
   const [messages, setMessages] = useState<Message[]>([
     {
       role: "assistant",
-      content: "নমস্কার! আমি কথাসখী—উইল্‌স সাহিত্য ক্লাবের ডিজিটাল সখী। সাহিত্য কিংবা ক্লাব সংক্রান্ত যেকোনো বিষয়ে কীভাবে সাহায্য করতে পারি?",
+      content: "আমি কথাসখী উইল্‌স সাহিত্য ক্লাবের ডিজিটাল সখী। সাহিত্য কিংবা ক্লাব সংক্রান্ত যেকোনো বিষয়ে কীভাবে সাহায্য করতে পারি?",
     },
   ]);
   const [input, setInput] = useState("");
@@ -81,7 +81,7 @@ export default function ChatWidget() {
                 <h3 className="font-serif font-bold text-sm tracking-wide text-rose-50">কথাসখী</h3>
                 <p className="text-[10px] text-rose-200/80 font-medium flex items-center gap-1">
                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                  WLC Digital Companion
+                 উইল্‌স সাহিত্য ক্লাবের ডিজিটাল সখী
                 </p>
               </div>
             </div>
