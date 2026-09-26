@@ -141,6 +141,7 @@ async function getControlSession(userId: number) {
     chatId?: string;
     state?: "awaiting_message" | "preview" | "awaiting_album_caption";
     albumMessageId?: number;
+    albumChatId?: string;
     draft?: string;
     url?: string;
   }) : null;
