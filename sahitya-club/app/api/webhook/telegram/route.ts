@@ -117,7 +117,7 @@ function parseNotificationDraft(text: string) {
 async function setControlSession(
   userId: number,
   chatId: number | string,
-  data: { state: "awaiting_message" | "preview" | "awaiting_album_caption"; draft?: string; url?: string; albumMessageId?: number }
+  data: { state: "awaiting_message" | "preview" | "awaiting_album_caption"; draft?: string; url?: string; albumMessageId?: number; albumChatId?: string }
 ) {
   await getAdminDb().collection("telegram_control_sessions").doc(String(userId)).set(
     {
@@ -194,16 +194,26 @@ async function sendAlbumList(chatId: number | string) {
 }
 
 async function sendSelectedAlbumPhoto(chatId: number | string, messageId: number) {
-  const doc = await getAdminDb().collection("telegram_media")
+  const directDoc = await getAdminDb().collection("telegram_media")
     .doc(String(process.env.TELEGRAM_CHAT_ID) + "_" + messageId)
     .get();
+
+  let doc = directDoc;
+  if (!doc.exists) {
+    const fallback = await getAdminDb()
+      .collection("telegram_media")
+      .where("messageId", "==", messageId)
+      .limit(1)
+      .get();
+    doc = fallback.docs[0] ?? directDoc;
+  }
 
   if (!doc.exists) {
     await sendText(chatId, "⚠️ এই photo-র media record পাওয়া যায়নি। /album আবার দিন।");
     return;
   }
 
-  const data = doc.data() as { fileId?: string; caption?: string };
+  const data = doc.data() as { fileId?: string; caption?: string; chatId?: string };
   if (!data.fileId) {
     await sendText(chatId, "⚠️ এই photo-র Telegram file ID পাওয়া যায়নি।");
     return;
@@ -278,6 +288,7 @@ async function handleCallback(callback: TelegramCallbackQuery) {
       await setControlSession(userId, chatId, {
         state: "awaiting_album_caption",
         albumMessageId: messageId,
+        albumChatId: String((await getAdminDb().collection("telegram_media").where("messageId", "==", messageId).limit(1).get()).docs[0]?.data()?.chatId || process.env.TELEGRAM_CHAT_ID || ""),
       });
       await sendText(
         chatId,
@@ -458,15 +469,45 @@ async function handleMessage(message: TelegramMessage) {
       return;
     }
 
-    await telegramApi("editMessageCaption", {
-      chat_id: process.env.TELEGRAM_CHAT_ID,
-      message_id: messageId,
-      caption: newCaption,
-    });
+    const mediaQuery = await getAdminDb()
+      .collection("telegram_media")
+      .where("messageId", "==", messageId)
+      .limit(1)
+      .get();
+    const mediaDoc = mediaQuery.docs[0];
+    const mediaData = mediaDoc?.data() as { chatId?: string } | undefined;
+    const targetChatId =
+      session.albumChatId ||
+      mediaData?.chatId ||
+      process.env.TELEGRAM_CHAT_ID;
 
-    await getAdminDb().collection("telegram_media")
-      .doc(String(process.env.TELEGRAM_CHAT_ID) + "_" + messageId)
-      .set({ caption: newCaption, updatedAt: Date.now() }, { merge: true });
+    if (!targetChatId) {
+      throw new Error("Album channel ID পাওয়া যায়নি।");
+    }
+
+    try {
+      await telegramApi("editMessageCaption", {
+        chat_id: targetChatId,
+        message_id: messageId,
+        caption: newCaption,
+      });
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "Unknown Telegram error";
+      if (message.includes("message can't be edited")) {
+        throw new Error(
+          "Telegram এই post edit করতে দিচ্ছে না। Bot-টিকে channel-এর Admin করে “Edit Messages / can_edit_messages” permission দিন, তারপর আবার চেষ্টা করুন."
+        );
+      }
+      throw error;
+    }
+
+    if (mediaDoc) {
+      await mediaDoc.ref.set(
+        { caption: newCaption, updatedAt: Date.now() },
+        { merge: true }
+      );
+    }
 
     await clearControlSession(userId);
     await sendText(
