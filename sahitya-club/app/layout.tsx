@@ -4,6 +4,7 @@ import { Hind_Siliguri } from "next/font/google";
 import Link from "next/link";
 import "./globals.css";
 import Image from "next/image";
+import GlobalPushPrompt from "@/components/GlobalPushPrompt";
 
 // ১. নেভিগেশন লিংকের জন্য টাইপস্ক্রিপ্ট ইন্টারফেস
 interface NavLink {
@@ -317,7 +318,8 @@ export default function RootLayout({
         </footer>
 
         {/* 👈 ৪. এখানে পপ-আপ রেন্ডার করা হলো (যা শুধু হোম পেজে দেখাবে) */}
-        {popup} 
+        {popup}
+        <GlobalPushPrompt />
 
       </body>
     </html>
