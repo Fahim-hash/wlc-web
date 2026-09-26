@@ -1,6 +1,6 @@
 import crypto from "node:crypto";
 import webpush from "web-push";
-import { adminDb } from "@/lib/firebase-admin";
+import { getAdminDb } from "@/lib/firebase-admin";
 
 export type PushSubscriptionJSON = {
   endpoint: string;
@@ -42,7 +42,7 @@ export async function savePushSubscription(subscription: PushSubscriptionJSON) {
   }
 
   const id = subscriptionId(subscription.endpoint);
-  await adminDb.collection("push_subscriptions").doc(id).set({
+  await getAdminDb().collection("push_subscriptions").doc(id).set({
     endpoint: subscription.endpoint,
     expirationTime: subscription.expirationTime ?? null,
     keys: subscription.keys,
@@ -53,7 +53,7 @@ export async function savePushSubscription(subscription: PushSubscriptionJSON) {
 }
 
 export async function getPushSubscriberCount() {
-  const snapshot = await adminDb.collection("push_subscriptions").get();
+  const snapshot = await getAdminDb().collection("push_subscriptions").get();
   return snapshot.size;
 }
 
@@ -64,7 +64,7 @@ export async function sendGlobalPushNotification(
 ) {
   configureWebPush();
 
-  const snapshot = await adminDb.collection("push_subscriptions").get();
+  const snapshot = await getAdminDb().collection("push_subscriptions").get();
   const subscriptions = snapshot.docs.map((item) => ({
     id: item.id,
     data: item.data() as PushSubscriptionJSON,
@@ -99,7 +99,7 @@ export async function sendGlobalPushNotification(
               : 0;
 
           if (statusCode === 404 || statusCode === 410) {
-            await adminDb.collection("push_subscriptions").doc(id).delete();
+            await getAdminDb().collection("push_subscriptions").doc(id).delete();
             removed += 1;
           } else {
             failed += 1;
