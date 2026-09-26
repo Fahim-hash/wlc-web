@@ -1,5 +1,7 @@
 import { cert, getApps, initializeApp } from "firebase-admin/app";
-import { getFirestore } from "firebase-admin/firestore";
+import { getFirestore, type Firestore } from "firebase-admin/firestore";
+
+let adminDb: Firestore | null = null;
 
 function getServiceAccount() {
   const raw = process.env.FIREBASE_SERVICE_ACCOUNT_JSON?.trim();
@@ -21,9 +23,14 @@ function getServiceAccount() {
   };
 }
 
-const app =
-  getApps().length > 0
-    ? getApps()[0]
-    : initializeApp(cert(getServiceAccount()));
+export function getAdminDb() {
+  if (adminDb) return adminDb;
 
-export const adminDb = getFirestore(app);
+  const app =
+    getApps().length > 0
+      ? getApps()[0]
+      : initializeApp(cert(getServiceAccount()));
+
+  adminDb = getFirestore(app);
+  return adminDb;
+}
