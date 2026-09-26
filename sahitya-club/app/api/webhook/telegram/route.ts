@@ -193,6 +193,11 @@ async function handleCallback(callback: TelegramCallbackQuery) {
         chatId,
         "📢 Push Notification\n\nএখন notification-এর message পাঠান।\n\nOptional link দিতে চাইলে শেষে লিখুন:\n[link:/events]\n\nExample:\nনতুন Event Registration শুরু হয়েছে! [link:/events]\n\n❌ বাতিল করতে /cancel লিখুন।"
       );
+      try {
+        await setControlSession(userId, chatId, { state: "awaiting_message" });
+      } catch (error) {
+        console.error("Telegram session setup failed:", error);
+      }
       return;
     }
 
