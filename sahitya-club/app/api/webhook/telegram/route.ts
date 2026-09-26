@@ -189,7 +189,6 @@ async function handleCallback(callback: TelegramCallbackQuery) {
   try {
     if (action === "wlc:push") {
       await answerCallback(callback.id);
-      await setControlSession(userId, chatId, { state: "awaiting_message" });
       await sendText(
         chatId,
         "📢 Push Notification\n\nএখন notification-এর message পাঠান।\n\nOptional link দিতে চাইলে শেষে লিখুন:\n[link:/events]\n\nExample:\nনতুন Event Registration শুরু হয়েছে! [link:/events]\n\n❌ বাতিল করতে /cancel লিখুন।"
@@ -229,9 +228,13 @@ async function handleCallback(callback: TelegramCallbackQuery) {
     }
 
     if (action === "wlc:cancel") {
-      await clearControlSession(userId);
       await answerCallback(callback.id, "Cancelled");
       await sendControlMenu(chatId);
+      try {
+        await clearControlSession(userId);
+      } catch (error) {
+        console.error("Telegram session cleanup failed:", error);
+      }
       return;
     }
 
@@ -290,8 +293,12 @@ async function handleMessage(message: TelegramMessage) {
       return;
     }
 
-    await clearControlSession(userId);
     await sendControlMenu(chatId);
+    try {
+      await clearControlSession(userId);
+    } catch (error) {
+      console.error("Telegram session cleanup failed:", error);
+    }
     return;
   }
 
@@ -304,8 +311,12 @@ async function handleMessage(message: TelegramMessage) {
       return;
     }
 
-    await clearControlSession(userId);
     await sendControlMenu(chatId);
+    try {
+      await clearControlSession(userId);
+    } catch (error) {
+      console.error("Telegram session cleanup failed:", error);
+    }
     return;
   }
 
