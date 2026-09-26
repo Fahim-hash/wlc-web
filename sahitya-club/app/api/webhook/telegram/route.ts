@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import crypto from "crypto";
-import { adminDb } from "@/lib/firebase-admin";
+import { getAdminDb } from "@/lib/firebase-admin";
 import { sendGlobalPushNotification, getPushSubscriberCount } from "@/lib/push";
 
 type TelegramUser = { id: number };
@@ -322,7 +322,7 @@ export async function POST(request: Request) {
     const chatId = post.chat?.id ?? process.env.TELEGRAM_CHAT_ID;
     const documentId = `${String(chatId)}_${post.message_id}`;
 
-    await adminDb.collection("telegram_media").doc(documentId).set(
+    await getAdminDb().collection("telegram_media").doc(documentId).set(
       {
         messageId: post.message_id,
         chatId: String(chatId ?? ""),
