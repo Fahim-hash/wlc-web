@@ -71,10 +71,10 @@ export default function RootLayout({
 }) {
   // 🌐 একটি master navigation list — desktop ও mobile দুই জায়গাতেই একই থাকবে
   const navigationLinks: NavLink[] = [
-    { name: "হোম", path: "/" },
-    { name: "আমাদের কথা", path: "/about" },
-    { name: "আর্কাইভ ও প্যানেল", path: "/panel" },
-    { name: "শিক্ষক মডারেটর", path: "/panel/moderator" },
+    { name: "হোম", path: "/", emoji: "🏚️" },
+    { name: "আমাদের কথা", path: "/about", emoji: "ℹ️" },
+    { name: "আর্কাইভ ও প্যানেল", path: "/panel", emoji: "🧑" },
+    { name: "শিক্ষক মডারেটর", path: "/panel/moderator", emoji: "🧑‍🏫" },
     { name: "চলমান প্যানেল", path: "/panel/running", emoji: "👥" },
     { name: "অস্থায়ী প্যানেল", path: "/panel/temporary", emoji: "📋" },
     { name: "মুক্ত লেখনী ডেস্ক", path: "/writing", emoji: "✍️" },
@@ -90,7 +90,7 @@ export default function RootLayout({
     { name: "যোগাযোগ", path: "/contact", emoji: "📞" },
   ];
 
-  // Desktop-এ প্রথম কয়েকটি সরাসরি থাকবে, বাকিগুলো একই master list-এর dropdown-এ থাকবে
+  // Desktop-এ প্রথম কয়েকটি সরাসরি থাকবে, বাকিগুলো একই master list-এর dropdown-এ থাকব
   const desktopMainLinks = navigationLinks.slice(0, 4);
   const extendedLinks = navigationLinks.slice(4);
 
@@ -255,7 +255,7 @@ export default function RootLayout({
                   📞 +8801974-745442
                 </a>
                 <a href="mailto:wlfsc.sahittoclub@gmail.com" className="hover:text-rose-900 transition-colors flex items-center justify-center md:justify-start gap-1.5">
-                  ✉️ wlfsc.sahittoclub@gmail.com
+                  ✉️ wlfsc.sahittoclub.com@gmail.com
                 </a>
               </div>
 
