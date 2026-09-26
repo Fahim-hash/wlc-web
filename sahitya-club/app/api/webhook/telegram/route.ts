@@ -117,7 +117,7 @@ function parseNotificationDraft(text: string) {
 async function setControlSession(
   userId: number,
   chatId: number | string,
-  data: { state: "awaiting_message" | "preview" | "awaiting_album_caption"; draft?: string; url?: string }
+  data: { state: "awaiting_message" | "preview" | "awaiting_album_caption"; draft?: string; url?: string; albumMessageId?: number }
 ) {
   await getAdminDb().collection("telegram_control_sessions").doc(String(userId)).set(
     {
@@ -139,7 +139,8 @@ async function getControlSession(userId: number) {
   return snap.exists ? (snap.data() as {
     userId?: string;
     chatId?: string;
-    state?: "awaiting_message" | "preview";
+    state?: "awaiting_message" | "preview" | "awaiting_album_caption";
+    albumMessageId?: number;
     draft?: string;
     url?: string;
   }) : null;
