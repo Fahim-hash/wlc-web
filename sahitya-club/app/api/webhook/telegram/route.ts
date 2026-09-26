@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import crypto from "crypto";
 import { collection, deleteDoc, doc, getDoc, setDoc } from "firebase/firestore/lite";
 import { db } from "@/lib/firebase";
 import { sendGlobalPushNotification, getPushSubscriberCount } from "@/lib/push";
@@ -23,6 +24,15 @@ type TelegramUpdate = {
   channel_post?: TelegramPost;
   edited_channel_post?: TelegramPost;
 };
+
+function getExpectedWebhookSecret() {
+  const configured = process.env.TELEGRAM_WEBHOOK_SECRET?.trim();
+  if (configured) return configured;
+
+  const token = process.env.TELEGRAM_BOT_TOKEN;
+  if (!token) return "";
+  return crypto.createHash("sha256").update(token).digest("hex");
+}
 
 function getWebhookSecret(request: Request) {
   return (
@@ -312,15 +322,7 @@ function getImageFromPost(post: TelegramPost) {
 
 export async function POST(request: Request) {
   try {
-    const expectedSecret = process.env.TELEGRAM_WEBHOOK_SECRET;
-
-    if (!expectedSecret) {
-      return NextResponse.json(
-        { ok: false, error: "Telegram webhook secret is not configured." },
-        { status: 503 }
-      );
-    }
-
+    const expectedSecret = getExpectedWebhookSecret();
     const receivedSecret = getWebhookSecret(request);
 
     if (!receivedSecret || receivedSecret !== expectedSecret) {
