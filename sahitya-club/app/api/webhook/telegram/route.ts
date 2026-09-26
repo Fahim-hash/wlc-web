@@ -180,12 +180,39 @@ async function handleMessage(message: TelegramMessage) {
   const chatId = message.chat?.id;
   const text = message.text?.trim();
 
-  if (!userId || !chatId || !text || !isAdmin(userId)) return;
+  if (!userId || !chatId || !text) return;
 
-  if (text === "/start" || text === "/control") {
+  // Always answer setup/help commands so a missing TELEGRAM_ADMIN_IDS value
+  // never looks like a dead bot. This exposes only the requesting user's own
+  // numeric Telegram ID, which is needed to configure admin access.
+  if (text === "/start" || text === "/id") {
+    if (!isAdmin(userId)) {
+      await sendText(
+        chatId,
+        `⛔ WLC Control Hub access is not enabled for this Telegram account.\\n\\nYour Telegram ID: ${userId}\\n\\nAdd this number to Vercel → TELEGRAM_ADMIN_IDS, then redeploy.\\n\\nIf you already added it, run /start again after the latest deployment.`
+      );
+      return;
+    }
+
     await sendControlMenu(chatId);
     return;
   }
+
+  if (text === "/control") {
+    if (!isAdmin(userId)) {
+      await sendText(
+        chatId,
+        `⛔ Access denied.\\n\\nYour Telegram ID: ${userId}\\nAdd it to TELEGRAM_ADMIN_IDS in Vercel and redeploy.`
+      );
+      return;
+    }
+
+    await sendControlMenu(chatId);
+    return;
+  }
+
+  // All controls below require an authorized WLC admin.
+  if (!isAdmin(userId)) return;
 
   if (text === "/cancel") {
     await deleteDoc(sessionRef(userId));
