@@ -128,11 +128,7 @@ async function handleCallback(callback: TelegramCallbackQuery) {
     await answerCallback(callback.id);
     await sendText(
       chatId,
-      "📢 Push পাঠাতে:
-/notify Your message [link:/optional-page]
-
-Example:
-/notify নতুন আপডেট এসেছে! [link:/events]"
+      "📢 Push পাঠাতে:\n/notify Your message [link:/optional-page]\n\nExample:\n/notify নতুন আপডেট এসেছে! [link:/events]"
     );
     return;
   }
