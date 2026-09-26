@@ -49,6 +49,8 @@ async function ensureTelegramWebhook(request: Request) {
     return;
   }
 
+  console.log("Telegram webhook registered:", webhookUrl);
+
   const commandsResponse = await fetch(
     `https://api.telegram.org/bot${botToken}/setMyCommands`,
     {
@@ -59,7 +61,8 @@ async function ensureTelegramWebhook(request: Request) {
           { command: "start", description: "Open WLC Control Hub" },
           { command: "control", description: "Open WLC Control Hub" },
           { command: "notify", description: "Send a global push notification" },
-          { command: "cancel", description: "Cancel the current action" }
+          { command: "cancel", description: "Cancel the current action" },
+          { command: "id", description: "Show your Telegram ID" }
         ]
       }),
       cache: "no-store"
