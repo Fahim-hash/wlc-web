@@ -21,10 +21,17 @@ async function ensureTelegramWebhook(request: Request) {
   const origin = process.env.NEXT_PUBLIC_SITE_URL || "https://wlc.pro.bd";
   const webhookUrl = `${origin}/api/webhook/telegram`;
   const secret = process.env.TELEGRAM_WEBHOOK_SECRET;
+  if (!secret) {
+    console.error("Telegram webhook setup skipped: TELEGRAM_WEBHOOK_SECRET is not configured.");
+    return;
+  }
 
   const body = new URLSearchParams({ url: webhookUrl });
-  if (secret) body.set("secret_token", secret);
-  body.set("allowed_updates", JSON.stringify(["channel_post", "edited_channel_post"]));
+  body.set("secret_token", secret);
+  body.set(
+    "allowed_updates",
+    JSON.stringify(["message", "callback_query", "channel_post", "edited_channel_post"])
+  );
   body.set("max_connections", "10");
 
   const response = await fetch(
@@ -39,6 +46,29 @@ async function ensureTelegramWebhook(request: Request) {
   const result = await response.json();
   if (!result.ok) {
     console.error("Telegram webhook setup failed:", result);
+    return;
+  }
+
+  const commandsResponse = await fetch(
+    `https://api.telegram.org/bot${botToken}/setMyCommands`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        commands: [
+          { command: "start", description: "Open WLC Control Hub" },
+          { command: "control", description: "Open WLC Control Hub" },
+          { command: "notify", description: "Send a global push notification" },
+          { command: "cancel", description: "Cancel the current action" }
+        ]
+      }),
+      cache: "no-store"
+    }
+  );
+
+  const commandsResult = await commandsResponse.json();
+  if (!commandsResult.ok) {
+    console.error("Telegram command setup failed:", commandsResult);
   }
 }
 
