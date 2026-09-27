@@ -15,6 +15,7 @@ self.addEventListener("push", (event) => {
     body: data.body || "নতুন আপডেট এসেছে।",
     icon: data.icon || "/logo.png",
     badge: data.badge || "/logo.png",
+    ...(data.image ? { image: data.image } : {}),
     data: { url: data.url || "/" },
     tag: "wlc-global",
     renotify: true,
