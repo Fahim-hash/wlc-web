@@ -36,12 +36,12 @@ const collections: Record<CmsType, string> = {
 async function telegramApi(method: string, payload: Record<string, unknown>) {
   const token = process.env.TELEGRAM_BOT_TOKEN;
   if (!token) throw new Error("TELEGRAM_BOT_TOKEN is not configured");
-  const response = await fetch(\`https://api.telegram.org/bot\${token}/\${method}\`, {
+  const response = await fetch(`https://api.telegram.org/bot${token}/${method}`, {
     method: "POST", headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload), cache: "no-store",
   });
   const result = await response.json();
-  if (!result.ok) throw new Error(\`Telegram \${method} failed\`);
+  if (!result.ok) throw new Error(`Telegram ${method} failed`);
   return result;
 }
 
@@ -77,15 +77,15 @@ export async function sendCmsMenu(chatId: number | string) {
 
 async function startFlow(userId: number, chatId: number | string, type: CmsType) {
   await saveSession(userId, chatId, type, 0, {});
-  await sendText(chatId, \`➕ \${titles[type]}\n\nআমি ধাপে ধাপে তথ্য নেব। প্রতিটি প্রশ্নের উত্তর দিলেই পরের ধাপে যাব।\n\n❌ যেকোনো সময় /cancel লিখে বন্ধ করতে পারবেন।\n\nপ্রথম প্রশ্ন:\n\${questions[type][0]}\`);
+  await sendText(chatId, `➕ ${titles[type]}\n\nআমি ধাপে ধাপে তথ্য নেব। প্রতিটি প্রশ্নের উত্তর দিলেই পরের ধাপে যাব।\n\n❌ যেকোনো সময় /cancel লিখে বন্ধ করতে পারবেন।\n\nপ্রথম প্রশ্ন:\n${questions[type][0]}`);
 }
 
 async function finishFlow(userId: number, chatId: number | string, session: CmsSession) {
   const data = { ...session.data, status: "DRAFT", sortOrder: Date.now() };
   const preview = [
-    \`📋 \${titles[session.type]}\`,
+    `📋 ${titles[session.type]}`,
     "",
-    ...Object.entries(data).filter(([key]) => !["status", "sortOrder", "bannerFileId"].includes(key)).map(([key, value]) => \`\${key}: \${String(value || "নেই")}\`),
+    ...Object.entries(data).filter(([key]) => !["status", "sortOrder", "bannerFileId"].includes(key)).map(([key, value]) => `${key}: ${String(value || "নেই")}`),
     "",
     "সব ঠিক আছে?",
   ].join("\n");
@@ -145,7 +145,7 @@ export async function handleTelegramCmsMessage(userId: number, chatId: number | 
   }
 
   if (!answer) {
-    await sendText(chatId, \`⚠️ উত্তরটি খালি রাখা যাবে না।\n\n\${currentQuestion}\`);
+    await sendText(chatId, `⚠️ উত্তরটি খালি রাখা যাবে না।\n\n${currentQuestion}`);
     return true;
   }
 
@@ -168,7 +168,7 @@ export async function handleTelegramCmsMessage(userId: number, chatId: number | 
   }
 
   await saveSession(userId, chatId, session.type, nextStep, session.data);
-  await sendText(chatId, \`ঠিক আছে ✓\n\nপরের প্রশ্ন:\n\${questions[session.type][nextStep]}\`);
+  await sendText(chatId, `ঠিক আছে ✓\n\nপরের প্রশ্ন:\n${questions[session.type][nextStep]}`);
   return true;
 }
 
@@ -184,7 +184,7 @@ export async function handleTelegramCmsCallback(userId: number, chatId: number |
     await clearSession(userId);
     await sendText(chatId,
       action.endsWith("publish") ? "🎉 প্রকাশ হয়ে গেছে!\n\nওয়েবসাইটে এখন এটি দেখা যাবে।" : "📝 খসড়া হিসেবে সংরক্ষণ করা হয়েছে।\n\nপ্রয়োজনে পরে প্রকাশ করতে পারবেন।",
-      [[{ text: "➕ আরেকটি যোগ করুন", callback_data: \`wlc:cms:new:\${session.type}\` }, { text: "🏠 মূল মেনু", callback_data: "wlc:cms:menu" }]]
+      [[{ text: "➕ আরেকটি যোগ করুন", callback_data: `wlc:cms:new:${session.type}` }, { text: "🏠 মূল মেনু", callback_data: "wlc:cms:menu" }]]
     );
     return true;
   }
@@ -192,7 +192,7 @@ export async function handleTelegramCmsCallback(userId: number, chatId: number |
   if (action === "wlc:cms:list") {
     const names = Object.keys(collections) as CmsType[];
     const chunks = await Promise.all(names.map(async type => ({ type, rows: await listCollection(collections[type] as any, 4) })));
-    const lines = chunks.flatMap(({ type, rows }) => rows.map((item: any) => \`• \${titles[type]} — \${item.title || item.name || "নামহীন"}\`));
+    const lines = chunks.flatMap(({ type, rows }) => rows.map((item: any) => `• ${titles[type]} — ${item.title || item.name || "নামহীন"}`));
     await sendText(chatId, lines.length ? "📋 সাম্প্রতিক বিষয়\n\n" + lines.join("\n") : "📋 এখনো কোনো বিষয় নেই।", [[{ text: "⬅️ ফিরে যান", callback_data: "wlc:cms:menu" }]]);
     return true;
   }
