@@ -1,11 +1,11 @@
 import { after, NextResponse } from "next/server";
 import crypto from "crypto";
 import { getAdminDb } from "@/lib/firebase-admin";
-import { handleTelegramCmsCommand, handleTelegramCmsCallback } from "@/lib/telegram-cms";
+import { handleTelegramCmsCommand, handleTelegramCmsCallback, handleTelegramCmsMessage } from "@/lib/telegram-cms";
 import { sendGlobalPushNotification, getPushSubscriberCount } from "@/lib/push";
 
 type TelegramUser = { id: number };
-type TelegramMessage = { message_id: number; text?: string; from?: TelegramUser; chat?: { id?: number | string } };
+type TelegramMessage = { message_id: number; text?: string; from?: TelegramUser; chat?: { id?: number | string }; photo?: TelegramPhoto[]; document?: { file_id: string; mime_type?: string } };
 type TelegramCallbackQuery = { id: string; data?: string; from: TelegramUser; message?: { chat?: { id?: number | string }; text?: string } };
 type TelegramPhoto = { file_id: string; file_unique_id?: string; width?: number; height?: number };
 type TelegramPost = {
@@ -447,6 +447,8 @@ async function handleMessage(message: TelegramMessage) {
   }
 
   if (!isAdmin(userId)) return;
+
+  if (await handleTelegramCmsMessage(userId, chatId, message)) return;
 
   if (await handleTelegramCmsCommand(userId, chatId, text)) return;
 
