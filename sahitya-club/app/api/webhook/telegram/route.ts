@@ -102,6 +102,9 @@ async function sendControlMenu(chatId: number | string) {
         { text: "🖼️ Album", callback_data: "wlc:album_list" },
       ],
       [
+        { text: "✨ Content Center", callback_data: "wlc:cms:menu" },
+      ],
+      [
         { text: "❌ Cancel", callback_data: "wlc:cancel" },
       ],
     ]
