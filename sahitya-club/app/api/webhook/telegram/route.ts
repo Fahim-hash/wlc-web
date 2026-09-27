@@ -1,6 +1,7 @@
 import { after, NextResponse } from "next/server";
 import crypto from "crypto";
 import { getAdminDb } from "@/lib/firebase-admin";
+import { handleTelegramCmsCommand } from "@/lib/telegram-cms";
 import { sendGlobalPushNotification, getPushSubscriberCount } from "@/lib/push";
 
 type TelegramUser = { id: number };
@@ -437,6 +438,8 @@ async function handleMessage(message: TelegramMessage) {
   }
 
   if (!isAdmin(userId)) return;
+
+  if (await handleTelegramCmsCommand(userId, chatId, text)) return;
 
   if (text === "/album") {
     await sendAlbumList(chatId);
