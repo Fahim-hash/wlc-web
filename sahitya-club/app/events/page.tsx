@@ -9,6 +9,7 @@ type EventRecord = {
   venue?: string;
   description?: string;
   link?: string;
+  bannerFileId?: string;
 };
 
 export const revalidate = 30;
@@ -50,6 +51,16 @@ export default async function EventsPage() {
                 <article key={event.id} className="relative md:pl-14">
                   <span className="absolute left-0 top-7 hidden h-9 w-9 items-center justify-center rounded-full border-4 border-[#f7f4ef] bg-[#9f2d22] text-xs font-bold text-white shadow md:flex">{index + 1}</span>
                   <div className="rounded-[2rem] border border-[#ded7ce] bg-white p-7 shadow-[0_14px_45px_rgba(33,29,26,.06)] transition hover:-translate-y-0.5 hover:shadow-[0_20px_55px_rgba(33,29,26,.09)] md:p-9">
+                    {event.bannerFileId && (
+                      <div className="mb-7 overflow-hidden rounded-[1.5rem] border border-[#ded7ce] bg-[#f3eee8]">
+                        <img
+                          src={`/api/telegram/media/${encodeURIComponent(event.bannerFileId)}`}
+                          alt={event.title || "আয়োজনের ব্যানার"}
+                          className="block h-auto max-h-[420px] w-full object-cover"
+                          loading={index < 2 ? "eager" : "lazy"}
+                        />
+                      </div>
+                    )}
                     <div className="flex flex-wrap gap-2 text-xs font-bold uppercase tracking-wider text-[#9f2d22]">
                       {event.date && <span>📅 {event.date}</span>}
                       {event.time && <span>• {event.time}</span>}
@@ -57,8 +68,21 @@ export default async function EventsPage() {
                     </div>
                     <h2 className="mt-4 font-serif text-3xl font-bold md:text-4xl">{event.title || "নামহীন আয়োজন"}</h2>
                     <p className="mt-4 whitespace-pre-line text-sm leading-8 text-[#625b55] md:text-base">{event.description || "এই আয়োজন সম্পর্কে বিস্তারিত তথ্য শিগগিরই যুক্ত হবে।"}</p>
-                    {event.link && event.link.startsWith("/") && (
-                      <Link href={event.link} className="mt-6 inline-flex rounded-full bg-[#211d1a] px-5 py-2.5 text-sm font-semibold text-white hover:bg-[#9f2d22]">বিস্তারিত →</Link>
+                    {event.link && (event.link.startsWith("/") || /^https?:\\/\\//i.test(event.link)) && (
+                      event.link.startsWith("/") ? (
+                        <Link href={event.link} className="mt-6 inline-flex rounded-full bg-[#211d1a] px-5 py-2.5 text-sm font-semibold text-white hover:bg-[#9f2d22]">
+                          বিস্তারিত দেখুন →
+                        </Link>
+                      ) : (
+                        <a
+                          href={event.link}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="mt-6 inline-flex rounded-full bg-[#211d1a] px-5 py-2.5 text-sm font-semibold text-white hover:bg-[#9f2d22]"
+                        >
+                          বিস্তারিত দেখুন ↗
+                        </a>
+                      )
                     )}
                   </div>
                 </article>
