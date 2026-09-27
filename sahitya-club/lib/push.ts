@@ -60,7 +60,8 @@ export async function getPushSubscriberCount() {
 export async function sendGlobalPushNotification(
   title: string,
   body: string,
-  url = "/"
+  url = "/",
+  image?: string
 ) {
   configureWebPush();
 
@@ -80,6 +81,7 @@ export async function sendGlobalPushNotification(
     url,
     icon: "/logo.png",
     badge: "/logo.png",
+    ...(image ? { image } : {}),
   });
 
   const batchSize = 20;
