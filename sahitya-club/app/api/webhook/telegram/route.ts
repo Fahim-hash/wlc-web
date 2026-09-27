@@ -121,7 +121,7 @@ function parseNotificationDraft(text: string) {
 async function setControlSession(
   userId: number,
   chatId: number | string,
-  data: { state: "awaiting_message" | "preview" | "awaiting_album_caption"; draft?: string; url?: string; albumMessageId?: number; albumChatId?: string }
+  data: { state: "awaiting_message" | "preview" | "awaiting_album_caption"; draft?: string; url?: string; imageFileId?: string; albumMessageId?: number; albumChatId?: string }
 ) {
   await getAdminDb().collection("telegram_control_sessions").doc(String(userId)).set(
     {
@@ -144,6 +144,7 @@ async function getControlSession(userId: number) {
     userId?: string;
     chatId?: string;
     state?: "awaiting_message" | "preview" | "awaiting_album_caption";
+    imageFileId?: string;
     albumMessageId?: number;
     albumChatId?: string;
     draft?: string;
@@ -237,10 +238,10 @@ async function sendSelectedAlbumPhoto(chatId: number | string, messageId: number
   });
 }
 
-async function sendPushPreview(chatId: number | string, draft: string, url: string) {
+async function sendPushPreview(chatId: number | string, draft: string, url: string, hasImage = false) {
   await sendText(
     chatId,
-    buildPushPreview(draft, url),
+    buildPushPreview(draft, url, hasImage),
     [
       [
         { text: "🚀 SEND TO EVERYONE", callback_data: "wlc:confirm" },
@@ -312,7 +313,7 @@ async function handleCallback(callback: TelegramCallbackQuery) {
       await answerCallback(callback.id);
       await sendText(
         chatId,
-        "📢 ওয়েবসাইট নোটিফিকেশন\n\nএখন notification-এর message পাঠান।\n\nলিংক দিতে চাইলে শেষে লিখুন:\n[link:/events]\n\nউদাহরণ:\nনতুন Event Registration শুরু হয়েছে! [link:/events]\n\n❌ বাতিল করতে /cancel লিখুন।"
+        "📢 ওয়েবসাইট নোটিফিকেশন\n\nচাইলে আগে একটি ছবি পাঠান। ছবি না চাইলে সরাসরি বার্তা পাঠান।\n\nলিংক দিতে চাইলে বার্তার শেষে লিখুন:\n[link:/events]\n\n❌ বাতিল করতে /cancel লিখুন।"
       );
       try {
         await setControlSession(userId, chatId, { state: "awaiting_message" });
@@ -373,10 +374,14 @@ async function handleCallback(callback: TelegramCallbackQuery) {
         return;
       }
 
+      const image = session.imageFileId
+        ? `https://wlc.pro.bd/api/telegram/media/${encodeURIComponent(session.imageFileId)}`
+        : undefined;
       const result = await sendGlobalPushNotification(
         "উইল্‌স সাহিত্য ক্লাব",
         session.draft,
-        session.url || "/"
+        session.url || "/",
+        image
       );
 
       await clearControlSession(userId);
@@ -408,9 +413,9 @@ async function handleMessage(message: TelegramMessage) {
   const chatId = message.chat?.id;
   const text = message.text?.trim();
 
-  if (!userId || !chatId || !text) return;
+  if (!userId || !chatId) return;
 
-  if (text === "/start" || text === "/id") {
+  if (text && (text === "/start" || text === "/id")) {
     if (!isAdmin(userId)) {
       await sendText(
         chatId,
@@ -450,7 +455,7 @@ async function handleMessage(message: TelegramMessage) {
 
   if (await handleTelegramCmsMessage(userId, chatId, message)) return;
 
-  if (await handleTelegramCmsCommand(userId, chatId, text)) return;
+  if (text && await handleTelegramCmsCommand(userId, chatId, text)) return;
 
   if (text === "/album") {
     await sendAlbumList(chatId);
@@ -537,20 +542,33 @@ async function handleMessage(message: TelegramMessage) {
   }
 
   if (session?.state === "awaiting_message") {
-    const { message: draft, url } = parseNotificationDraft(text);
+    const photoFileId = message.photo?.at(-1)?.file_id || message.document?.file_id;
+    if (photoFileId) {
+      await setControlSession(userId, chatId, {
+        state: "awaiting_message",
+        imageFileId: photoFileId,
+      });
+      if (!text) {
+        await sendText(chatId, "🖼️ ছবি যোগ হয়েছে।\n\nএখন নোটিফিকেশনের বার্তা লিখুন.");
+        return;
+      }
+    }
 
+    const { message: draft, url } = parseNotificationDraft(text || "");
     if (!draft || draft.length > 300) {
       await sendText(chatId, "⚠️ বার্তাটি ১–৩০০ অক্ষরের হতে হবে। আবার পাঠান অথবা /cancel লিখুন।");
       return;
     }
 
+    const currentSession = await getControlSession(userId);
     await setControlSession(userId, chatId, {
       state: "preview",
       draft,
       url,
+      ...(currentSession?.imageFileId ? { imageFileId: currentSession.imageFileId } : {}),
     });
 
-    await sendPushPreview(chatId, draft, url);
+    await sendPushPreview(chatId, draft, url, Boolean(currentSession?.imageFileId));
     return;
   }
 
@@ -559,7 +577,7 @@ async function handleMessage(message: TelegramMessage) {
 
     if (!draftText) {
       await setControlSession(userId, chatId, { state: "awaiting_message" });
-      await sendText(chatId, "📢 নোটিফিকেশনের বার্তা পাঠান।\n\nOptional: [link:/events]\n\n/cancel দিয়ে বাতিল করতে পারবেন।");
+      await sendText(chatId, "📢 চাইলে আগে ছবি পাঠান, অথবা সরাসরি নোটিফিকেশনের বার্তা পাঠান।\n\nলিংক: [link:/events]\n\n/cancel দিয়ে বাতিল করতে পারবেন।");
       return;
     }
 
