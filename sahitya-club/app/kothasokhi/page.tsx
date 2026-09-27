@@ -15,7 +15,7 @@ export default function KothasokhiPage() {
     {
       role: "assistant",
       content:
-        "স্বাগতম! আমি 'সাহিত্যসখী'—উইল্‌স সাহিত্য ক্লাবের ডিজিটাল সহকারী। Banglish, বাংলা বা English-এ প্রশ্ন করতে পারো। WLC-এর তথ্য, কমিটি, ইভেন্ট, সদস্যপদ বা official link—যা দরকার বলো।",
+        "স্বাগতম! আমি 'কথাসখী' উইল্‌স সাহিত্য ক্লাবের ডিজিটাল সহকারী। যেকোন প্রশ্ন করতে পারো। উইল্‌স সাহিত্য ক্লাবের তথ্য, কমিটি, ইভেন্ট, সদস্যপদ বা কোন সহায়তা যা দরকার বলো।",
     },
   ]);
   const [input, setInput] = useState("");
@@ -170,10 +170,10 @@ export default function KothasokhiPage() {
             <div>
               <div className="flex items-center gap-2">
                 <h1 className="text-base sm:text-lg font-bold font-serif text-stone-950 tracking-tight">
-                  সাহিত্যসখী
+                  কথাসখী
                 </h1>
                 <span className="text-[9px] sm:text-[10px] font-bold uppercase tracking-wider text-rose-900 bg-rose-50 border border-rose-100 px-2 py-0.5 rounded-md">
-                  AI Companion
+                  কৃত্রিম বুদ্ধিমত্তা
                 </span>
               </div>
               <p className="text-stone-400 text-xs font-medium hidden sm:block">
@@ -229,8 +229,8 @@ export default function KothasokhiPage() {
               type="text"
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              placeholder="বাংলা, Banglish বা English-এ প্রশ্ন করুন..."
-              aria-label="Ask সাহিত্যসখী"
+              placeholder="প্রশ্ন করুন..."
+              aria-label="Ask কথাসখী"
               className="flex-1 bg-stone-50 border border-stone-200 text-stone-800 text-xs sm:text-sm rounded-xl px-4 py-3 outline-none focus:border-rose-900 focus:bg-white transition-all font-medium placeholder:text-stone-400"
             />
             <button
