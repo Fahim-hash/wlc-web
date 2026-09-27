@@ -79,7 +79,7 @@ export default function AlbumPage() {
         ) : totalImages === 0 ? (
           <div className="text-center py-20 bg-white rounded-2xl border border-stone-200/60 shadow-sm">
             <p className="text-stone-400 italic text-sm">
-              কোনো অ্যালবাম ছবি পাওয়া যায়নি।
+              কোনো অ্যালবাম ছবি নেই ।
             </p>
             {telegramError && (
               <p className="mt-2 text-xs text-rose-600">{telegramError}</p>
@@ -89,7 +89,7 @@ export default function AlbumPage() {
           <>
             {telegramError && (
               <div className="mb-6 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-center text-xs text-amber-800">
-                পুরোনো GitHub ছবি দেখানো হচ্ছে। Telegram feed সাময়িকভাবে লোড হয়নি।
+                পুরোনো ছবি দেখানো হচ্ছে। বর্তমান ছবিগুলো সাময়িকভাবে লোড হয়নি।
               </div>
             )}
 
