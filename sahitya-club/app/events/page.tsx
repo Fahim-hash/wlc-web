@@ -68,7 +68,7 @@ export default async function EventsPage() {
                     </div>
                     <h2 className="mt-4 font-serif text-3xl font-bold md:text-4xl">{event.title || "নামহীন আয়োজন"}</h2>
                     <p className="mt-4 whitespace-pre-line text-sm leading-8 text-[#625b55] md:text-base">{event.description || "এই আয়োজন সম্পর্কে বিস্তারিত তথ্য শিগগিরই যুক্ত হবে।"}</p>
-                    {event.link && (event.link.startsWith("/") || /^https?:\\/\\//i.test(event.link)) && (
+                    {event.link && (event.link.startsWith("/") || /^https?:\/\//i.test(event.link)) && (
                       event.link.startsWith("/") ? (
                         <Link href={event.link} className="mt-6 inline-flex rounded-full bg-[#211d1a] px-5 py-2.5 text-sm font-semibold text-white hover:bg-[#9f2d22]">
                           বিস্তারিত দেখুন →
