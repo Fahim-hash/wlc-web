@@ -1,6 +1,6 @@
 import { listPublished } from "@/lib/cms";
 
-type Achievement = {
+type অর্জন = {
   id: string;
   title?: string;
   category?: string;
@@ -17,7 +17,7 @@ export default async function AchievementsPage() {
     <main className="min-h-screen bg-[#f7f4ef] text-[#211d1a] pb-24">
       <section className="mx-auto max-w-6xl px-6 pb-14 pt-16 md:pb-20 md:pt-24">
         <div className="max-w-3xl">
-          <p className="text-xs font-bold uppercase tracking-[0.3em] text-[#9f2d22]">Our Journey</p>
+          <p className="text-xs font-bold uppercase tracking-[0.3em] text-[#9f2d22]">আমাদের পথচলা</p>
           <h1 className="mt-4 font-serif text-5xl font-bold leading-tight md:text-7xl">অর্জন ও স্বীকৃতি</h1>
           <p className="mt-6 max-w-2xl text-base leading-8 text-[#746c66] md:text-lg">
             WLC-এর পথচলায় অর্জিত স্বীকৃতি, সাফল্য ও স্মরণীয় মুহূর্তগুলোর সংরক্ষিত গল্প।
