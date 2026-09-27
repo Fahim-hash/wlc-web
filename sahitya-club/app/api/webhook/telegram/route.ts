@@ -643,6 +643,29 @@ export async function POST(request: Request) {
           },
           { merge: true }
         );
+
+        await getAdminDb().collection("media").doc(documentId).set({
+          messageId: post.message_id,
+          chatId: String(chatId ?? ""),
+          telegramFileId: image.fileId,
+          telegramFileUniqueId: image.fileUniqueId,
+          type: image.mimeType,
+          fileName: image.fileName,
+          caption: post.caption ?? "",
+          albumId: post.media_group_id ? String(post.media_group_id) : null,
+          status: "PUBLISHED",
+          updatedAt: Date.now(),
+        }, { merge: true });
+
+        if (post.media_group_id) {
+          await getAdminDb().collection("albums").doc(String(post.media_group_id)).set({
+            telegramChatId: String(chatId ?? ""),
+            telegramMediaGroupId: String(post.media_group_id),
+            status: "PUBLISHED",
+            updatedAt: Date.now(),
+          }, { merge: true });
+        }
+
       } catch (error) {
         console.error("Telegram background webhook error:", error);
       }
