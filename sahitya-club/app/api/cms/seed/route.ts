@@ -11,7 +11,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const seed = [
+  const seed: Array<{ collection: string; id: string; data: Record<string, unknown> }> = [
     {
       collection: "events",
       id: "national-wall-magazine-quiz-festival-2026",
