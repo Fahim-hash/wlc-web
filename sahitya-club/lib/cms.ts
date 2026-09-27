@@ -39,11 +39,12 @@ export async function listPublished(collectionName: CmsCollection, limit = 100) 
   const snapshot = await getAdminDb()
     .collection(collectionName)
     .where("status", "==", "PUBLISHED")
-    .orderBy("sortOrder", "asc")
     .limit(Math.min(Math.max(limit, 1), 200))
     .get();
 
-  return snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+  return snapshot.docs
+    .map((doc) => ({ id: doc.id, ...doc.data() }))
+    .sort((a: any, b: any) => Number(a.sortOrder ?? 0) - Number(b.sortOrder ?? 0));
 }
 
 export async function listCollection(collectionName: CmsCollection, limit = 100) {
