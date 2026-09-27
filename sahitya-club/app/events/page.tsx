@@ -21,7 +21,7 @@ export default async function EventsPage() {
       <section className="relative overflow-hidden border-b border-[#ded7ce] bg-[#211d1a] text-white">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(185,28,28,.28),transparent_32%),radial-gradient(circle_at_80%_80%,rgba(255,255,255,.08),transparent_28%)]" />
         <div className="relative mx-auto max-w-6xl px-6 py-20 md:py-28">
-          <p className="mb-5 text-xs font-bold uppercase tracking-[0.3em] text-[#e9b8a9]">Willes Literary Club</p>
+          <p className="mb-5 text-xs font-bold uppercase tracking-[0.3em] text-[#e9b8a9]">উইল্‌স সাহিত্য ক্লাব</p>
           <div className="max-w-3xl">
             <h1 className="font-serif text-5xl font-bold leading-[1.02] md:text-7xl">ইভেন্ট ও আয়োজন</h1>
             <p className="mt-6 max-w-2xl text-base leading-8 text-white/70 md:text-lg">
@@ -55,7 +55,7 @@ export default async function EventsPage() {
                       {event.time && <span>• {event.time}</span>}
                       {event.venue && <span>• {event.venue}</span>}
                     </div>
-                    <h2 className="mt-4 font-serif text-3xl font-bold md:text-4xl">{event.title || "Untitled event"}</h2>
+                    <h2 className="mt-4 font-serif text-3xl font-bold md:text-4xl">{event.title || "নামহীন আয়োজন"}</h2>
                     <p className="mt-4 whitespace-pre-line text-sm leading-8 text-[#625b55] md:text-base">{event.description || "এই আয়োজন সম্পর্কে বিস্তারিত তথ্য শিগগিরই যুক্ত হবে।"}</p>
                     {event.link && event.link.startsWith("/") && (
                       <Link href={event.link} className="mt-6 inline-flex rounded-full bg-[#211d1a] px-5 py-2.5 text-sm font-semibold text-white hover:bg-[#9f2d22]">বিস্তারিত →</Link>
