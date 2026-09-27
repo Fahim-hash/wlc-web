@@ -4,12 +4,12 @@ import { writeCmsRecord, archiveCmsRecord, listCollection } from "@/lib/cms";
 async function telegramApi(method: string, payload: Record<string, unknown>) {
   const token = process.env.TELEGRAM_BOT_TOKEN;
   if (!token) throw new Error("TELEGRAM_BOT_TOKEN is not configured");
-  const response = await fetch(\`https://api.telegram.org/bot\${token}/\${method}\`, {
+  const response = await fetch(`https://api.telegram.org/bot${token}/${method}`, {
     method: "POST", headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload), cache: "no-store",
   });
   const result = await response.json();
-  if (!result.ok) throw new Error(\`Telegram \${method} failed\`);
+  if (!result.ok) throw new Error(`Telegram ${method} failed`);
   return result;
 }
 
@@ -56,7 +56,7 @@ async function sendCommandHelp(chatId: number | string, command: string) {
   const collection = commands[command];
   const fields = schemas[collection];
   await sendText(chatId,
-    \`➕ \${labels[collection]}\n\nSend one message in this format:\n\n/\${command} \${fields.join(" | ")} | publish\n\nThe final “| publish” is optional. Without it, the item stays private as a draft.\n\nExample:\n/\${command} Example title | 27 Sep 2026 | 5:00 PM | WLC | Short description | publish\`,
+    `➕ ${labels[collection]}\n\nSend one message in this format:\n\n/${command} ${fields.join(" | ")} | publish\n\nThe final “| publish” is optional. Without it, the item stays private as a draft.\n\nExample:\n/${command} Example title | 27 Sep 2026 | 5:00 PM | WLC | Short description | publish`,
     [[{ text: "⬅️ Content Center", callback_data: "wlc:cms:menu" }]]
   );
 }
@@ -75,7 +75,7 @@ export async function handleTelegramCmsCallback(userId: number, chatId: number |
     const collections = Object.keys(schemas);
     const records = await Promise.all(collections.map(async (collection) => ({ collection, rows: await listCollection(collection as any, 5) })));
     const lines = records.flatMap(({ collection, rows }) =>
-      rows.slice(0, 3).map((item: any) => \`\${labels[collection]} — \${item.title || item.name || "Untitled"} [\${item.status || "DRAFT"}]\`)
+      rows.slice(0, 3).map((item: any) => `${labels[collection]} — ${item.title || item.name || "Untitled"} [${item.status || "DRAFT"}]`)
     );
     await sendText(chatId, lines.length ? "📋 Recent Content\n\n" + lines.join("\n") : "📋 Recent Content\n\nNo content yet.",
       [[{ text: "⬅️ Content Center", callback_data: "wlc:cms:menu" }]]);
@@ -95,7 +95,7 @@ export async function handleTelegramCmsCommand(userId: number, chatId: number | 
     if (!schemas[collection]) { await sendText(chatId, "⚠️ Unknown section. Use /cms to open the Content Center."); return true; }
     const records = await listCollection(collection as any, 20);
     if (!records.length) {
-      await sendText(chatId, \`📋 \${labels[collection]}\n\nNo entries yet.\`, [[{ text: "⬅️ Content Center", callback_data: "wlc:cms:menu" }]]);
+      await sendText(chatId, `📋 ${labels[collection]}\n\nNo entries yet.`, [[{ text: "⬅️ Content Center", callback_data: "wlc:cms:menu" }]]);
       return true;
     }
     const lines = records.map((item: any) => "• " + item.id + " — " + (item.title || item.name || "Untitled") + " [" + (item.status || "DRAFT") + "]");
