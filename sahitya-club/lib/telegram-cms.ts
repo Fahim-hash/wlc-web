@@ -134,7 +134,7 @@ export async function handleTelegramCmsMessage(userId: number, chatId: number | 
     }
     session.data.hasDedicatedPage = true;
     await saveSession(userId, chatId, session.type, 7, session.data);
-    await sendText(chatId, "🔗 ওই ওয়েবপেজের লিংক দিন।");
+    await sendText(chatId, "🔗 ওই ওয়েবপেজের লিংক দিন।\n\nএই লিংক দিয়েই ওয়েবসাইটে “বিস্তারিত দেখুন” বাটন তৈরি হবে।");
     return true;
   }
 
