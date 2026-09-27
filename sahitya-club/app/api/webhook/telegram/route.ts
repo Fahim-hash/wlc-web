@@ -159,13 +159,27 @@ async function clearControlSession(userId: number) {
     .delete();
 }
 
-function buildPushPreview(draft: string, url: string) {
-  return `Preview:
+function buildPushPreview(draft: string, url: string, hasImage = false) {
+  return `📋 নোটিফিকেশন প্রস্তুত
 
 🔔 উইল্‌স সাহিত্য ক্লাব
-${draft}${url !== "/" ? ` [link:${url}]` : ""}
+${hasImage ? "🖼️ ছবি: যোগ করা হয়েছে\\n" : ""}${draft}${url !== "/" ? ` [link:${url}]` : ""}
 
-সব subscribed website users-কে পাঠানো হবে।`;
+সব নোটিফিকেশন সাবস্ক্রাইবারকে পাঠানো হবে।`;
+}
+
+async function sendPushPreview(chatId: number | string, draft: string, url: string, hasImage = false) {
+  await sendText(
+    chatId,
+    buildPushPreview(draft, url, hasImage),
+    [
+      [
+        { text: "🚀 নোটিফিকেশন পাঠান", callback_data: "wlc:confirm" },
+        { text: "✏️ বার্তা বদলান", callback_data: "wlc:edit" },
+      ],
+      [{ text: "❌ বাতিল", callback_data: "wlc:cancel" }],
+    ]
+  );
 }
 
 async function sendAlbumList(chatId: number | string) {
@@ -572,7 +586,7 @@ async function handleMessage(message: TelegramMessage) {
     return;
   }
 
-  if (text.startsWith("/notify")) {
+  if (text?.startsWith("/notify")) {
     const draftText = text.slice("/notify".length).trim();
 
     if (!draftText) {
