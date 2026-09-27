@@ -91,21 +91,21 @@ async function answerCallback(callbackId: string, text?: string) {
 async function sendControlMenu(chatId: number | string) {
   return sendText(
     chatId,
-    "WLC Control Hub\n\nGlobal browser push notifications এবং ভবিষ্যৎ website controls এখান থেকেই পরিচালনা করা যাবে।",
+    "উইল্‌স সাহিত্য ক্লাব\n\nওয়েবসাইটের নোটিফিকেশন ও অন্যান্য ব্যবস্থাপনা এখান থেকেই করা যাবে।",
     [
       [
-        { text: "📢 Send Push", callback_data: "wlc:push" },
-        { text: "🧪 Test Push", callback_data: "wlc:test" },
+        { text: "📢 নোটিফিকেশন পাঠান", callback_data: "wlc:push" },
+        { text: "🧪 পরীক্ষা করুন", callback_data: "wlc:test" },
       ],
       [
-        { text: "📊 Subscribers", callback_data: "wlc:stats" },
-        { text: "🖼️ Album", callback_data: "wlc:album_list" },
+        { text: "📊 সাবস্ক্রাইবার", callback_data: "wlc:stats" },
+        { text: "🖼️ অ্যালবাম", callback_data: "wlc:album_list" },
       ],
       [
-        { text: "✨ Content Center", callback_data: "wlc:cms:menu" },
+        { text: "✨ বিষয় ব্যবস্থাপনা", callback_data: "wlc:cms:menu" },
       ],
       [
-        { text: "❌ Cancel", callback_data: "wlc:cancel" },
+        { text: "❌ বাতিল", callback_data: "wlc:cancel" },
       ],
     ]
   );
@@ -184,15 +184,15 @@ async function sendAlbumList(chatId: number | string) {
     .slice(0, 12);
 
   if (!items.length) {
-    await sendText(chatId, "🖼️ Album Manager\n\nকোনো image পাওয়া যায়নি।");
+    await sendText(chatId, "🖼️ অ্যালবাম Manager\n\nকোনো image পাওয়া যায়নি।");
     return;
   }
 
   await sendText(
     chatId,
-    "🖼️ Album Manager\n\nRecent " + items.length + " photos — caption দিয়ে যেটা edit করতে চান সেটি select করুন:",
+    "🖼️ অ্যালবাম Manager\n\nসাম্প্রতিক " + items.length + " টি ছবি — যেটির ক্যাপশন পরিবর্তন করতে চান সেটি বেছে নিন:",
     items.map((item) => [{
-      text: "📸 #" + item.messageId + " — " + (item.caption || "No caption").replace(/\s+/g, " ").slice(0, 55),
+      text: "📸 #" + item.messageId + " — " + (item.caption || "কোনো ক্যাপশন নেই").replace(/\s+/g, " ").slice(0, 55),
       callback_data: "wlc:album:" + item.messageId,
     }])
   );
@@ -227,11 +227,11 @@ async function sendSelectedAlbumPhoto(chatId: number | string, messageId: number
   await telegramApi("sendPhoto", {
     chat_id: chatId,
     photo: data.fileId,
-    caption: "🖼️ Telegram #" + messageId + "\n\n" + (data.caption || "No caption"),
+    caption: "🖼️ টেলিগ্রাম #" + messageId + "\n\n" + (data.caption || "কোনো ক্যাপশন নেই"),
     reply_markup: {
       inline_keyboard: [
-        [{ text: "✏️ Edit Caption", callback_data: "wlc:album_edit:" + messageId }],
-        [{ text: "⬅️ Back to Album", callback_data: "wlc:album_list" }],
+        [{ text: "✏️ ক্যাপশন বদলান", callback_data: "wlc:album_edit:" + messageId }],
+        [{ text: "⬅️ অ্যালবামে ফিরুন", callback_data: "wlc:album_list" }],
       ],
     },
   });
@@ -282,7 +282,7 @@ async function handleCallback(callback: TelegramCallbackQuery) {
       await answerCallback(callback.id);
       const messageId = Number(action.slice("wlc:album:".length));
       if (!Number.isInteger(messageId)) {
-        await sendText(chatId, "⚠️ Invalid album selection.");
+        await sendText(chatId, "⚠️ ভুল অ্যালবাম নির্বাচন হয়েছে।");
         return;
       }
       await sendSelectedAlbumPhoto(chatId, messageId);
@@ -293,7 +293,7 @@ async function handleCallback(callback: TelegramCallbackQuery) {
       await answerCallback(callback.id);
       const messageId = Number(action.slice("wlc:album_edit:".length));
       if (!Number.isInteger(messageId)) {
-        await sendText(chatId, "⚠️ Invalid photo selection.");
+        await sendText(chatId, "⚠️ ভুল ছবি নির্বাচন হয়েছে।");
         return;
       }
       await setControlSession(userId, chatId, {
@@ -303,7 +303,7 @@ async function handleCallback(callback: TelegramCallbackQuery) {
       });
       await sendText(
         chatId,
-        "✏️ Telegram #" + messageId + " selected.\n\nনতুন caption পাঠান।\n\nCaption খালি করতে /clearcaption লিখুন।\n❌ /cancel দিয়ে বাতিল করুন."
+        "✏️ টেলিগ্রাম #" + messageId + " selected.\n\nনতুন caption পাঠান।\n\nক্যাপশন খালি করতে /clearcaption লিখুন।\n❌ /cancel দিয়ে বাতিল করুন."
       );
       return;
     }
@@ -312,7 +312,7 @@ async function handleCallback(callback: TelegramCallbackQuery) {
       await answerCallback(callback.id);
       await sendText(
         chatId,
-        "📢 Push Notification\n\nএখন notification-এর message পাঠান।\n\nOptional link দিতে চাইলে শেষে লিখুন:\n[link:/events]\n\nExample:\nনতুন Event Registration শুরু হয়েছে! [link:/events]\n\n❌ বাতিল করতে /cancel লিখুন।"
+        "📢 ওয়েবসাইট নোটিফিকেশন\n\nএখন notification-এর message পাঠান।\n\nলিংক দিতে চাইলে শেষে লিখুন:\n[link:/events]\n\nউদাহরণ:\nনতুন Event Registration শুরু হয়েছে! [link:/events]\n\n❌ বাতিল করতে /cancel লিখুন।"
       );
       try {
         await setControlSession(userId, chatId, { state: "awaiting_message" });
@@ -323,7 +323,7 @@ async function handleCallback(callback: TelegramCallbackQuery) {
     }
 
     if (action === "wlc:test") {
-      await answerCallback(callback.id, "Test push পাঠানো হচ্ছে...");
+      await answerCallback(callback.id, "পরীক্ষামূলক নোটিফিকেশন পাঠানো হচ্ছে...");
       const result = await sendGlobalPushNotification(
         "উইল্‌স সাহিত্য ক্লাব",
         "WLC global push system is working.",
@@ -331,7 +331,7 @@ async function handleCallback(callback: TelegramCallbackQuery) {
       );
       await sendText(
         chatId,
-        `🧪 Test Push Complete\n\n📨 Sent: ${result.sent}\n🗑️ Expired removed: ${result.removed}\n⚠️ Failed: ${result.failed}`
+        `🧪 পরীক্ষা করুন Complete\n\n📨 পাঠানো হয়েছে: ${result.sent}\n🗑️ মেয়াদোত্তীর্ণ সরানো হয়েছে: ${result.removed}\n⚠️ ব্যর্থ: ${result.failed}`
       );
       return;
     }
@@ -341,7 +341,7 @@ async function handleCallback(callback: TelegramCallbackQuery) {
       const count = await getPushSubscriberCount();
       await sendText(
         chatId,
-        `📊 Push Subscribers\n\n👥 Active subscriptions: ${count}\n\nUsers who allowed browser notifications are counted here.`
+        `📊 নোটিফিকেশন সাবস্ক্রাইবার\n\n👥 সক্রিয় সাবস্ক্রিপশন: ${count}\n\nনোটিফিকেশন অনুমতি দেওয়া ব্যবহারকারীদের এখানে গণনা করা হয়।`
       );
       return;
     }
@@ -349,12 +349,12 @@ async function handleCallback(callback: TelegramCallbackQuery) {
     if (action === "wlc:edit") {
       await answerCallback(callback.id);
       await setControlSession(userId, chatId, { state: "awaiting_message" });
-      await sendText(chatId, "✏️ নতুন message পাঠান। আগের draft replace হবে।");
+      await sendText(chatId, "✏️ নতুন বার্তা পাঠান। আগের খসড়া বদলে যাবে।");
       return;
     }
 
     if (action === "wlc:cancel") {
-      await answerCallback(callback.id, "Cancelled");
+      await answerCallback(callback.id, "বাতিল করা হয়েছে");
       await sendControlMenu(chatId);
       try {
         await clearControlSession(userId);
@@ -365,11 +365,11 @@ async function handleCallback(callback: TelegramCallbackQuery) {
     }
 
     if (action === "wlc:confirm") {
-      await answerCallback(callback.id, "Sending...");
+      await answerCallback(callback.id, "পাঠানো হচ্ছে...");
       const session = await getControlSession(userId);
 
       if (!session?.draft) {
-        await answerCallback(callback.id, "Draft পাওয়া যায়নি। আবার Send Push চাপুন।");
+        await answerCallback(callback.id, "খসড়া পাওয়া যায়নি। আবার নোটিফিকেশন পাঠানোর চেষ্টা করুন।");
         return;
       }
 
@@ -383,11 +383,11 @@ async function handleCallback(callback: TelegramCallbackQuery) {
 
       await sendText(
         chatId,
-        `✅ Global Push Sent\n\n📨 Sent: ${result.sent}\n🗑️ Expired removed: ${result.removed}\n⚠️ Failed: ${result.failed}`,
+        `✅ নোটিফিকেশন পাঠানো হয়েছে\n\n📨 পাঠানো হয়েছে: ${result.sent}\n🗑️ মেয়াদোত্তীর্ণ সরানো হয়েছে: ${result.removed}\n⚠️ ব্যর্থ: ${result.failed}`,
         [
           [
-            { text: "📢 Send Another", callback_data: "wlc:push" },
-            { text: "📊 Subscribers", callback_data: "wlc:stats" },
+            { text: "📢 আরেকটি পাঠান", callback_data: "wlc:push" },
+            { text: "📊 সাবস্ক্রাইবার", callback_data: "wlc:stats" },
           ],
         ]
       );
@@ -395,10 +395,10 @@ async function handleCallback(callback: TelegramCallbackQuery) {
     }
   } catch (error) {
     console.error("Telegram control action error:", error);
-    await answerCallback(callback.id, "Something went wrong.");
+    await answerCallback(callback.id, "কিছু একটা সমস্যা হয়েছে।");
     await sendText(
       chatId,
-      `❌ Action failed.\n\n${error instanceof Error ? error.message : "Unknown error"}`
+      `❌ কাজটি সম্পন্ন করা যায়নি।\n\n${error instanceof Error ? error.message : "অজানা সমস্যা"}`
     );
   }
 }
@@ -414,7 +414,7 @@ async function handleMessage(message: TelegramMessage) {
     if (!isAdmin(userId)) {
       await sendText(
         chatId,
-        `⛔ WLC Control Hub access is not enabled for this Telegram account.\n\nYour Telegram ID: ${userId}\n\nAdd this number to Vercel → TELEGRAM_ADMIN_IDS, then redeploy.\n\nIf you already added it, run /start again after the latest deployment.`
+        `⛔ উইল্‌স সাহিত্য ক্লাব access is not enabled for this Telegram account.\n\nআপনার টেলিগ্রাম আইডি: ${userId}\n\nAdd this number to Vercel → TELEGRAM_ADMIN_IDS, then redeploy.\n\nআগেই যোগ করে থাকলে সর্বশেষ প্রকাশের পর আবার /start দিন।`
       );
       return;
     }
@@ -432,7 +432,7 @@ async function handleMessage(message: TelegramMessage) {
     if (!isAdmin(userId)) {
       await sendText(
         chatId,
-        `⛔ Access denied.\n\nYour Telegram ID: ${userId}\nAdd it to TELEGRAM_ADMIN_IDS in Vercel and redeploy.`
+        `⛔ অনুমতি নেই।\n\nআপনার টেলিগ্রাম আইডি: ${userId}\nAdd it to TELEGRAM_ADMIN_IDS in Vercel and redeploy.`
       );
       return;
     }
@@ -459,10 +459,10 @@ async function handleMessage(message: TelegramMessage) {
 
   if (text === "/cancel") {
     await clearControlSession(userId);
-    await sendText(chatId, "❌ Cancelled.", [
+    await sendText(chatId, "❌ বাতিলled.", [
       [
-        { text: "📢 Send Push", callback_data: "wlc:push" },
-        { text: "📊 Subscribers", callback_data: "wlc:stats" },
+        { text: "📢 নোটিফিকেশন পাঠান", callback_data: "wlc:push" },
+        { text: "📊 সাবস্ক্রাইবার", callback_data: "wlc:stats" },
       ],
     ]);
     return;
@@ -474,13 +474,13 @@ async function handleMessage(message: TelegramMessage) {
     const messageId = session.albumMessageId;
     if (!messageId) {
       await clearControlSession(userId);
-      await sendText(chatId, "⚠️ Photo selection expired. /album দিয়ে আবার select করুন।");
+      await sendText(chatId, "⚠️ ছবি নির্বাচনটি শেষ হয়ে গেছে। /album দিয়ে আবার নির্বাচন করুন।");
       return;
     }
 
     const newCaption = text === "/clearcaption" ? "" : text;
     if (newCaption.length > 1024) {
-      await sendText(chatId, "⚠️ Telegram caption সর্বোচ্চ 1024 characters হতে পারে।");
+      await sendText(chatId, "⚠️ টেলিগ্রামের ক্যাপশন সর্বোচ্চ ১০২৪ অক্ষর হতে পারে।");
       return;
     }
 
@@ -497,7 +497,7 @@ async function handleMessage(message: TelegramMessage) {
       process.env.TELEGRAM_CHAT_ID;
 
     if (!targetChatId) {
-      throw new Error("Album channel ID পাওয়া যায়নি।");
+      throw new Error("অ্যালবামের চ্যানেল আইডি পাওয়া যায়নি।");
     }
 
     try {
@@ -511,7 +511,7 @@ async function handleMessage(message: TelegramMessage) {
         error instanceof Error ? error.message : "Unknown Telegram error";
       if (message.includes("message can't be edited")) {
         throw new Error(
-          "Telegram এই post edit করতে দিচ্ছে না। Bot-টিকে channel-এর Admin করে “Edit Messages / can_edit_messages” permission দিন, তারপর আবার চেষ্টা করুন."
+          "টেলিগ্রাম এই পোস্টটি সম্পাদনা করতে দিচ্ছে না। বটটিকে চ্যানেলের প্রশাসক করে বার্তা সম্পাদনার অনুমতি দিন, তারপর আবার চেষ্টা করুন।"
         );
       }
       throw error;
@@ -527,10 +527,10 @@ async function handleMessage(message: TelegramMessage) {
     await clearControlSession(userId);
     await sendText(
       chatId,
-      "✅ Caption updated!\n\nTelegram #" + messageId + " এখন নতুন caption-এ updated হয়েছে.",
+      "✅ ক্যাপশন পরিবর্তন হয়েছে!\n\nটেলিগ্রাম #" + messageId + " এখন নতুন caption-এ পরিবর্তন হয়েছে।",
       [[
-        { text: "🖼️ Edit Another", callback_data: "wlc:album_list" },
-        { text: "🏠 Control Hub", callback_data: "wlc:cancel" },
+        { text: "🖼️ আরেকটি পরিবর্তন করুন", callback_data: "wlc:album_list" },
+        { text: "🏠 ব্যবস্থাপনা", callback_data: "wlc:cancel" },
       ]]
     );
     return;
@@ -540,7 +540,7 @@ async function handleMessage(message: TelegramMessage) {
     const { message: draft, url } = parseNotificationDraft(text);
 
     if (!draft || draft.length > 300) {
-      await sendText(chatId, "⚠️ Message 1–300 characters হতে হবে। আবার পাঠান অথবা /cancel লিখুন।");
+      await sendText(chatId, "⚠️ বার্তাটি ১–৩০০ অক্ষরের হতে হবে। আবার পাঠান অথবা /cancel লিখুন।");
       return;
     }
 
@@ -559,14 +559,14 @@ async function handleMessage(message: TelegramMessage) {
 
     if (!draftText) {
       await setControlSession(userId, chatId, { state: "awaiting_message" });
-      await sendText(chatId, "📢 Notification message পাঠান।\n\nOptional: [link:/events]\n\n/cancel দিয়ে বাতিল করতে পারবেন।");
+      await sendText(chatId, "📢 নোটিফিকেশনের বার্তা পাঠান।\n\nOptional: [link:/events]\n\n/cancel দিয়ে বাতিল করতে পারবেন।");
       return;
     }
 
     const { message: draft, url } = parseNotificationDraft(draftText);
 
     if (!draft || draft.length > 300) {
-      await sendText(chatId, "⚠️ Message 1–300 characters হতে হবে।");
+      await sendText(chatId, "⚠️ বার্তাটি ১–৩০০ অক্ষরের হতে হবে।");
       return;
     }
 
