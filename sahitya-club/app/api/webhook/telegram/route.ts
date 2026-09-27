@@ -1,7 +1,7 @@
 import { after, NextResponse } from "next/server";
 import crypto from "crypto";
 import { getAdminDb } from "@/lib/firebase-admin";
-import { handleTelegramCmsCommand } from "@/lib/telegram-cms";
+import { handleTelegramCmsCommand, handleTelegramCmsCallback } from "@/lib/telegram-cms";
 import { sendGlobalPushNotification, getPushSubscriberCount } from "@/lib/push";
 
 type TelegramUser = { id: number };
@@ -263,6 +263,12 @@ async function handleCallback(callback: TelegramCallbackQuery) {
   const action = callback.data || "";
 
   try {
+    if (action.startsWith("wlc:cms:")) {
+      await answerCallback(callback.id);
+      await handleTelegramCmsCallback(userId, chatId, action);
+      return;
+    }
+
     if (action === "wlc:album_list") {
       await answerCallback(callback.id);
       await sendAlbumList(chatId);
