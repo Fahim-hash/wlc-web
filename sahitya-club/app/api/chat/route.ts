@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import Groq from "groq-sdk";
 import fs from "fs";
 import path from "path";
+import { getAdminDb } from "@/lib/firebase-admin";
 
 type ChatMessage = {
   role: "user" | "assistant";
@@ -62,11 +63,38 @@ function tokenize(input: string) {
   );
 }
 
-function loadKnowledge(): KnowledgeChunk[] {
+async function loadKnowledge(): Promise<KnowledgeChunk[]> {
+  try {
+    const snapshot = await getAdminDb()
+      .collection("kothasokhi_knowledge")
+      .where("status", "==", "PUBLISHED")
+      .limit(100)
+      .get();
+
+    const firestoreChunks = snapshot.docs
+      .map((doc) => {
+        const data = doc.data();
+        const text = [data.title, data.answer, data.source]
+          .filter((value) => typeof value === "string" && value.trim())
+          .join("\n");
+        return text.trim();
+      })
+      .filter(Boolean);
+
+    if (firestoreChunks.length) {
+      return firestoreChunks.map((text) => ({
+        text,
+        normalized: normalizeText(text),
+        tokens: tokenize(text),
+      }));
+    }
+  } catch (error) {
+    console.warn("Firestore Kothasokhi knowledge unavailable; using local fallback:", error);
+  }
+
   const filePath = path.join(process.cwd(), "data", "wlc-info.txt");
   const raw = fs.readFileSync(filePath, "utf8");
 
-  // Each === section is independently retrievable.
   return raw
     .split(/(?=^=== )/m)
     .map((text) => text.trim())
@@ -237,7 +265,7 @@ export async function POST(req: Request) {
       ? await searchWeb(`Willes Literary Club Dhaka ${latestUserMessage}`)
       : [];
 
-    const knowledge = loadKnowledge();
+    const knowledge = await loadKnowledge();
     const isCasual =
       /\b(joke|funny|fun|riddle|game|roast|story|jokes|play)\b/i.test(latestUserMessage) ||
       /মজা|জোক|ধাঁধা|খেলা|গল্প|হাসাও|রোস্ট/i.test(latestUserMessage);
