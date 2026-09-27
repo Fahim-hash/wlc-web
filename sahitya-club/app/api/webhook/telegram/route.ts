@@ -163,7 +163,7 @@ function buildPushPreview(draft: string, url: string, hasImage = false) {
   return `📋 নোটিফিকেশন প্রস্তুত
 
 🔔 উইল্‌স সাহিত্য ক্লাব
-${hasImage ? "🖼️ ছবি: যোগ করা হয়েছে\\n" : ""}${draft}${url !== "/" ? ` [link:${url}]` : ""}
+${hasImage ? "🖼️ ছবি: যোগ করা হয়েছে\n" : ""}${draft}${url !== "/" ? ` [link:${url}]` : ""}
 
 সব নোটিফিকেশন সাবস্ক্রাইবারকে পাঠানো হবে।`;
 }
