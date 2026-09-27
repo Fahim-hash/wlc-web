@@ -34,12 +34,13 @@ export async function POST(request: Request) {
     const title = typeof body?.title === "string" ? body.title.trim() : "";
     const message = typeof body?.message === "string" ? body.message.trim() : "";
     const url = typeof body?.url === "string" && body.url.startsWith("/") ? body.url : "/";
+    const image = typeof body?.image === "string" && /^https?:\/\//i.test(body.image) ? body.image : undefined;
 
     if (!title || !message || title.length > 80 || message.length > 300) {
       return NextResponse.json({ error: "Invalid notification." }, { status: 400 });
     }
 
-    const result = await sendGlobalPushNotification(title, message, url);
+    const result = await sendGlobalPushNotification(title, message, url, image);
 
     return NextResponse.json({ ok: true, result });
   } catch (error) {
