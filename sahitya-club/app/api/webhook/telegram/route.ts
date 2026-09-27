@@ -481,7 +481,7 @@ async function handleMessage(message: TelegramMessage) {
       return;
     }
 
-    const newCaption = text === "/clearcaption" ? "" : text;
+    const newCaption = text === "/clearcaption" ? "" : (text ?? "");
     if (newCaption.length > 1024) {
       await sendText(chatId, "⚠️ টেলিগ্রামের ক্যাপশন সর্বোচ্চ ১০২৪ অক্ষর হতে পারে।");
       return;
