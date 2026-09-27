@@ -252,22 +252,6 @@ async function sendSelectedAlbumPhoto(chatId: number | string, messageId: number
   });
 }
 
-async function sendPushPreview(chatId: number | string, draft: string, url: string, hasImage = false) {
-  await sendText(
-    chatId,
-    buildPushPreview(draft, url, hasImage),
-    [
-      [
-        { text: "🚀 SEND TO EVERYONE", callback_data: "wlc:confirm" },
-        { text: "✏️ EDIT", callback_data: "wlc:edit" },
-      ],
-      [
-        { text: "❌ CANCEL", callback_data: "wlc:cancel" },
-      ],
-    ]
-  );
-}
-
 async function handleCallback(callback: TelegramCallbackQuery) {
   const userId = callback.from.id;
   const chatId = callback.message?.chat?.id;
