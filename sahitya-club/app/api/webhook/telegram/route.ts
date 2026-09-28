@@ -325,7 +325,7 @@ async function handleCallback(callback: TelegramCallbackQuery) {
       await answerCallback(callback.id, "পরীক্ষামূলক নোটিফিকেশন পাঠানো হচ্ছে...");
       const result = await sendGlobalPushNotification(
         "উইল্‌স সাহিত্য ক্লাব",
-        "WLC global push system is working.",
+        "পরীক্ষামূলক নোটিফিকেশন",
         "/"
       );
       await sendText(
@@ -417,7 +417,7 @@ async function handleMessage(message: TelegramMessage) {
     if (!isAdmin(userId)) {
       await sendText(
         chatId,
-        `⛔ উইল্‌স সাহিত্য ক্লাব access is not enabled for this Telegram account.\n\nআপনার টেলিগ্রাম আইডি: ${userId}\n\nAdd this number to Vercel → TELEGRAM_ADMIN_IDS, then redeploy.\n\nআগেই যোগ করে থাকলে সর্বশেষ প্রকাশের পর আবার /start দিন।`
+        `⛔ উইল্‌স সাহিত্য ক্লাবের ওয়েবসাইট নিয়ন্ত্রন করার অনুমতি নেই।\n\nআপনার টেলিগ্রাম আইডি: ${userId}। আপনি যদি উইল্‌স সাহিত্য ক্লাবের কোন প্যানেল সদস্য হয়ে থাকেন তাহলে ওয়েবসাইট নিয়ন্ত্রন করার অনুমতি পেতে RelaxStudio কর্তৃপক্ষ বা ক্লাবের বর্তমান সম্পাদনা বিভাগ প্রধানের সঙ্গে যোগাযোগ করুন। ধন্যবাদ ।`
       );
       return;
     }
