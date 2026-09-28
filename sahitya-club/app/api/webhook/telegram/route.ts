@@ -435,7 +435,7 @@ async function handleMessage(message: TelegramMessage) {
     if (!isAdmin(userId)) {
       await sendText(
         chatId,
-        `⛔ অনুমতি নেই।\n\nআপনার টেলিগ্রাম আইডি: ${userId}\nAdd it to TELEGRAM_ADMIN_IDS in Vercel and redeploy.`
+        `⛔ উইল্‌স সাহিত্য ক্লাবের ওয়েবসাইট নিয়ন্ত্রন করার অনুমতি নেই।\n\nআপনার টেলিগ্রাম আইডি: ${userId}। আপনি যদি উইল্‌স সাহিত্য ক্লাবের কোন প্যানেল সদস্য হয়ে থাকেন তাহলে ওয়েবসাইট নিয়ন্ত্রন করার অনুমতি পেতে RelaxStudio কর্তৃপক্ষ বা ক্লাবের বর্তমান সম্পাদনা বিভাগ প্রধানের সঙ্গে যোগাযোগ করুন। ধন্যবাদ ।`
       );
       return;
     }
