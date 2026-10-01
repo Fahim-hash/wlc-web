@@ -30,7 +30,8 @@ async function ensureTelegramWebhook(request: Request) {
     "allowed_updates",
     JSON.stringify(["message", "callback_query", "channel_post", "edited_channel_post"])
   );
-  body.set("max_connections", "10");\n  body.set("drop_pending_updates", "true");
+  body.set("max_connections", "10");
+  body.set("drop_pending_updates", "true");
 
   const response = await fetch(
     `https://api.telegram.org/bot${botToken}/setWebhook`,
