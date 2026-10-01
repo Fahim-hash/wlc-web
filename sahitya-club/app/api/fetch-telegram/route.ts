@@ -24,13 +24,13 @@ async function ensureTelegramWebhook(request: Request) {
     process.env.TELEGRAM_WEBHOOK_SECRET?.trim() ||
     (await import("crypto")).createHash("sha256").update(botToken).digest("hex");
 
-  const body = new URLSearchParams({ url: webhookUrl });
+  // Repair the bot webhook before reading the album. Clear stale updates so an old webhook cannot replay them.\n  await fetch(`https://api.telegram.org/bot${botToken}/deleteWebhook`, {\n    method: "POST",\n    headers: { "Content-Type": "application/json" },\n    body: JSON.stringify({ drop_pending_updates: true }),\n    cache: "no-store",\n  });\n\n  const body = new URLSearchParams({ url: webhookUrl });
   body.set("secret_token", secret);
   body.set(
     "allowed_updates",
     JSON.stringify(["message", "callback_query", "channel_post", "edited_channel_post"])
   );
-  body.set("max_connections", "10");
+  body.set("max_connections", "10");\n  body.set("drop_pending_updates", "true");
 
   const response = await fetch(
     `https://api.telegram.org/bot${botToken}/setWebhook`,
