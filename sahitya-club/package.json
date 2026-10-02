@@ -31,5 +31,11 @@
     "tailwindcss": "^4",
     "typescript": "^5",
     "@types/web-push": "^3.6.4"
+  },
+  "allowScripts": {
+    "sharp@0.34.5": true,
+    "unrs-resolver@1.11.1": true,
+    "protobufjs@7.6.6": true,
+    "@firebase/util@1.15.3": true
   }
 }
