@@ -1,5 +1,6 @@
 // app/api/fetch-telegram/route.ts
 import { NextResponse } from "next/server";
+import crypto from "crypto";
 import { collection, getDocs, orderBy, query } from "firebase/firestore/lite";
 import { db } from "@/lib/firebase";
 
@@ -14,7 +15,7 @@ type TelegramMedia = {
   createdAt?: number;
 };
 
-async function ensureTelegramWebhook() {
+async function ensureTelegramWebhook(_request?: Request) {
   const botToken = process.env.TELEGRAM_BOT_TOKEN;
   if (!botToken) return;
 
@@ -22,7 +23,7 @@ async function ensureTelegramWebhook() {
   const webhookUrl = `${origin}/api/webhook/telegram`;
   const secret =
     process.env.TELEGRAM_WEBHOOK_SECRET?.trim() ||
-    (await import("crypto")).createHash("sha256").update(botToken).digest("hex");
+    crypto.createHash("sha256").update(botToken).digest("hex");
 
   // Keep this separate from the Kothasokhi AI bot, which uses TELEGRAMAI_BOT_TOKEN.
   const body = new URLSearchParams({ url: webhookUrl });
