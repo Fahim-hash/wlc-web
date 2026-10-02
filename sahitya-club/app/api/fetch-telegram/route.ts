@@ -14,24 +14,25 @@ type TelegramMedia = {
   createdAt?: number;
 };
 
-async function ensureTelegramWebhook(request: Request) {
+async function ensureTelegramWebhook() {
   const botToken = process.env.TELEGRAM_BOT_TOKEN;
   if (!botToken) return;
 
-  const origin = process.env.NEXT_PUBLIC_SITE_URL || "https://wlc.pro.bd";
+  const origin = (process.env.NEXT_PUBLIC_SITE_URL || "https://wlc.pro.bd").replace(/\/$/, "");
   const webhookUrl = `${origin}/api/webhook/telegram`;
   const secret =
     process.env.TELEGRAM_WEBHOOK_SECRET?.trim() ||
     (await import("crypto")).createHash("sha256").update(botToken).digest("hex");
 
-  // Repair the bot webhook before reading the album. Clear stale updates so an old webhook cannot replay them.\n  await fetch(`https://api.telegram.org/bot${botToken}/deleteWebhook`, {\n    method: "POST",\n    headers: { "Content-Type": "application/json" },\n    body: JSON.stringify({ drop_pending_updates: true }),\n    cache: "no-store",\n  });\n\n  const body = new URLSearchParams({ url: webhookUrl });
+  // Keep this separate from the Kothasokhi AI bot, which uses TELEGRAMAI_BOT_TOKEN.
+  const body = new URLSearchParams({ url: webhookUrl });
   body.set("secret_token", secret);
   body.set(
     "allowed_updates",
     JSON.stringify(["message", "callback_query", "channel_post", "edited_channel_post"])
   );
   body.set("max_connections", "10");
-  body.set("drop_pending_updates", "true");
+  body.set("drop_pending_updates", "false");
 
   const response = await fetch(
     `https://api.telegram.org/bot${botToken}/setWebhook`,
