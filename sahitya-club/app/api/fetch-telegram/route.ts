@@ -80,7 +80,7 @@ export async function GET(request: Request) {
     // Automatically register/repair the webhook using the existing bot token.
     // This makes the album self-healing if the Telegram webhook was missing
     // or pointing at an old deployment.
-    await ensureTelegramWebhook(request);
+    await ensureTelegramWebhook();
 
     const mediaQuery = query(
       collection(db, "telegram_media"),
