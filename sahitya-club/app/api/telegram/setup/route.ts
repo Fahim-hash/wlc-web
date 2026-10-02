@@ -63,7 +63,8 @@ export async function GET(request: Request) {
     max_connections: "10",
   });
 
-  // Install the WLC Control Hub webhook without deleting queued updates first.\n  const webhook = await telegramRequest(token, "setWebhook", webhookBody);
+  // Install the WLC Control Hub webhook without deleting queued updates first.
+  const webhook = await telegramRequest(token, "setWebhook", webhookBody);
   const info = await telegramRequest(token, "getWebhookInfo", new URLSearchParams());
 
   const commands = await telegramRequest(token, "setMyCommands", {
