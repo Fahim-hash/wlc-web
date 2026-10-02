@@ -63,7 +63,7 @@ export async function GET(request: Request) {
     max_connections: "10",
   });
 
-  // Remove any previous webhook first, then install the WLC webhook and clear stale updates.\n  // This prevents an old/third-party webhook from continuing to receive queued commands.\n  await telegramRequest(token, "deleteWebhook", { drop_pending_updates: true });\n  const webhook = await telegramRequest(token, "setWebhook", {\n    url: webhookUrl,\n    secret_token: secret,\n    allowed_updates: [\n      "message",\n      "callback_query",\n      "channel_post",\n      "edited_channel_post",\n    ],\n    max_connections: 10,\n    drop_pending_updates: true,\n  });
+  // Install the WLC Control Hub webhook without deleting queued updates first.\n  const webhook = await telegramRequest(token, "setWebhook", webhookBody);
   const info = await telegramRequest(token, "getWebhookInfo", new URLSearchParams());
 
   const commands = await telegramRequest(token, "setMyCommands", {
