@@ -126,9 +126,15 @@ export async function POST(request: Request) {
     }
 
     await sendReply(chatId, data.reply);
+
+    const assistantMessage: ChatMessage = {
+      role: "assistant",
+      content: data.reply,
+    };
+
     const nextMessages: ChatMessage[] = [
       ...messages,
-      { role: "assistant", content: data.reply },
+      assistantMessage,
     ].slice(-8);
 
     await conversationRef.set({
