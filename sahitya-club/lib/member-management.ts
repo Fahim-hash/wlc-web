@@ -27,7 +27,8 @@ function getAdminSecret() {
   return (
     process.env.MEMBER_ADMIN_GATEWAY_KEY?.trim() ||
     process.env.CONTROL_GATEWAY_KEY?.trim() ||
-    ""
+    // Keep Member Hub compatible with the existing WLC Control Hub fallback.
+    "WLC_Control_2026"
   );
 }
 
