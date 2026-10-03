@@ -88,6 +88,190 @@ async function answerCallback(callbackId: string, text?: string) {
   }
 }
 
+function getKothasokhiWebhookUrl() {
+  const origin = (process.env.NEXT_PUBLIC_SITE_URL || "https://wlc.pro.bd").replace(/\\/$/, "");
+  return `${origin}/api/telegram-ai/webhook`;
+}
+
+function getKothasokhiWebhookSecret(token: string) {
+  return (
+    process.env.TELEGRAMAI_WEBHOOK_SECRET?.trim() ||
+    crypto.createHash("sha256").update(token).digest("hex")
+  );
+}
+
+async function kothasokhiTelegramApi(method: string, payload: Record<string, unknown> = {}) {
+  const token = process.env.TELEGRAMAI_BOT_TOKEN?.trim();
+  if (!token) {
+    throw new Error("Vercel Production environment-এ TELEGRAMAI_BOT_TOKEN সেট করা নেই।");
+  }
+
+  const response = await fetch(`https://api.telegram.org/bot${token}/${method}`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+    cache: "no-store",
+  });
+  const result = await response.json();
+  if (!response.ok || !result.ok) {
+    throw new Error(`Kothasokhi Telegram ${method} failed: ${result.description || response.status}`);
+  }
+  return result;
+}
+
+async function sendKothasokhiMenu(chatId: number | string) {
+  const tokenConfigured = Boolean(process.env.TELEGRAMAI_BOT_TOKEN?.trim());
+  return sendText(
+    chatId,
+    `🤖 Kothasokhi AI Control Center
+
+এখান থেকে আলাদা Kothasokhi AI bot-এর webhook, status ও AI response পরীক্ষা করতে পারবেন।
+
+Token: ${tokenConfigured ? "✅ configured" : "❌ TELEGRAMAI_BOT_TOKEN missing"}
+
+এটি WLC Control Hub bot-এর token/webhook পরিবর্তন করবে না।`,
+    [
+      [
+        { text: "📡 Webhook Status", callback_data: "wlc:kothasokhi:status" },
+        { text: "🔧 Setup / Repair", callback_data: "wlc:kothasokhi:setup" },
+      ],
+      [
+        { text: "🧪 Test AI Reply", callback_data: "wlc:kothasokhi:test" },
+        { text: "📊 Chat & Knowledge Stats", callback_data: "wlc:kothasokhi:stats" },
+      ],
+      [
+        { text: "📚 Add Knowledge", callback_data: "wlc:cms:new:knowledge" },
+        { text: "📋 CMS Records", callback_data: "wlc:cms:list" },
+      ],
+      [{ text: "⬅️ WLC Control Hub", callback_data: "wlc:kothasokhi:back" }],
+    ]
+  );
+}
+
+async function sendKothasokhiStatus(chatId: number | string) {
+  const [me, info] = await Promise.all([
+    kothasokhiTelegramApi("getMe"),
+    kothasokhiTelegramApi("getWebhookInfo"),
+  ]);
+  const expectedUrl = getKothasokhiWebhookUrl();
+  const actualUrl = String(info.result?.url || "");
+  const matching = actualUrl === expectedUrl;
+  const username = me.result?.username ? `@${me.result.username}` : "unknown";
+
+  await sendText(
+    chatId,
+    `🩺 Kothasokhi AI Status
+
+Bot: ${username}
+Webhook: ${matching ? "✅ ঠিক আছে" : "⚠️ missing/mismatch"}
+Expected URL: ${expectedUrl}
+Registered URL: ${actualUrl || "কোনো webhook registered নেই"}
+Pending updates: ${info.result?.pending_update_count ?? 0}
+Last Telegram error: ${info.result?.last_error_message || "নেই"}${info.result?.last_error_date ? `\\nError timestamp: ${new Date(info.result.last_error_date * 1000).toISOString()}` : ""}`,
+    [
+      [
+        { text: "🔧 Setup / Repair", callback_data: "wlc:kothasokhi:setup" },
+        { text: "⬅️ Control Center", callback_data: "wlc:kothasokhi:menu" },
+      ],
+    ]
+  );
+}
+
+async function setupKothasokhiBot(chatId: number | string) {
+  const token = process.env.TELEGRAMAI_BOT_TOKEN?.trim();
+  if (!token) {
+    throw new Error("Vercel Production environment-এ TELEGRAMAI_BOT_TOKEN সেট করে redeploy করুন।");
+  }
+
+  const webhookUrl = getKothasokhiWebhookUrl();
+  const secret = getKothasokhiWebhookSecret(token);
+
+  await kothasokhiTelegramApi("setWebhook", {
+    url: webhookUrl,
+    secret_token: secret,
+    allowed_updates: ["message"],
+    max_connections: 10,
+    drop_pending_updates: false,
+  });
+  await kothasokhiTelegramApi("setMyCommands", {
+    commands: [
+      { command: "start", description: "Start chatting with Kothasokhi" },
+      { command: "help", description: "How to use Kothasokhi" },
+    ],
+  });
+  await kothasokhiTelegramApi("setMyDescription", {
+    description: "🌸 Kothasokhi AI — Willes Literary Club-এর AI সাহিত্যসঙ্গী। বাংলা, সাহিত্য, কবিতা, লেখালেখি ও WLC নিয়ে আড্ডা দাও। বাংলা ও Banglish দুটোই বুঝি!",
+  });
+  await kothasokhiTelegramApi("setMyShortDescription", {
+    short_description: "📚 তোমার প্রিয় সাহিত্যসঙ্গী | WLC-এর AI assistant 💚",
+  });
+
+  const [me, info] = await Promise.all([
+    kothasokhiTelegramApi("getMe"),
+    kothasokhiTelegramApi("getWebhookInfo"),
+  ]);
+  const username = me.result?.username ? `@${me.result.username}` : "username পাওয়া যায়নি";
+  const actualUrl = String(info.result?.url || "");
+
+  await sendText(
+    chatId,
+    `✅ Kothasokhi AI setup complete!
+
+Bot: ${username}
+Webhook: ${actualUrl === webhookUrl ? "✅ registered" : "⚠️ verify করুন"}
+URL: ${actualUrl || webhookUrl}
+Pending updates: ${info.result?.pending_update_count ?? 0}
+
+এখন Kothasokhi bot-এ /start পাঠিয়ে test করুন।`,
+    [
+      [
+        { text: "📡 Check Status", callback_data: "wlc:kothasokhi:status" },
+        { text: "🧪 Test AI", callback_data: "wlc:kothasokhi:test" },
+      ],
+      [{ text: "⬅️ Control Center", callback_data: "wlc:kothasokhi:menu" }],
+    ]
+  );
+}
+
+async function testKothasokhiAi(chatId: number | string) {
+  const origin = (process.env.NEXT_PUBLIC_SITE_URL || "https://wlc.pro.bd").replace(/\\/$/, "");
+  const response = await fetch(`${origin}/api/chat`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      messages: [{ role: "user", content: "তুমি কে? এক বাক্যে পরিচয় দাও।" }],
+    }),
+    cache: "no-store",
+  });
+  const data = await response.json();
+  if (!response.ok || typeof data.reply !== "string") {
+    throw new Error(data.error || `AI chat API failed (HTTP ${response.status})`);
+  }
+  await sendText(
+    chatId,
+    `🧪 Kothasokhi AI test successful
+
+${String(data.reply).slice(0, 3500)}`,
+    [[{ text: "⬅️ Control Center", callback_data: "wlc:kothasokhi:menu" }]]
+  );
+}
+
+async function sendKothasokhiStats(chatId: number | string) {
+  const db = getAdminDb();
+  const [conversations, knowledge] = await Promise.all([
+    db.collection("telegram_ai_conversations").count().get(),
+    db.collection("kothasokhi_knowledge").where("status", "==", "PUBLISHED").count().get(),
+  ]);
+  await sendText(
+    chatId,
+    `📊 Kothasokhi AI Stats
+
+💬 Telegram conversations: ${conversations.data().count}
+📚 Published knowledge entries: ${knowledge.data().count}`,
+    [[{ text: "⬅️ Control Center", callback_data: "wlc:kothasokhi:menu" }]]
+  );
+}
+
 async function sendControlMenu(chatId: number | string) {
   return sendText(
     chatId,
@@ -103,6 +287,9 @@ async function sendControlMenu(chatId: number | string) {
       ],
       [
         { text: "✨ বিষয় ব্যবস্থাপনা", callback_data: "wlc:cms:menu" },
+      ],
+      [
+        { text: "🤖 Kothasokhi AI Control", callback_data: "wlc:kothasokhi:menu" },
       ],
       [
         { text: "❌ বাতিল", callback_data: "wlc:cancel" },
@@ -268,6 +455,42 @@ async function handleCallback(callback: TelegramCallbackQuery) {
     if (action.startsWith("wlc:cms:")) {
       await answerCallback(callback.id);
       await handleTelegramCmsCallback(userId, chatId, action);
+      return;
+    }
+
+    if (action === "wlc:kothasokhi:menu") {
+      await answerCallback(callback.id);
+      await sendKothasokhiMenu(chatId);
+      return;
+    }
+
+    if (action === "wlc:kothasokhi:back") {
+      await answerCallback(callback.id);
+      await sendControlMenu(chatId);
+      return;
+    }
+
+    if (action === "wlc:kothasokhi:status") {
+      await answerCallback(callback.id, "Kothasokhi status check করছি...");
+      await sendKothasokhiStatus(chatId);
+      return;
+    }
+
+    if (action === "wlc:kothasokhi:setup") {
+      await answerCallback(callback.id, "Kothasokhi setup/repair করছি...");
+      await setupKothasokhiBot(chatId);
+      return;
+    }
+
+    if (action === "wlc:kothasokhi:test") {
+      await answerCallback(callback.id, "AI test চলছে...");
+      await testKothasokhiAi(chatId);
+      return;
+    }
+
+    if (action === "wlc:kothasokhi:stats") {
+      await answerCallback(callback.id);
+      await sendKothasokhiStats(chatId);
       return;
     }
 
@@ -450,6 +673,21 @@ async function handleMessage(message: TelegramMessage) {
   }
 
   if (!isAdmin(userId)) return;
+
+  if (text === "/kothasokhi") {
+    await sendKothasokhiMenu(chatId);
+    return;
+  }
+
+  if (text === "/kothasokhi_status") {
+    await sendKothasokhiStatus(chatId);
+    return;
+  }
+
+  if (text === "/kothasokhi_setup") {
+    await setupKothasokhiBot(chatId);
+    return;
+  }
 
   if (await handleTelegramCmsMessage(userId, chatId, message)) return;
 
