@@ -89,7 +89,7 @@ async function answerCallback(callbackId: string, text?: string) {
 }
 
 function getKothasokhiWebhookUrl() {
-  const origin = (process.env.NEXT_PUBLIC_SITE_URL || "https://wlc.pro.bd").replace(/\\/$/, "");
+  const origin = (process.env.NEXT_PUBLIC_SITE_URL || "https://wlc.pro.bd").replace(/\/$/, "");
   return `${origin}/api/telegram-ai/webhook`;
 }
 
@@ -167,7 +167,7 @@ Webhook: ${matching ? "✅ ঠিক আছে" : "⚠️ missing/mismatch"}
 Expected URL: ${expectedUrl}
 Registered URL: ${actualUrl || "কোনো webhook registered নেই"}
 Pending updates: ${info.result?.pending_update_count ?? 0}
-Last Telegram error: ${info.result?.last_error_message || "নেই"}${info.result?.last_error_date ? `\\nError timestamp: ${new Date(info.result.last_error_date * 1000).toISOString()}` : ""}`,
+Last Telegram error: ${info.result?.last_error_message || "নেই"}${info.result?.last_error_date ? `\nError timestamp: ${new Date(info.result.last_error_date * 1000).toISOString()}` : ""}`,
     [
       [
         { text: "🔧 Setup / Repair", callback_data: "wlc:kothasokhi:setup" },
@@ -234,7 +234,7 @@ Pending updates: ${info.result?.pending_update_count ?? 0}
 }
 
 async function testKothasokhiAi(chatId: number | string) {
-  const origin = (process.env.NEXT_PUBLIC_SITE_URL || "https://wlc.pro.bd").replace(/\\/$/, "");
+  const origin = (process.env.NEXT_PUBLIC_SITE_URL || "https://wlc.pro.bd").replace(/\/$/, "");
   const response = await fetch(`${origin}/api/chat`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
