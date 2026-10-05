@@ -3,7 +3,7 @@ import Image from "next/image";
 
 export default function RunningCommittee() {
   const advisors = [
-    { id: 1, name: "আরিয়ান আজমাইন মিয়ন", role: "<b> প্রধান উপদেষ্টা </b>", batch: "SSC '24", image: "/panel/meyon.jpg" },
+    { id: 1, name: "আরিয়ান আজমাইন মিয়ন", role: "প্রধান উপদেষ্টা", batch: "SSC '24", image: "/panel/meyon.jpg" },
     { id: 2, name: "আইশান শান", role: "উপদেষ্টা", batch: "HSC '25", image: "/panel/shaan vai.jpg" },
     { id: 3, name: "মোল্লা সৌম্য রহমান", role: "পরামর্শদাতা", batch: "HSC '27", image: "/panel/shoummo.jpg" },
     { id: 4, name: "তওহিদ মাহমুদ", role: "পরামর্শদাতা", batch: "HSC '27", image: "/panel/towhid.jpg" }
