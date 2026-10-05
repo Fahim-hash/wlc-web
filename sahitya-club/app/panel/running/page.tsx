@@ -12,7 +12,7 @@ export default function RunningCommittee() {
   const executiveMembers = [
     { id: 1, name: "এহসান আহমেদ সিয়াম", role: "সভাপতি", batch: "HSC '26", image: "/panel/siam.jpg" },
     { id: 2, name: "অনন্যা হাসান বিথি", role: "সহ সভাপতি", batch: "HSC '26", image: "/panel/bithi.jpg" },
-    { id: 3, name: "আতিক আহরার", role: "সাধারন সম্পাদক", batch: "HSC '27", image: "/panel/atik.jpg" },
+    { id: 3, name: "আতিক আহরার", role: "সাধারন সম্পাদক", batch: "HSC '27", image: "/panel/atik'.jpg" },
     { id: 4, name: "রাফিদুল আমিন সাব্বির", role: "সাংগঠনিক সম্পাদক", batch: "SSC '26", image: "/panel/4.jpg" },
     { id: 5, name: "শেখ তাসিন", role: "মুখ্য সংগঠক (দিবা শাখা)", batch: "SSC '27", image: "/panel/5.jpg" },
     { id: 6, name: "নাহিয়ান নূর অহনা", role: "মুখ্য সংগঠক (প্রভাতি শাখা)", batch: "SSC '28", image: "/panel/6.jpg" },
@@ -34,7 +34,7 @@ export default function RunningCommittee() {
   ];
 
   const editorialMembers = [
-    { id: 1, name: "নাজমুল সাকিব", role: "সভাপতি (সম্পাদনা বিভাগ)", batch: "HSC '26", image: "/panel/sakib.jpg" },
+    { id: 1, name: "নাজমুল সাকিব", role: "সভাপতি (সম্পাদনা বিভাগ)", batch: "HSC '26", image: "/panel/Sakib.jpg" },
     { id: 2, name: "ইয়ামিন উজ-জামান", role: "সম্পাদক (সম্পাদনা বিভাগ)", batch: "HSC '26", image: "/panel/edit_2.jpg" },
     { id: 3, name: "রাকিবুল ইসলাম আকাশ", role: "সহ সম্পাদক (চিত্র ও ভিডিওগ্রাফি)", batch: "SSC '27", image: "/panel/edit_3.jpg" },
     { id: 4, name: "আবিয়াজ বুশাইরি", role: "কার্যনির্বাহী", batch: "SSC '26", image: "/panel/edit_4.jpg" }
