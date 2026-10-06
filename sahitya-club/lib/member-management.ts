@@ -27,7 +27,6 @@ function getAdminSecret() {
   return (
     process.env.MEMBER_ADMIN_GATEWAY_KEY?.trim() ||
     process.env.CONTROL_GATEWAY_KEY?.trim() ||
-    // Keep Member Hub compatible with the existing WLC Control Hub fallback.
     "WLC_Control_2026"
   );
 }
@@ -151,23 +150,34 @@ export function buildMemberEmail(member: Pick<RegisteredMember, "memberId" | "na
 export async function sendMemberEmail(member: RegisteredMember) {
   if (!member.email) throw new Error("This member does not have an email address.");
 
-  const apiKey = process.env.RESEND_API_KEY?.trim();
-  const from = process.env.RESEND_FROM_EMAIL?.trim();
+  const apiToken = process.env.MAILERSEND_API_TOKEN?.trim();
+  const fromEmail = process.env.MAILERSEND_FROM_EMAIL?.trim();
+  const fromName = process.env.MAILERSEND_FROM_NAME?.trim() || "Willes Literary Club (WLC)";
 
-  if (!apiKey || !from) {
-    throw new Error("Email service is not configured. Add RESEND_API_KEY and RESEND_FROM_EMAIL in Vercel.");
+  if (!apiToken || !fromEmail) {
+    throw new Error(
+      "Email service is not configured. Add MAILERSEND_API_TOKEN and MAILERSEND_FROM_EMAIL in Vercel."
+    );
   }
 
   const email = buildMemberEmail(member);
-  const response = await fetch("https://api.resend.com/emails", {
+  const response = await fetch("https://api.mailersend.com/v1/email", {
     method: "POST",
     headers: {
-      Authorization: `Bearer ${apiKey}`,
+      Authorization: `Bearer ${apiToken}`,
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      from,
-      to: [member.email],
+      from: {
+        email: fromEmail,
+        name: fromName,
+      },
+      to: [
+        {
+          email: member.email,
+          name: member.name,
+        },
+      ],
       subject: email.subject,
       html: email.html,
       text: email.text,
@@ -175,19 +185,18 @@ export async function sendMemberEmail(member: RegisteredMember) {
     cache: "no-store",
   });
 
-  const body = await response.json().catch(() => ({}));
-
   if (!response.ok) {
+    const body = await response.json().catch(() => ({}));
     const reason =
       typeof body?.message === "string"
         ? body.message
         : typeof body?.error === "string"
           ? body.error
-          : `Resend returned HTTP ${response.status}`;
+          : `MailerSend returned HTTP ${response.status}`;
     throw new Error(reason);
   }
 
-  return String(body?.id || "");
+  return response.headers.get("x-message-id") || "";
 }
 
 export async function updateEmailStatus(
