@@ -141,9 +141,9 @@ export function buildMemberEmail(member: Pick<RegisteredMember, "memberId" | "na
           <div style="height:5px;background:linear-gradient(90deg,#7f1d1d,#be123c,#991b1b);"></div>
 
           <div style="padding:34px 30px 30px;">
-            <div style="display:inline-block;padding:7px 12px;border-radius:999px;background:#fef2f2;color:#991b1b;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;">Membership Confirmed</div>
-            <h1 style="margin:16px 0 10px;font-size:30px;line-height:1.2;color:#1c1917;">Welcome to WLC, ${safeName}.</h1>
-            <p style="margin:0;color:#57534e;font-size:15px;line-height:1.8;">Congratulations! Your WLC membership registration has been recorded successfully.</p>
+            <div style="display:inline-block;padding:7px 12px;border-radius:999px;background:#fef2f2;color:#991b1b;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;">Membership Confirmetion</div>
+            <h1 style="margin:16px 0 10px;font-size:30px;line-height:1.2;color:#1c1917;">Welcome ${safeName},</h1>
+            <p style="margin:0;color:#57534e;font-size:15px;line-height:1.8;">Congratulations! Your Willes Literary Club membership registration has been recorded successfully.</p>
 
             <div style="margin:26px 0;padding:22px;border:1px solid #eadfd8;border-radius:18px;background:#faf8f6;">
               <div style="font-size:11px;text-transform:uppercase;letter-spacing:.16em;color:#a8a29e;font-weight:700;">Your Member ID</div>
@@ -153,7 +153,7 @@ export function buildMemberEmail(member: Pick<RegisteredMember, "memberId" | "na
             <p style="margin:0;color:#57534e;font-size:14px;line-height:1.8;">Please keep this Member ID safe. Event-specific portal credentials and instructions will be shared separately before relevant events.</p>
 
             <div style="margin-top:30px;padding-top:22px;border-top:1px solid #eee7e1;">
-              <p style="margin:0;color:#44403c;font-size:14px;line-height:1.7;">With literary regards,<br /><strong style="color:#7f1d1d;">Willes Literary Club (WLC)</strong></p>
+              <p style="margin:0;color:#44403c;font-size:14px;line-height:1.7;">With literary regards,<br /><strong style="color:#7f1d1d;">Willes Literary Club</strong></p>
               <p style="margin:7px 0 0;color:#a8a29e;font-size:12px;">“সাহিত্যের বন্ধনে, প্রতিভার সন্ধানে...”</p>
             </div>
           </div>
@@ -180,7 +180,7 @@ export async function sendMemberEmail(member: RegisteredMember) {
 
   const apiToken = process.env.MAILERSEND_API_TOKEN?.trim();
   const fromEmail = process.env.MAILERSEND_FROM_EMAIL?.trim();
-  const fromName = process.env.MAILERSEND_FROM_NAME?.trim() || "Willes Literary Club (WLC)";
+  const fromName = process.env.MAILERSEND_FROM_NAME?.trim() || "Willes Literary Club ";
 
   if (!apiToken || !fromEmail) {
     throw new Error(
