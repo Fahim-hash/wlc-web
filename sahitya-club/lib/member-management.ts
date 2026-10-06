@@ -115,6 +115,7 @@ function escapeHtml(value: string) {
 export function buildMemberEmail(member: Pick<RegisteredMember, "memberId" | "name">) {
   const safeName = escapeHtml(member.name);
   const safeMemberId = escapeHtml(member.memberId);
+  const logoUrl = "https://wlc.pro.bd/logo.png";
 
   return {
     subject: "Willes Literary Club — Membership Confirmation",
@@ -123,23 +124,50 @@ export function buildMemberEmail(member: Pick<RegisteredMember, "memberId" | "na
 <html lang="en">
   <head>
     <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>WLC Membership Confirmation</title>
   </head>
-  <body style="margin:0;background:#f6f9fc;font-family:Arial,sans-serif;color:#0f172a;">
-    <div style="max-width:620px;margin:0 auto;padding:32px 16px;">
-      <div style="background:#0f172a;border-radius:22px;padding:28px;color:#fff;">
-        <div style="font-size:13px;letter-spacing:.12em;text-transform:uppercase;opacity:.75;">Willes Literary Club</div>
-        <h1 style="margin:10px 0 0;font-size:28px;">Membership Confirmed</h1>
-      </div>
-      <div style="background:#fff;border:1px solid #e2e8f0;border-radius:22px;padding:28px;margin-top:16px;">
-        <p style="font-size:16px;">Dear <strong>${safeName}</strong>,</p>
-        <p style="line-height:1.7;">Congratulations! Your WLC membership registration has been recorded successfully.</p>
-        <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:16px;padding:20px;margin:22px 0;">
-          <div style="font-size:12px;text-transform:uppercase;letter-spacing:.12em;color:#64748b;">Member ID</div>
-          <div style="font-size:28px;font-weight:700;margin-top:8px;letter-spacing:.04em;">${safeMemberId}</div>
+  <body style="margin:0;padding:0;background:#f7f3ef;font-family:Arial,Helvetica,sans-serif;color:#292524;">
+    <div style="width:100%;background:#f7f3ef;padding:32px 12px;">
+      <div style="max-width:620px;margin:0 auto;">
+        <div style="background:#ffffff;border:1px solid #e7e5e4;border-radius:24px;overflow:hidden;box-shadow:0 8px 30px rgba(41,37,36,.08);">
+          
+          <div style="background:#fff;border-bottom:1px solid #eee7e1;padding:28px 28px 22px;text-align:center;">
+            <img src="${logoUrl}" width="76" height="76" alt="Willes Literary Club logo" style="display:block;width:76px;height:76px;object-fit:contain;margin:0 auto 14px;border-radius:18px;" />
+            <div style="font-size:12px;letter-spacing:.18em;text-transform:uppercase;color:#a8a29e;font-weight:700;">Willes Literary Club</div>
+            <div style="font-size:13px;color:#78716c;margin-top:5px;">উইল্‌স সাহিত্য ক্লাব</div>
+          </div>
+
+          <div style="height:5px;background:linear-gradient(90deg,#7f1d1d,#be123c,#991b1b);"></div>
+
+          <div style="padding:34px 30px 30px;">
+            <div style="display:inline-block;padding:7px 12px;border-radius:999px;background:#fef2f2;color:#991b1b;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;">Membership Confirmed</div>
+            <h1 style="margin:16px 0 10px;font-size:30px;line-height:1.2;color:#1c1917;">Welcome to WLC, ${safeName}.</h1>
+            <p style="margin:0;color:#57534e;font-size:15px;line-height:1.8;">Congratulations! Your WLC membership registration has been recorded successfully.</p>
+
+            <div style="margin:26px 0;padding:22px;border:1px solid #eadfd8;border-radius:18px;background:#faf8f6;">
+              <div style="font-size:11px;text-transform:uppercase;letter-spacing:.16em;color:#a8a29e;font-weight:700;">Your Member ID</div>
+              <div style="margin-top:9px;font-size:30px;line-height:1.2;font-weight:800;letter-spacing:.06em;color:#7f1d1d;">${safeMemberId}</div>
+            </div>
+
+            <p style="margin:0;color:#57534e;font-size:14px;line-height:1.8;">Please keep this Member ID safe. Event-specific portal credentials and instructions will be shared separately before relevant events.</p>
+
+            <div style="margin-top:30px;padding-top:22px;border-top:1px solid #eee7e1;">
+              <p style="margin:0;color:#44403c;font-size:14px;line-height:1.7;">With literary regards,<br /><strong style="color:#7f1d1d;">Willes Literary Club (WLC)</strong></p>
+              <p style="margin:7px 0 0;color:#a8a29e;font-size:12px;">“সাহিত্যের বন্ধনে, প্রতিভার সন্ধানে...”</p>
+            </div>
+          </div>
+
+          <div style="background:#1c1917;padding:22px 28px;text-align:center;">
+            <div style="font-size:12px;color:#d6d3d1;font-weight:700;">Willes Literary Club</div>
+            <div style="font-size:11px;color:#a8a29e;margin-top:5px;">Willes Little Flower School & College, Dhaka</div>
+            <a href="https://wlc.pro.bd" style="display:inline-block;margin-top:12px;color:#fca5a5;text-decoration:none;font-size:11px;font-weight:700;">wlc.pro.bd</a>
+          </div>
         </div>
-        <p style="line-height:1.7;">Please keep this Member ID safe. Event-specific portal credentials and instructions will be shared separately before relevant events.</p>
-        <p style="margin-top:28px;">— Willes Literary Club (WLC)</p>
+
+        <div style="text-align:center;padding:18px 8px 4px;color:#a8a29e;font-size:10px;line-height:1.6;">
+          This is an automated membership confirmation from Willes Literary Club.
+        </div>
       </div>
     </div>
   </body>
