@@ -304,6 +304,9 @@ export default function MemberHubPage() {
                   className="mt-2 w-full rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-sm text-white outline-none focus:ring-2 focus:ring-sky-400/40"
                 >
                   <option value="" className="bg-slate-900">Select class / year</option>
+                  <option value="Class 2" className="bg-slate-900">Class 2</option>
+                  <option value="Class 3" className="bg-slate-900">Class 3</option>
+                  <option value="Class 4" className="bg-slate-900">Class 4</option>
                   <option value="Class 5" className="bg-slate-900">Class 5</option>
                   <option value="Class 6" className="bg-slate-900">Class 6</option>
                   <option value="Class 7" className="bg-slate-900">Class 7</option>
