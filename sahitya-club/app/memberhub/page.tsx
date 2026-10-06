@@ -294,12 +294,26 @@ export default function MemberHubPage() {
                   placeholder="member@email.com"
                 />
               </div>
-              <Field
-                label="Batch / Year"
-                value={form.batch}
-                onChange={(value) => setForm((current) => ({ ...current, batch: value }))}
-                placeholder="HSC '28 / SSC '29"
-              />
+              <label className="block">
+                <span className="text-sm text-slate-300">Class / Year</span>
+                <select
+                  value={form.batch}
+                  onChange={(event) =>
+                    setForm((current) => ({ ...current, batch: event.target.value }))
+                  }
+                  className="mt-2 w-full rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-sm text-white outline-none focus:ring-2 focus:ring-sky-400/40"
+                >
+                  <option value="" className="bg-slate-900">Select class / year</option>
+                  <option value="Class 5" className="bg-slate-900">Class 5</option>
+                  <option value="Class 6" className="bg-slate-900">Class 6</option>
+                  <option value="Class 7" className="bg-slate-900">Class 7</option>
+                  <option value="Class 8" className="bg-slate-900">Class 8</option>
+                  <option value="Class 9" className="bg-slate-900">Class 9</option>
+                  <option value="Class 10" className="bg-slate-900">Class 10</option>
+                  <option value="1st Year (College)" className="bg-slate-900">1st Year (College)</option>
+                  <option value="2nd Year (College)" className="bg-slate-900">2nd Year (College)</option>
+                </select>
+              </label>
               <label className="block">
                 <span className="text-sm text-slate-300">Notes</span>
                 <textarea
