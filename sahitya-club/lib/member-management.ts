@@ -141,7 +141,7 @@ export function buildMemberEmail(member: Pick<RegisteredMember, "memberId" | "na
           <div style="height:5px;background:linear-gradient(90deg,#7f1d1d,#be123c,#991b1b);"></div>
 
           <div style="padding:34px 30px 30px;">
-            <div style="display:inline-block;padding:7px 12px;border-radius:999px;background:#fef2f2;color:#991b1b;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;">Membership Confirmetion</div>
+            <div style="display:inline-block;padding:7px 12px;border-radius:999px;background:#fef2f2;color:#991b1b;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;">Membership Confirmation</div>
             <h1 style="margin:16px 0 10px;font-size:30px;line-height:1.2;color:#1c1917;">Welcome ${safeName},</h1>
             <p style="margin:0;color:#57534e;font-size:15px;line-height:1.8;">Congratulations! Your Willes Literary Club membership registration has been recorded successfully.</p>
 
