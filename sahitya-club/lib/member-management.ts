@@ -83,18 +83,18 @@ export function normalizePhoneForWhatsApp(phone: string) {
 
 export function buildMemberMessage(member: Pick<RegisteredMember, "memberId" | "name">) {
   return [
-    "Willes Literary Club (WLC)",
+    "Willes Literary Club",
     "",
     "Membership Confirmation",
     `Dear ${member.name},`,
     "",
-    "Congratulations! Your WLC membership registration has been recorded successfully.",
+    "Congratulations! Your Willes Literary Club membership registration has been recorded successfully.",
     "",
     `Member ID: ${member.memberId}`,
     "",
     "Please keep this Member ID safe. Event-specific portal credentials and instructions will be shared separately before relevant events.",
     "",
-    "— Willes Literary Club (WLC)",
+    "— Willes Literary Club",
   ].join("\n");
 }
 
@@ -125,7 +125,7 @@ export function buildMemberEmail(member: Pick<RegisteredMember, "memberId" | "na
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>WLC Membership Confirmation</title>
+    <title>Willes Literary Club - Membership Confirmation</title>
   </head>
   <body style="margin:0;padding:0;background:#f7f3ef;font-family:Arial,Helvetica,sans-serif;color:#292524;">
     <div style="width:100%;background:#f7f3ef;padding:32px 12px;">
@@ -154,7 +154,7 @@ export function buildMemberEmail(member: Pick<RegisteredMember, "memberId" | "na
 
             <div style="margin-top:30px;padding-top:22px;border-top:1px solid #eee7e1;">
               <p style="margin:0;color:#44403c;font-size:14px;line-height:1.7;">With literary regards,<br /><strong style="color:#7f1d1d;">Willes Literary Club</strong></p>
-              <p style="margin:7px 0 0;color:#a8a29e;font-size:12px;">“সাহিত্যের বন্ধনে, প্রতিভার সন্ধানে...”</p>
+              <p style="margin:7px 0 0;color:#a8a29e;font-size:12px;">“সাহিত্যের বন্ধনে, প্রতিভার সন্ধানে”</p>
             </div>
           </div>
 
