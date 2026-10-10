@@ -274,15 +274,23 @@ export async function createRegisteredMember(input: {
   }
 
   const db = getAdminDb();
-  const year = new Date().getFullYear();
-  const counterRef = db.collection("system_counters").doc(`registered_members_${year}`);
+  const counterRef = db.collection("system_counters").doc("registered_members_WLC-03");
   const now = Date.now();
 
   const member = await db.runTransaction(async (transaction) => {
     const counterSnap = await transaction.get(counterRef);
-    const current = Math.max(1, Math.floor(Number(counterSnap.data()?.nextNumber || 1)));
-    const memberId = `WLC-${year}-${String(current).padStart(4, "0")}`;
-    const memberRef = db.collection("registered_members").doc(memberId);
+    let current = Math.max(1, Math.floor(Number(counterSnap.data()?.nextNumber || 1)));
+    let memberId = "";
+    let memberRef = db.collection("registered_members").doc("WLC-03-001");
+
+    // Preserve any existing IDs; pick the next unused serial starting at 001.
+    while (true) {
+      memberId = `WLC-03-${String(current).padStart(3, "0")}`;
+      memberRef = db.collection("registered_members").doc(memberId);
+      const existingMember = await transaction.get(memberRef);
+      if (!existingMember.exists) break;
+      current += 1;
+    }
 
     const record: RegisteredMember = {
       memberId,
