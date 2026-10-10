@@ -14,6 +14,7 @@ import {
   ShieldCheck,
   UserPlus,
   Users,
+  UserRoundX,
 } from "lucide-react";
 
 type Member = {
@@ -139,6 +140,22 @@ export default function MemberHubPage() {
     }
   }
 
+  async function removeMember(member: Member) {
+    const confirmed = window.confirm('Remove ' + member.name + ' (' + member.memberId + ') from the active member registry? This marks the record inactive, not permanently erases it.');
+    if (!confirmed) return;
+    setNotice('');
+    try {
+      const response = await fetch('/api/memberhub/members/' + encodeURIComponent(member.memberId), {
+        method: 'PATCH', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: member.status === 'ACTIVE' ? 'INACTIVE' : 'ACTIVE' }),
+      });
+      const data = await response.json();
+      if (!response.ok) { setNotice(data.message || 'Unable to update member status.'); return; }
+      setMembers((current) => current.map((item) => item.memberId === member.memberId ? { ...item, status: data.member.status } : item));
+      setNotice(data.member.status === 'INACTIVE' ? member.memberId + ' marked as removed.' : member.memberId + ' restored.');
+    } catch { setNotice('Unable to update member status. Please try again.'); }
+  }
+
   async function sendEmail(memberId: string) {
     setEmailing(memberId);
     setNotice("");
@@ -185,27 +202,27 @@ export default function MemberHubPage() {
 
   if (!authenticated) {
     return (
-      <main className="min-h-screen bg-slate-950 px-4 py-10 text-white">
+      <main className="min-h-screen bg-[#FAFAFA] px-4 py-10 text-stone-900">
         <div className="mx-auto flex min-h-[80vh] max-w-md items-center">
           <form
             onSubmit={login}
-            className="w-full rounded-3xl border border-white/10 bg-white/[0.06] p-7 shadow-2xl backdrop-blur"
+            className="w-full rounded-3xl border border-gray-200 bg-white p-7 shadow-sm"
           >
-            <div className="mb-7 flex h-14 w-14 items-center justify-center rounded-2xl bg-sky-500/15 text-sky-300">
+            <div className="mb-7 flex h-14 w-14 items-center justify-center rounded-2xl bg-rose-50 text-rose-800">
               <ShieldCheck size={28} />
             </div>
-            <p className="text-sm font-medium text-sky-300">WLC PRIVATE AREA</p>
+            <p className="text-sm font-medium text-rose-800">Willes Literary Club · PRIVATE AREA</p>
             <h1 className="mt-2 text-3xl font-semibold tracking-tight">Member Management</h1>
-            <p className="mt-3 text-sm leading-6 text-slate-400">
+            <p className="mt-3 text-sm leading-6 text-stone-600">
               Add registered members, create their Member IDs, and prepare their contact messages.
             </p>
 
-            <label className="mt-7 block text-sm text-slate-300">Admin access key</label>
+            <label className="mt-7 block text-sm text-stone-700">Admin access key</label>
             <input
               type="password"
               value={gatewayKey}
               onChange={(event) => setGatewayKey(event.target.value)}
-              className="mt-2 w-full rounded-2xl border border-white/10 bg-black/20 px-4 py-3 outline-none ring-sky-400/40 focus:ring-2"
+              className="mt-2 w-full rounded-2xl border border-gray-200 bg-stone-50 px-4 py-3 outline-none ring-rose-800/30 focus:ring-2"
               placeholder="Enter your private access key"
               autoComplete="current-password"
               required
@@ -213,14 +230,14 @@ export default function MemberHubPage() {
 
             <button
               type="submit"
-              className="mt-4 flex w-full items-center justify-center gap-2 rounded-2xl bg-white px-4 py-3 font-semibold text-slate-950 transition hover:bg-slate-100"
+              className="mt-4 flex w-full items-center justify-center gap-2 rounded-2xl bg-white px-4 py-3 font-semibold text-white transition hover:bg-rose-900"
             >
               <LogIn size={18} />
               Open Member Hub
             </button>
 
             {notice && (
-              <p className="mt-4 rounded-2xl border border-red-400/20 bg-red-400/10 px-4 py-3 text-sm text-red-200">
+              <p className="mt-4 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
                 {notice}
               </p>
             )}
@@ -231,27 +248,27 @@ export default function MemberHubPage() {
   }
 
   return (
-    <main className="min-h-screen bg-slate-950 px-4 py-8 text-white">
+    <main className="min-h-screen bg-[#FAFAFA] px-4 py-8 text-stone-900">
       <div className="mx-auto max-w-7xl">
-        <header className="mb-8 flex flex-col gap-4 rounded-3xl border border-white/10 bg-white/[0.05] p-6 shadow-2xl backdrop-blur md:flex-row md:items-center md:justify-between">
+        <header className="mb-8 flex flex-col gap-4 rounded-3xl border border-gray-200 bg-white p-6 shadow-sm md:flex-row md:items-center md:justify-between">
           <div>
-            <p className="text-sm font-medium uppercase tracking-[0.2em] text-sky-300">WLC Member Hub</p>
+            <p className="text-sm font-medium uppercase tracking-[0.2em] text-rose-800">Willes Literary Club · Member Hub</p>
             <h1 className="mt-2 text-3xl font-semibold tracking-tight">Member Management</h1>
-            <p className="mt-2 text-sm text-slate-400">
+            <p className="mt-2 text-sm text-stone-600">
               Private registry for offline registrations, Member IDs and confirmations.
             </p>
           </div>
           <div className="flex items-center gap-3">
             <button
               onClick={loadMembers}
-              className="inline-flex items-center gap-2 rounded-2xl border border-white/10 bg-white/5 px-4 py-2.5 text-sm font-medium hover:bg-white/10"
+              className="inline-flex items-center gap-2 rounded-2xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-medium hover:bg-stone-100"
             >
               <RefreshCw size={16} />
               Refresh
             </button>
             <button
               onClick={logout}
-              className="inline-flex items-center gap-2 rounded-2xl border border-white/10 bg-white/5 px-4 py-2.5 text-sm font-medium hover:bg-white/10"
+              className="inline-flex items-center gap-2 rounded-2xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-medium hover:bg-stone-100"
             >
               <LogOut size={16} />
               Logout
@@ -260,14 +277,14 @@ export default function MemberHubPage() {
         </header>
 
         <div className="grid gap-6 lg:grid-cols-[420px_1fr]">
-          <section className="rounded-3xl border border-white/10 bg-white/[0.05] p-6 shadow-xl">
+          <section className="rounded-3xl border border-gray-200 bg-white p-6 shadow-sm">
             <div className="flex items-center gap-3">
-              <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-sky-500/15 text-sky-300">
+              <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-rose-50 text-rose-800">
                 <UserPlus size={21} />
               </div>
               <div>
                 <h2 className="font-semibold">Add member</h2>
-                <p className="text-xs text-slate-500">ID is generated automatically.</p>
+                <p className="text-xs text-gray-500">ID is generated automatically.</p>
               </div>
             </div>
 
@@ -295,13 +312,13 @@ export default function MemberHubPage() {
                 />
               </div>
               <label className="block">
-                <span className="text-sm text-slate-300">Class / Year</span>
+                <span className="text-sm text-stone-700">Class / Year</span>
                 <select
                   value={form.batch}
                   onChange={(event) =>
                     setForm((current) => ({ ...current, batch: event.target.value }))
                   }
-                  className="mt-2 w-full rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-sm text-white outline-none focus:ring-2 focus:ring-sky-400/40"
+                  className="mt-2 w-full rounded-2xl border border-gray-200 bg-stone-50 px-4 py-3 text-sm text-stone-900 outline-none focus:ring-2 focus:ring-rose-800/30"
                 >
                   <option value="" className="bg-slate-900">Select class / year</option>
                   <option value="Class 2" className="bg-slate-900">Class 2</option>
@@ -318,18 +335,18 @@ export default function MemberHubPage() {
                 </select>
               </label>
               <label className="block">
-                <span className="text-sm text-slate-300">Notes</span>
+                <span className="text-sm text-stone-700">Notes</span>
                 <textarea
                   value={form.notes}
                   onChange={(event) => setForm((current) => ({ ...current, notes: event.target.value }))}
                   rows={3}
-                  className="mt-2 w-full rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-sky-400/40"
+                  className="mt-2 w-full rounded-2xl border border-gray-200 bg-stone-50 px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-rose-800/30"
                   placeholder="Optional internal note"
                 />
               </label>
 
               <div>
-                <span className="text-sm text-slate-300">Confirmation</span>
+                <span className="text-sm text-stone-700">Confirmation</span>
                 <div className="mt-2 grid gap-2 sm:grid-cols-2">
                   {[
                     ["none", "Add only"],
@@ -348,15 +365,15 @@ export default function MemberHubPage() {
                       }
                       className={`rounded-2xl border px-3 py-2.5 text-left text-sm transition ${
                         form.notification === value
-                          ? "border-sky-300/50 bg-sky-400/10 text-sky-200"
-                          : "border-white/10 bg-white/[0.03] text-slate-400 hover:bg-white/[0.06]"
+                          ? "border-rose-200 bg-rose-50 text-rose-800"
+                          : "border-gray-200 bg-stone-50 text-stone-600 hover:bg-white"
                       }`}
                     >
                       {label}
                     </button>
                   ))}
                 </div>
-                <p className="mt-2 text-xs leading-5 text-slate-500">
+                <p className="mt-2 text-xs leading-5 text-gray-500">
                   WhatsApp mode prepares a pre-filled message. It does not send automatically through a personal WhatsApp account.
                 </p>
               </div>
@@ -364,23 +381,23 @@ export default function MemberHubPage() {
               <button
                 type="submit"
                 disabled={submitting}
-                className="flex w-full items-center justify-center gap-2 rounded-2xl bg-sky-300 px-4 py-3 font-semibold text-slate-950 disabled:opacity-60"
+                className="flex w-full items-center justify-center gap-2 rounded-2xl bg-rose-800 px-4 py-3 font-semibold text-white disabled:opacity-60"
               >
                 <Plus size={18} />
                 {submitting ? "Adding…" : "Add Member"}
               </button>
 
               {created && (
-                <div className="rounded-2xl border border-emerald-400/20 bg-emerald-400/10 p-4">
-                  <div className="flex items-center gap-2 text-emerald-200">
+                <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-4">
+                  <div className="flex items-center gap-2 text-emerald-800">
                     <CheckCircle2 size={18} />
                     <span className="text-sm font-semibold">Member created</span>
                   </div>
-                  <div className="mt-3 flex items-center justify-between gap-3 rounded-xl bg-black/20 px-3 py-2.5">
+                  <div className="mt-3 flex items-center justify-between gap-3 rounded-xl bg-stone-50 px-3 py-2.5">
                     <code className="text-base font-semibold tracking-wide">{created.memberId}</code>
                     <button
                       onClick={() => copyText(created.memberId, "Member ID copied.")}
-                      className="rounded-lg p-1.5 text-slate-400 hover:bg-white/10 hover:text-white"
+                      className="rounded-lg p-1.5 text-stone-600 hover:bg-stone-100 hover:text-stone-900"
                       title="Copy Member ID"
                     >
                       <Copy size={16} />
@@ -392,7 +409,7 @@ export default function MemberHubPage() {
                         href={created.whatsappUrl}
                         target="_blank"
                         rel="noreferrer"
-                        className="inline-flex items-center gap-2 rounded-xl bg-emerald-400/15 px-3 py-2 text-sm text-emerald-200"
+                        className="inline-flex items-center gap-2 rounded-xl bg-emerald-50 px-3 py-2 text-sm text-emerald-800"
                       >
                         <MessageCircle size={16} />
                         Open WhatsApp
@@ -401,7 +418,7 @@ export default function MemberHubPage() {
                     {created.whatsappText && (
                       <button
                         onClick={() => copyText(created.whatsappText!, "WhatsApp message copied.")}
-                        className="inline-flex items-center gap-2 rounded-xl bg-white/5 px-3 py-2 text-sm text-slate-300"
+                        className="inline-flex items-center gap-2 rounded-xl bg-white px-3 py-2 text-sm text-stone-700"
                       >
                         <Copy size={16} />
                         Copy WhatsApp Text
@@ -412,33 +429,33 @@ export default function MemberHubPage() {
               )}
 
               {notice && (
-                <div className="rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-3 text-sm leading-5 text-slate-300">
+                <div className="rounded-2xl border border-gray-200 bg-stone-50 px-4 py-3 text-sm leading-5 text-stone-700">
                   {notice}
                 </div>
               )}
             </form>
           </section>
 
-          <section className="min-w-0 rounded-3xl border border-white/10 bg-white/[0.05] p-6 shadow-xl">
+          <section className="min-w-0 rounded-3xl border border-gray-200 bg-white p-6 shadow-sm">
             <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
               <div>
                 <div className="flex items-center gap-3">
-                  <Users size={22} className="text-sky-300" />
+                  <Users size={22} className="text-rose-800" />
                   <h2 className="font-semibold">Registered members</h2>
-                  <span className="rounded-full bg-white/10 px-2 py-0.5 text-xs text-slate-400">
+                  <span className="rounded-full bg-stone-100 px-2 py-0.5 text-xs text-stone-600">
                     {members.length}
                   </span>
                 </div>
-                <p className="mt-2 text-xs text-slate-500">
-                  Private records only. These are not exposed through the public CMS.
+                <p className="mt-2 text-xs text-gray-500">
+                  Private records only. Remove marks a member inactive; restore brings them back to the active registry.
                 </p>
               </div>
               <label className="relative block xl:w-80">
-                <Search size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
+                <Search size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" />
                 <input
                   value={search}
                   onChange={(event) => setSearch(event.target.value)}
-                  className="w-full rounded-2xl border border-white/10 bg-black/20 py-2.5 pl-9 pr-4 text-sm outline-none focus:ring-2 focus:ring-sky-400/40"
+                  className="w-full rounded-2xl border border-gray-200 bg-stone-50 py-2.5 pl-9 pr-4 text-sm outline-none focus:ring-2 focus:ring-rose-800/30"
                   placeholder="Search name, ID, email, phone…"
                 />
               </label>
@@ -446,18 +463,18 @@ export default function MemberHubPage() {
 
             <div className="mt-6 overflow-x-auto">
               {loading ? (
-                <div className="py-16 text-center text-sm text-slate-500">Loading members…</div>
+                <div className="py-16 text-center text-sm text-gray-500">Loading members…</div>
               ) : filteredMembers.length === 0 ? (
-                <div className="rounded-2xl border border-dashed border-white/10 py-16 text-center text-sm text-slate-500">
+                <div className="rounded-2xl border border-dashed border-gray-200 py-16 text-center text-sm text-gray-500">
                   No members found.
                 </div>
               ) : (
                 <table className="w-full min-w-[880px] border-separate border-spacing-y-2 text-left text-sm">
-                  <thead className="text-xs uppercase tracking-wide text-slate-500">
+                  <thead className="text-xs uppercase tracking-wide text-gray-500">
                     <tr>
                       <th className="px-3 py-2">Member</th>
                       <th className="px-3 py-2">Contact</th>
-                      <th className="px-3 py-2">Batch</th>
+                      <th className="px-3 py-2">Class / Year</th>
                       <th className="px-3 py-2">Email</th>
                       <th className="px-3 py-2">Actions</th>
                     </tr>
@@ -466,22 +483,23 @@ export default function MemberHubPage() {
                     {filteredMembers.map((member) => (
                       <tr key={member.memberId} className="bg-white/[0.035]">
                         <td className="rounded-l-2xl px-3 py-3.5">
-                          <div className="font-medium text-white">{member.name}</div>
-                          <code className="text-xs text-sky-300">{member.memberId}</code>
+                          <div className="font-medium text-stone-900">{member.name}</div>
+                          <span className={`mt-1 inline-flex rounded-full px-2 py-0.5 text-[10px] font-bold ${member.status === "ACTIVE" ? "bg-emerald-50 text-emerald-800" : "bg-red-50 text-red-700"}`}>{member.status === "ACTIVE" ? "ACTIVE" : "REMOVED"}</span>
+                          <code className="text-xs text-rose-800">{member.memberId}</code>
                         </td>
-                        <td className="px-3 py-3.5 text-slate-400">{member.phone || "—"}</td>
-                        <td className="px-3 py-3.5 text-slate-400">{member.batch || "—"}</td>
+                        <td className="px-3 py-3.5 text-stone-600">{member.phone || "—"}</td>
+                        <td className="px-3 py-3.5 text-stone-600">{member.batch || "—"}</td>
                         <td className="px-3 py-3.5">
                           <span className={`inline-flex rounded-full px-2.5 py-1 text-xs ${
                             member.emailStatus === "SENT"
-                              ? "bg-emerald-400/10 text-emerald-200"
+                              ? "bg-emerald-50 text-emerald-800"
                               : member.emailStatus === "FAILED"
-                                ? "bg-red-400/10 text-red-200"
-                                : "bg-white/10 text-slate-400"
+                                ? "bg-red-50 text-red-700"
+                                : "bg-stone-100 text-stone-600"
                           }`}>
                             {member.email ? member.emailStatus : "No email"}
                           </span>
-                          {member.email && <div className="mt-1 max-w-[220px] truncate text-xs text-slate-500">{member.email}</div>}
+                          {member.email && <div className="mt-1 max-w-[220px] truncate text-xs text-gray-500">{member.email}</div>}
                         </td>
                         <td className="rounded-r-2xl px-3 py-3.5">
                           <div className="flex flex-wrap gap-2">
@@ -489,18 +507,22 @@ export default function MemberHubPage() {
                               <button
                                 onClick={() => sendEmail(member.memberId)}
                                 disabled={emailing === member.memberId}
-                                className="inline-flex items-center gap-1.5 rounded-xl bg-white/5 px-2.5 py-2 text-xs text-slate-300 hover:bg-white/10 disabled:opacity-60"
+                                className="inline-flex items-center gap-1.5 rounded-xl bg-white px-2.5 py-2 text-xs text-stone-700 hover:bg-stone-100 disabled:opacity-60"
                               >
                                 <Mail size={14} />
                                 {emailing === member.memberId ? "Sending…" : member.emailStatus === "SENT" ? "Resend" : "Send Email"}
                               </button>
                             )}
+                            <button onClick={() => removeMember(member)} className={`inline-flex items-center gap-1.5 rounded-xl px-2.5 py-2 text-xs ${member.status === "ACTIVE" ? "bg-red-50 text-red-700 hover:bg-red-100" : "bg-emerald-50 text-emerald-800 hover:bg-emerald-100"}`} title={member.status === "ACTIVE" ? "Remove member" : "Restore member"}>
+                              <UserRoundX size={14} />
+                              {member.status === "ACTIVE" ? "Remove" : "Restore"}
+                            </button>
                             {member.whatsappUrl && (
                               <a
                                 href={member.whatsappUrl}
                                 target="_blank"
                                 rel="noreferrer"
-                                className="inline-flex items-center gap-1.5 rounded-xl bg-emerald-400/10 px-2.5 py-2 text-xs text-emerald-200"
+                                className="inline-flex items-center gap-1.5 rounded-xl bg-emerald-50 px-2.5 py-2 text-xs text-emerald-800"
                               >
                                 <MessageCircle size={14} />
                                 WhatsApp
@@ -538,7 +560,7 @@ function Field({
 }) {
   return (
     <label className="block">
-      <span className="text-sm text-slate-300">
+      <span className="text-sm text-stone-700">
         {label}
         {required ? " *" : ""}
       </span>
@@ -548,7 +570,7 @@ function Field({
         onChange={(event) => onChange(event.target.value)}
         placeholder={placeholder}
         required={required}
-        className="mt-2 w-full rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-sky-400/40"
+        className="mt-2 w-full rounded-2xl border border-gray-200 bg-stone-50 px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-rose-800/30"
       />
     </label>
   );
