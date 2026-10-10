@@ -230,7 +230,7 @@ export default function MemberHubPage() {
 
             <button
               type="submit"
-              className="mt-4 flex w-full items-center justify-center gap-2 rounded-2xl bg-white px-4 py-3 font-semibold text-white transition hover:bg-rose-900"
+              className="mt-4 flex w-full items-center justify-center gap-2 rounded-2xl bg-stone-950 px-4 py-3 font-semibold text-white transition hover:bg-rose-900"
             >
               <LogIn size={18} />
               Open Member Hub
