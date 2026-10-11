@@ -290,6 +290,9 @@ async function sendControlMenu(chatId: number | string) {
         { text: "✨ বিষয় ব্যবস্থাপনা", callback_data: "wlc:cms:menu" },
       ],
       [
+        { text: "🤖 AI Admin Assistant — Beta", callback_data: "wlc:aiadmin:help" },
+      ],
+      [
         { text: "🤖 Kothasokhi AI Control", callback_data: "wlc:kothasokhi:menu" },
       ],
       [
@@ -456,6 +459,12 @@ async function handleCallback(callback: TelegramCallbackQuery) {
     if (action.startsWith("wlc:cms:")) {
       await answerCallback(callback.id);
       await handleTelegramCmsCallback(userId, chatId, action);
+      return;
+    }
+
+    if (action === "wlc:aiadmin:help") {
+      await answerCallback(callback.id);
+      await handleTelegramAdminAi(userId, chatId, "/aihelp");
       return;
     }
 
