@@ -20,11 +20,14 @@ export async function GET() {
         const data = doc.data();
         return { memberId: doc.id, name: String(data.name || ""), email: data.email || null };
       }).sort((a, b) => a.name.localeCompare(b.name)),
-      events: events.map((event) => ({
-        id: String(event.id),
-        title: String(event.title || "WLC event"),
-        date: typeof event.date === "string" ? event.date : "",
-      })),
+      events: events.map((event) => {
+        const record = event as Record<string, unknown>;
+        return {
+          id: String(record.id),
+          title: String(record.title || "WLC event"),
+          date: typeof record.date === "string" ? record.date : "",
+        };
+      }),
     });
   } catch (error) {
     return NextResponse.json({ message: error instanceof Error ? error.message : "Could not load member activity tools." }, { status: 500 });
