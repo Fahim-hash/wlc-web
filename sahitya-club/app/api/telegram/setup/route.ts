@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import crypto from "crypto";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -18,7 +19,11 @@ async function telegramRequest(
     cache: "no-store",
   });
 
-  return response.json();
+  const result = await response.json();
+  if (!response.ok || !result.ok) {
+    throw new Error(`Telegram ${method} failed: ${result.description || response.status}`);
+  }
+  return result;
 }
 
 function authorized(request: Request) {
@@ -36,20 +41,21 @@ export async function GET(request: Request) {
     return NextResponse.json({ ok: false, error: "Unauthorized" }, { status: 401 });
   }
 
-  const token = process.env.TELEGRAM_BOT_TOKEN;
-  const secret = process.env.TELEGRAM_WEBHOOK_SECRET;
-  const origin = process.env.NEXT_PUBLIC_SITE_URL || "https://wlc.pro.bd";
-
-  if (!token || !secret) {
+  const token = process.env.TELEGRAM_BOT_TOKEN?.trim();
+  if (!token) {
     return NextResponse.json(
-      {
-        ok: false,
-        error: "TELEGRAM_BOT_TOKEN and TELEGRAM_WEBHOOK_SECRET are required.",
-      },
+      { ok: false, error: "TELEGRAM_BOT_TOKEN is required." },
       { status: 503 }
     );
   }
 
+  // Keep the webhook secret stable when explicitly configured. If it is not
+  // configured, derive one from the current token so token rotation can be
+  // repaired with this endpoint without requiring another environment value.
+  const secret =
+    process.env.TELEGRAM_WEBHOOK_SECRET?.trim() ||
+    crypto.createHash("sha256").update(token).digest("hex");
+  const origin = (process.env.NEXT_PUBLIC_SITE_URL || "https://wlc.pro.bd").replace(/\/$/, "");
   const webhookUrl = `${origin}/api/webhook/telegram`;
   const webhookBody = new URLSearchParams({
     url: webhookUrl,
@@ -61,12 +67,10 @@ export async function GET(request: Request) {
       "edited_channel_post",
     ]),
     max_connections: "10",
+    drop_pending_updates: "false",
   });
 
-  // Install the WLC Control Hub webhook without deleting queued updates first.
   const webhook = await telegramRequest(token, "setWebhook", webhookBody);
-  const info = await telegramRequest(token, "getWebhookInfo", new URLSearchParams());
-
   const commands = await telegramRequest(token, "setMyCommands", {
     commands: [
       { command: "start", description: "Open WLC Control Hub" },
@@ -85,6 +89,7 @@ export async function GET(request: Request) {
     ],
   });
 
+  const info = await telegramRequest(token, "getWebhookInfo", new URLSearchParams());
   return NextResponse.json({
     ok: Boolean(webhook.ok && commands.ok),
     webhook: {
