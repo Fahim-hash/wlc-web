@@ -210,10 +210,9 @@ export async function changeMemberUsername(input: { memberId: string; currentPas
   if (member.status !== "ACTIVE" || member.portalStatus !== "ACTIVE") {
     throw new Error("This account is not active.");
   }
-  const candidate = passwordHash(currentPassword, String(member.passwordSalt || "")).hash;
-  if (!member.passwordSalt || !member.passwordHash || !equal(candidate, String(member.passwordHash))) {
-    throw new Error("Current password is incorrect.");
-  }
+  if (!member.passwordSalt || !member.passwordHash) throw new Error("Current password is incorrect.");
+  const candidate = passwordHash(currentPassword, String(member.passwordSalt)).hash;
+  if (!equal(candidate, String(member.passwordHash))) throw new Error("Current password is incorrect.");
 
   const oldUsername = normalizeUsername(member.username);
   if (nextUsername === oldUsername) return { username: oldUsername };
