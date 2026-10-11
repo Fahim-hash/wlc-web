@@ -5,7 +5,9 @@ import { Metadata } from "next";
 // 🚀 এই পেজের জন্য প্রিমিয়াম এসইও সেটআপ
 export const metadata: Metadata = {
   title: "আমাদের সম্পর্কে | উইল্‌স সাহিত্য ক্লাব",
-  description: "উইল্‌স লিটল ফ্লাওয়ার স্কুল অ্যান্ড কলেজের অফিশিয়াল সাহিত্য ক্লাব-এর ইতিহাস, উদ্দেশ্য এবং আমাদের গৌরবময় পথচলার গল্পকথা।",
+  description: "উইল্‌স লিটল ফ্লাওয়ার স্কুল অ্যান্ড কলেজের অফিসিয়াল সাহিত্য ক্লাবের ইতিহাস, লক্ষ্য, সাহিত্যচর্চা ও সৃজনশীল কার্যক্রম সম্পর্কে জানুন।",
+  alternates: { canonical: "/about" },
+  openGraph: { title: "আমাদের সম্পর্কে | উইল্‌স সাহিত্য ক্লাব", description: "Willes Literary Club-এর ইতিহাস, লক্ষ্য, সাহিত্যচর্চা ও সৃজনশীল কার্যক্রম সম্পর্কে জানুন।", url: "https://wlc.pro.bd/about", siteName: "Willes Literary Club", locale: "bn_BD", type: "website" },
 };
 
 export default function AboutPage() {
