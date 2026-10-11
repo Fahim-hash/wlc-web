@@ -159,7 +159,15 @@ async function loadMembers() {
   return snapshot.docs.map((doc) => ({ ...doc.data(), memberId: safeString(doc.data().memberId) || doc.id }) as MemberRow);
 }
 
+function maskPhone(value: unknown) {
+  const phone = digits(value);
+  if (!phone) return "";
+  if (phone.length <= 5) return "x".repeat(phone.length);
+  return phone.slice(0, 2) + "x".repeat(phone.length - 5) + phone.slice(-3);
+}
+
 function rowValue(member: MemberRow, field: string) {
+  if (field === "phone") return maskPhone(member.phone);
   if (field === "class") return safeString(member.batch) || "Not provided";
   if (field === "createdAt") {
     const timestamp = Number(member.createdAt);
