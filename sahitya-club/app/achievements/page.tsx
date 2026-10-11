@@ -19,96 +19,90 @@ export default async function AchievementsPage() {
   const achievements = (await listPublished("achievements", 100)) as Achievement[];
 
   return (
-    <main className="min-h-screen bg-[#f7f4ef] pb-24 text-[#211d1a]">
-      <section className="relative isolate overflow-hidden border-b border-white/10 bg-[#211d1a] text-white">
-        <div aria-hidden="true" className="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_12%_15%,rgba(159,45,34,.52),transparent_34%),radial-gradient(circle_at_88%_78%,rgba(221,171,116,.18),transparent_30%)]" />
-        <div aria-hidden="true" className="absolute -right-16 -top-24 -z-10 h-72 w-72 rounded-full border border-white/10 md:h-96 md:w-96" />
-        <div aria-hidden="true" className="absolute -right-4 -top-12 -z-10 h-56 w-56 rounded-full border border-white/10 md:h-80 md:w-80" />
-        <div className="mx-auto grid max-w-6xl items-end gap-10 px-6 pb-16 pt-20 md:grid-cols-[1.15fr_.85fr] md:pb-24 md:pt-28">
+    <main className="min-h-screen bg-[#FAFAFA] pb-20 font-sans text-gray-800">
+      <header className="mx-auto max-w-5xl border-b border-gray-200 px-6 pb-9 pt-12 md:px-10 md:pb-12 md:pt-16">
+        <span className="inline-flex items-center rounded-full border border-rose-100 bg-rose-50 px-3 py-1.5 text-xs font-bold uppercase tracking-widest text-rose-700">
+          উইল্‌স সাহিত্য ক্লাব · Achievements
+        </span>
+        <div className="mt-5 grid gap-6 md:grid-cols-[1fr_auto] md:items-end">
           <div>
-            <p className="mb-5 inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/[0.06] px-4 py-2 text-[11px] font-bold uppercase tracking-[0.24em] text-[#e9b8a9]">
-              <span className="h-1.5 w-1.5 rounded-full bg-[#e9b8a9]" />
-              উইল্‌স সাহিত্য ক্লাব
-            </p>
-            <h1 className="max-w-3xl font-serif text-5xl font-bold leading-[1.08] tracking-tight md:text-7xl">
-              অর্জন ও <span className="text-[#e9b8a9]">স্বীকৃতি</span>
+            <h1 className="font-serif text-4xl font-bold leading-tight text-gray-900 md:text-6xl">
+              অর্জন ও <span className="text-rose-800">স্বীকৃতি</span>
             </h1>
-            <p className="mt-6 max-w-2xl text-base leading-8 text-white/70 md:text-lg">
-              প্রতিটি স্বীকৃতির পেছনে থাকে চেষ্টা, সাহস আর একসঙ্গে এগিয়ে যাওয়ার গল্প। আমাদের পথচলার উল্লেখযোগ্য মুহূর্তগুলো থাকুক স্মৃতির পাতায়।
+            <p className="mt-4 max-w-2xl text-sm leading-7 text-gray-500 md:text-base">
+              প্রতিটি অর্জনের পেছনে আছে পরিশ্রম, সৃজনশীলতা আর একসঙ্গে এগিয়ে যাওয়ার গল্প। উইল্‌স সাহিত্য ক্লাবের স্মরণীয় মুহূর্তগুলো এক জায়গায়।
             </p>
-            <div className="mt-9 flex flex-wrap items-center gap-3">
-              <span className="rounded-full bg-[#f7f4ef] px-5 py-2.5 text-sm font-bold text-[#211d1a]">🏆 {achievements.length}টি প্রকাশিত অর্জন</span>
-              <a href="#achievement-wall" className="rounded-full border border-white/20 px-5 py-2.5 text-sm font-semibold text-white/85 transition hover:border-white/50 hover:bg-white/10">অর্জনগুলো দেখুন ↓</a>
-            </div>
           </div>
-          <div className="relative mx-auto w-full max-w-md md:justify-self-end">
-            <div className="absolute -inset-4 rounded-[2rem] border border-white/10" />
-            <div className="relative overflow-hidden rounded-[1.75rem] border border-white/15 bg-white/[0.06] p-7 backdrop-blur-sm md:p-9">
-              <div className="flex items-start justify-between gap-4">
-                <span className="text-5xl" aria-hidden="true">✦</span>
-                <span className="rounded-full border border-[#e9b8a9]/30 px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.2em] text-[#e9b8a9]">Our journey</span>
-              </div>
-              <p className="mt-8 font-serif text-3xl font-bold leading-snug md:text-4xl">শব্দ থেকে স্বীকৃতি, স্বপ্ন থেকে সাফল্য।</p>
-              <div className="mt-8 h-px bg-white/15" />
-              <p className="mt-5 text-sm leading-7 text-white/60">সাহিত্য, সৃজনশীলতা ও দলগত প্রচেষ্টায় তৈরি আমাদের স্মরণীয় অধ্যায়গুলো।</p>
-            </div>
+          <div className="flex h-20 w-20 items-center justify-center rounded-2xl border border-gray-200 bg-white text-4xl shadow-sm md:h-24 md:w-24" aria-hidden="true">
+            🏆
           </div>
         </div>
-      </section>
+        <div className="mt-7 flex flex-wrap items-center gap-3">
+          <span className="rounded-xl bg-stone-950 px-5 py-2.5 text-sm font-semibold text-white shadow-sm">
+            {achievements.length}টি প্রকাশিত অর্জন
+          </span>
+          <a href="#achievement-wall" className="rounded-xl border border-gray-200 bg-white px-5 py-2.5 text-sm font-semibold text-stone-800 transition-colors hover:border-rose-200 hover:bg-rose-50 hover:text-rose-800">
+            অর্জনগুলো দেখুন <span aria-hidden="true">↓</span>
+          </a>
+        </div>
+      </header>
 
-      <section id="achievement-wall" className="mx-auto max-w-6xl scroll-mt-8 px-6 py-14 md:py-20">
-        <div className="mb-9 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-          <div>
-            <p className="text-xs font-bold uppercase tracking-[0.24em] text-[#9f2d22]">The achievement wall</p>
-            <h2 className="mt-2 font-serif text-3xl font-bold md:text-4xl">সাফল্যের স্মরণীয় মুহূর্ত</h2>
-          </div>
-          <p className="max-w-md text-sm leading-7 text-[#746c66]">প্রতিটি অর্জন আমাদের আরও ভালো কাজ করতে অনুপ্রাণিত করে।</p>
+      <section id="achievement-wall" className="mx-auto max-w-5xl scroll-mt-8 px-6 py-12 md:px-10 md:py-16">
+        <div className="mb-7 border-l-4 border-rose-800 pl-4">
+          <p className="text-xs font-bold uppercase tracking-widest text-rose-700">Achievement gallery</p>
+          <h2 className="mt-1 font-serif text-2xl font-bold text-gray-900 md:text-3xl">সাফল্যের স্মরণীয় মুহূর্ত</h2>
+          <p className="mt-2 max-w-2xl text-sm leading-6 text-gray-500">আমাদের যাত্রার প্রতিটি স্বীকৃতি ভবিষ্যতের আরও ভালো কাজের অনুপ্রেরণা।</p>
         </div>
 
         {achievements.length === 0 ? (
-          <div className="overflow-hidden rounded-[2rem] border border-[#ded7ce] bg-white shadow-[0_20px_60px_rgba(33,29,26,.05)]">
-            <div className="grid items-center gap-8 p-8 md:grid-cols-[.65fr_1fr] md:p-12">
-              <div className="flex aspect-[4/3] items-center justify-center rounded-[1.5rem] bg-[radial-gradient(circle_at_50%_35%,rgba(159,45,34,.13),transparent_55%),linear-gradient(135deg,#f7eee7,#eee6dc)]">
-                <span className="text-8xl" aria-hidden="true">🏆</span>
+          <div className="rounded-3xl border border-gray-200 bg-white p-6 shadow-sm md:p-10">
+            <div className="grid items-center gap-7 md:grid-cols-[220px_1fr]">
+              <div className="flex aspect-square items-center justify-center rounded-2xl border border-gray-100 bg-[#FAFAFA] text-7xl">
+                🏆
               </div>
               <div>
-                <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#9f2d22]">A story in the making</p>
-                <h3 className="mt-3 font-serif text-3xl font-bold">নতুন অর্জনের অপেক্ষায়</h3>
-                <p className="mt-4 max-w-lg text-sm leading-8 text-[#746c66]">উইল্‌স সাহিত্য ক্লাবের অর্জন ও স্বীকৃতির গল্প প্রকাশিত হলে এই দেয়ালেই সেগুলো ছবি ও বিস্তারিত তথ্যসহ সাজানো হবে।</p>
+                <span className="inline-flex rounded-full border border-rose-100 bg-rose-50 px-3 py-1 text-xs font-bold text-rose-700">Coming soon</span>
+                <h3 className="mt-3 font-serif text-2xl font-bold text-gray-900">নতুন অর্জনের অপেক্ষায়</h3>
+                <p className="mt-3 max-w-xl text-sm leading-7 text-gray-500">
+                  উইল্‌স সাহিত্য ক্লাবের অর্জন ও স্বীকৃতির গল্প প্রকাশিত হলে এখানে ছবি ও বিস্তারিত তথ্যসহ দেখা যাবে।
+                </p>
               </div>
             </div>
           </div>
         ) : (
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
             {achievements.map((item, index) => (
-              <article key={item.id} className="group flex h-full flex-col overflow-hidden rounded-[1.75rem] border border-[#ded7ce] bg-white shadow-[0_12px_40px_rgba(33,29,26,.045)] transition duration-300 hover:-translate-y-1 hover:border-[#cbb8aa] hover:shadow-[0_24px_55px_rgba(33,29,26,.11)]">
-                <div className="relative aspect-[4/3] overflow-hidden bg-[radial-gradient(circle_at_50%_35%,rgba(159,45,34,.14),transparent_55%),linear-gradient(135deg,#f7eee7,#eee6dc)]">
+              <article key={item.id} className="group flex h-full flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-rose-200 hover:shadow-lg">
+                <div className="relative aspect-[4/3] overflow-hidden border-b border-gray-100 bg-[#FAFAFA]">
                   {item.imageFileId ? (
                     <img
                       src={achievementImage(item.imageFileId)}
                       alt={item.title ? `${item.title} — অর্জনের ছবি` : "উইল্‌স সাহিত্য ক্লাবের অর্জন"}
-                      className="h-full w-full object-cover transition duration-700 group-hover:scale-[1.04]"
+                      className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
                       loading={index < 3 ? "eager" : "lazy"}
                     />
                   ) : (
                     <div className="flex h-full items-center justify-center">
-                      <div className="flex h-24 w-24 items-center justify-center rounded-full border border-[#9f2d22]/15 bg-white/70 text-5xl shadow-sm">🏆</div>
+                      <div className="flex h-20 w-20 items-center justify-center rounded-2xl border border-gray-200 bg-white text-4xl shadow-sm">🏆</div>
                     </div>
                   )}
-                  <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-black/45 to-transparent" />
-                  <span className="absolute bottom-4 left-5 rounded-full border border-white/30 bg-black/25 px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.18em] text-white backdrop-blur-md">
+                  <span className="absolute left-4 top-4 rounded-full border border-rose-100 bg-rose-50/95 px-3 py-1.5 text-[11px] font-bold text-rose-700 shadow-sm">
                     {item.category || "অর্জন"}
                   </span>
-                  <span className="absolute right-4 top-4 flex h-10 w-10 items-center justify-center rounded-full border border-white/40 bg-white/85 font-serif text-sm font-bold text-[#9f2d22] shadow-sm">
+                  <span className="absolute right-4 top-4 flex h-9 w-9 items-center justify-center rounded-xl border border-gray-200 bg-white/95 font-mono text-xs font-bold text-gray-500 shadow-sm">
                     {String(index + 1).padStart(2, "0")}
                   </span>
                 </div>
-                <div className="flex flex-1 flex-col p-6 md:p-7">
-                  {item.date && <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[#9f2d22]">{item.date}</p>}
-                  <h3 className="mt-2 font-serif text-2xl font-bold leading-snug transition-colors group-hover:text-[#9f2d22]">{item.title || "অর্জন ও স্বীকৃতি"}</h3>
-                  <p className="mt-3 flex-1 whitespace-pre-line text-sm leading-7 text-[#625b55]">{item.description || "এই অর্জনের গল্প শিগগিরই বিস্তারিতভাবে যুক্ত হবে।"}</p>
-                  <div className="mt-6 flex items-center gap-3 border-t border-[#eee7e0] pt-5 text-xs font-semibold text-[#9f2d22]">
-                    <span className="h-1.5 w-1.5 rounded-full bg-[#9f2d22]" />
+                <div className="flex flex-1 flex-col p-5">
+                  {item.date && <p className="text-xs font-semibold text-rose-700">{item.date}</p>}
+                  <h3 className="mt-2 font-serif text-xl font-bold leading-snug text-gray-900 transition-colors group-hover:text-rose-800">
+                    {item.title || "অর্জন ও স্বীকৃতি"}
+                  </h3>
+                  <p className="mt-3 flex-1 whitespace-pre-line text-sm leading-7 text-gray-500">
+                    {item.description || "এই অর্জনের বিস্তারিত শিগগিরই যুক্ত হবে।"}
+                  </p>
+                  <div className="mt-5 flex items-center gap-2 border-t border-gray-100 pt-4 text-xs font-bold text-gray-600">
+                    <span className="h-2 w-2 rounded-full bg-rose-700" />
                     উইল্‌স সাহিত্য ক্লাব
                   </div>
                 </div>
