@@ -137,7 +137,9 @@ User request: ${input}`
   const fields = Array.isArray(value.fields)
     ? value.fields.map(String).filter((field) => ALLOWED_FIELDS.has(field)).slice(0, 7)
     : ["name", "class", "memberId", "phone"];
-  const suffix = digits(value.phoneSuffix);
+  const maskedPhoneSuffix = input.match(/01[\\d\\s-]*[*xX•]{2,}[\\d*xX•\\s-]*(\\d{2,8})/i)?.[1];
+  const statedEnding = input.match(/(?:ends?\\s+(?:with\\s+)?|ending\\s+(?:in\\s+)?|শেষ(?:ে| হয়)?\\s*(?:দিয়ে|হয়)?\\s*)(\\d{2,8})/i)?.[1];
+  const suffix = maskedPhoneSuffix || statedEnding || digits(value.phoneSuffix);
   return {
     action,
     classFilter: typeof value.classFilter === "string" ? value.classFilter.slice(0, 60) : null,
