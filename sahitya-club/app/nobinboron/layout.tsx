@@ -1,0 +1,7 @@
+import type { Metadata } from "next";
+export const metadata: Metadata = {
+  title: "নবীনবরণ | উইল্‌স সাহিত্য ক্লাব",
+  description: "উইল্‌স সাহিত্য ক্লাবের নবীনবরণ আয়োজন, নতুন সদস্যদের স্বাগত এবং সংশ্লিষ্ট স্মৃতি ও কার্যক্রমের তথ্য দেখুন।",
+  alternates: { canonical: "/nobinboron" },
+  openGraph: { title: "নবীনবরণ | Willes Literary Club", description: "নতুন সদস্যদের স্বাগত জানাতে WLC-এর নবীনবরণ আয়োজন ও স্মৃতি।", url: "https://wlc.pro.bd/nobinboron", siteName: "Willes Literary Club", locale: "bn_BD", type: "website" }
+};
