@@ -262,7 +262,8 @@ export default function MemberHubPage() {
               Private registry for offline registrations, Member IDs and confirmations.
             </p>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-3">
+            <a href="/memberhub/activity" className="inline-flex items-center gap-2 rounded-2xl bg-rose-900 px-4 py-2.5 text-sm font-semibold text-white hover:bg-rose-800">Attendance & Certificates</a>
             <button
               onClick={loadMembers}
               className="inline-flex items-center gap-2 rounded-2xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-medium hover:bg-stone-100"
