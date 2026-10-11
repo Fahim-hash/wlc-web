@@ -5,9 +5,9 @@ import Image from "next/image";
 export default function PanelMainDashboard() {
   const studentCards = [
     {
-      title: "বর্তমান কমিটি",
-      subtitle: "Running Session",
-      desc: "উইল্‌স সাহিত্য ক্লাবের বর্তমান নেতৃত্ব যারা বর্তমানে ক্লাবটিকে সামনে এগিয়ে নিয়ে যাচ্ছে।",
+      title: "জেনারেশন - ২",
+      subtitle: "GEN-2 (2026)",
+      desc: "উইল্‌স সাহিত্য ক্লাবের বর্তমান কার্যনির্বাহী নেতৃত্ব ও ২০২৬ সেশনের কমিটি।",
       link: "/panel/running",
       color: "from-rose-800 to-rose-950",
       icon: "✍️"
@@ -19,6 +19,14 @@ export default function PanelMainDashboard() {
       link: "/panel/GEN-1",
       color: "from-amber-700 via-amber-850 to-stone-900",
       icon: "✒️"
+    },
+    {
+      title: "জেনারেশন - ৩",
+      subtitle: "GEN-3 (UPCOMING)",
+      desc: "নতুন প্রজন্মের প্যানেল নির্বাচন শুরু হয়েছে। GEN-3-এর সদস্য তালিকা ও বিস্তারিত খুব শিগগির প্রকাশ করা হবে।",
+      link: "/panel/GEN-3",
+      color: "from-violet-700 to-indigo-950",
+      icon: "🌱"
     },
     {
       title: "সহযোগী কার্যনির্বাহী",
@@ -84,7 +92,7 @@ export default function PanelMainDashboard() {
       </div>
 
       {/* ================= ২. ৩টি ছাত্র প্যানেলে যাওয়ার মেইন কার্ডস ================= */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {studentCards.map((card, idx) => (
           <Link 
             href={card.link} 
