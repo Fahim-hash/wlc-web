@@ -52,13 +52,14 @@ export async function createActivationLink(memberId: string) {
   if (member.portalStatus === "ACTIVE") throw new Error("This member already has an active portal account.");
 
   // Invalidate older unused links so only the newest email can activate the account.
-  const olderTokens = await db.collection("member_activation_tokens")
+  const memberTokens = await db.collection("member_activation_tokens")
     .where("memberId", "==", memberId)
-    .where("usedAt", "==", null)
     .get();
-  if (!olderTokens.empty) {
+  const olderTokens = memberTokens.docs.filter((doc) => doc.data().usedAt == null);
+  if (olderTokens.length) {
     const batch = db.batch();
-    olderTokens.docs.forEach((doc) => batch.update(doc.ref, { usedAt: Date.now(), invalidatedAt: Date.now() }));
+    const invalidatedAt = Date.now();
+    olderTokens.forEach((doc) => batch.update(doc.ref, { usedAt: invalidatedAt, invalidatedAt }));
     await batch.commit();
   }
 
