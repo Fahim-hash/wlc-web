@@ -5,3 +5,9 @@ export const metadata: Metadata = {
   alternates: { canonical: "/contact" },
   openGraph: { title: "যোগাযোগ | Willes Literary Club", description: "Willes Literary Club-এর সঙ্গে যোগাযোগের অফিসিয়াল মাধ্যম ও তথ্য।", url: "https://wlc.pro.bd/contact", siteName: "Willes Literary Club", locale: "bn_BD", type: "website" }
 };
+
+import type { ReactNode } from "react";
+
+export default function MetadataLayout({ children }: { children: ReactNode }) {
+  return children;
+}
