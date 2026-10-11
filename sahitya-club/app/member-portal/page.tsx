@@ -175,6 +175,20 @@ export default function MemberPortalPage() {
               </form>
               <p className="mt-2 text-xs text-stone-500">UIDs are unique and can contain English letters, numbers and underscores only.</p>
             </section>
+            <section className="mt-5 rounded-2xl border border-stone-200 bg-white p-6">
+              <h2 className="font-semibold">Digital membership card</h2>
+              <div className="mt-4 flex flex-col gap-4 rounded-2xl border border-stone-200 bg-stone-50 p-4 sm:flex-row sm:items-center">
+                <div className="min-w-0 flex-1">
+                  <p className="text-xs font-bold uppercase tracking-wider text-rose-900">Willes Literary Club</p>
+                  <p className="mt-2 text-xl font-bold">{member.name}</p>
+                  <p className="mt-1 break-all font-mono text-sm text-rose-900">{member.memberId}</p>
+                  <p className="mt-3 text-xs text-stone-500">Permanent official member ID · {member.status}</p>
+                  <a href={"/member-portal/verify?id=" + encodeURIComponent(member.memberId)} className="mt-3 inline-block text-sm font-semibold text-rose-900 underline">Verify membership ↗</a>
+                </div>
+                <img alt="QR code for official member verification" width="132" height="132" loading="lazy" className="h-[132px] w-[132px] self-center rounded-lg border bg-white p-1" src={"https://api.qrserver.com/v1/create-qr-code/?size=132x132&margin=6&data=" + encodeURIComponent("https://wlc.pro.bd/member-portal/verify?id=" + member.memberId)} />
+              </div>
+              <p className="mt-3 text-xs leading-5 text-stone-500">The QR opens the club’s public verification page. It shows the official ID, member name and membership status only—not contact details.</p>
+            </section>
             <section className="mt-5 grid gap-4 sm:grid-cols-2">
               <article className="rounded-2xl border border-stone-200 bg-white p-6"><div className="flex items-center justify-between"><h2 className="font-semibold">Upcoming / published events</h2><span className="rounded-full bg-stone-100 px-2.5 py-1 text-xs">{activity.events.length}</span></div>{activity.events.length ? <div className="mt-4 space-y-4">{activity.events.map(event => <div key={String(event.id)} className="border-t border-stone-100 pt-3"><p className="font-medium">{event.title || "WLC event"}</p><p className="mt-1 text-xs text-stone-500">{[event.date,event.time,event.venue].filter(Boolean).join(" · ")}</p>{event.description && <p className="mt-2 whitespace-pre-line text-sm leading-6 text-stone-600">{event.description}</p>}{event.link && (String(event.link).startsWith("/") || /^https?:\/\//i.test(String(event.link))) && <a href={String(event.link)} className="mt-2 inline-block text-sm font-semibold text-rose-900 underline">Event details ↗</a>}</div>)}</div> : <p className="mt-3 text-sm text-stone-500">No published events right now.</p>}</article>
               <article className="rounded-2xl border border-stone-200 bg-white p-6"><div className="flex items-center justify-between"><h2 className="font-semibold">Club announcements</h2><span className="rounded-full bg-stone-100 px-2.5 py-1 text-xs">{activity.announcements.length}</span></div>{activity.announcements.length ? <div className="mt-4 space-y-4">{activity.announcements.map(item => <div key={String(item.id)} className="border-t border-stone-100 pt-3"><p className="font-medium">{item.title || "WLC announcement"}</p>{item.date && <p className="mt-1 text-xs text-stone-500">{item.date}</p>}{item.summary && <p className="mt-2 whitespace-pre-line text-sm leading-6 text-stone-600">{item.summary}</p>}{item.link && (String(item.link).startsWith("/") || /^https?:\/\//i.test(String(item.link))) && <a href={String(item.link)} className="mt-2 inline-block text-sm font-semibold text-rose-900 underline">Read more ↗</a>}</div>)}</div> : <p className="mt-3 text-sm text-stone-500">No published announcements right now.</p>}</article>
