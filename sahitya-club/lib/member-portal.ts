@@ -189,3 +189,59 @@ export async function sendActivationEmail(member: { name: string; email: string;
   }
   return response.headers.get("x-message-id") || "";
 }
+
+
+export async function changeMemberUsername(input: { memberId: string; currentPassword: string; nextUsername: string }) {
+  const memberId = input.memberId.trim();
+  const currentPassword = input.currentPassword;
+  const nextUsername = normalizeUsername(input.nextUsername);
+  if (!validateUsername(nextUsername)) {
+    throw new Error("UID must be 4–20 characters using English letters, numbers, or underscores.");
+  }
+  if (typeof currentPassword !== "string" || currentPassword.length < 1) {
+    throw new Error("Enter your current password to change your UID.");
+  }
+
+  const db = getAdminDb();
+  const memberRef = db.collection("registered_members").doc(memberId);
+  const memberSnap = await memberRef.get();
+  if (!memberSnap.exists) throw new Error("Member account not found.");
+  const member = memberSnap.data()!;
+  if (member.status !== "ACTIVE" || member.portalStatus !== "ACTIVE") {
+    throw new Error("This account is not active.");
+  }
+  const candidate = passwordHash(currentPassword, String(member.passwordSalt || "")).hash;
+  if (!member.passwordSalt || !member.passwordHash || !equal(candidate, String(member.passwordHash))) {
+    throw new Error("Current password is incorrect.");
+  }
+
+  const oldUsername = normalizeUsername(member.username);
+  if (nextUsername === oldUsername) return { username: oldUsername };
+  const newUsernameRef = db.collection("member_usernames").doc(nextUsername);
+  const oldUsernameRef = db.collection("member_usernames").doc(oldUsername);
+  const now = Date.now();
+
+  await db.runTransaction(async (tx) => {
+    const [freshMemberSnap, newUsernameSnap, oldUsernameSnap] = await Promise.all([
+      tx.get(memberRef),
+      tx.get(newUsernameRef),
+      tx.get(oldUsernameRef),
+    ]);
+    if (!freshMemberSnap.exists) throw new Error("Member account not found.");
+    const freshMember = freshMemberSnap.data()!;
+    if (freshMember.status !== "ACTIVE" || freshMember.portalStatus !== "ACTIVE") throw new Error("This account is not active.");
+    const freshCandidate = passwordHash(currentPassword, String(freshMember.passwordSalt || "")).hash;
+    if (!freshMember.passwordSalt || !freshMember.passwordHash || !equal(freshCandidate, String(freshMember.passwordHash))) {
+      throw new Error("Current password is incorrect.");
+    }
+    if (normalizeUsername(freshMember.username) !== oldUsername) throw new Error("Your UID changed in another session. Refresh and try again.");
+    if (newUsernameSnap.exists) throw new Error("That UID is already taken. Please choose another.");
+    if (!oldUsernameSnap.exists || String(oldUsernameSnap.data()?.memberId || "") !== memberId) {
+      throw new Error("Your current UID record could not be verified. Contact the club admin.");
+    }
+    tx.create(newUsernameRef, { memberId, createdAt: now });
+    tx.delete(oldUsernameRef);
+    tx.set(memberRef, { username: nextUsername, usernameChangedAt: now, updatedAt: now }, { merge: true });
+  });
+  return { username: nextUsername };
+}
