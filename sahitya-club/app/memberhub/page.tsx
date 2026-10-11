@@ -18,8 +18,6 @@ import {
 } from "lucide-react";
 
 type Member = {
-  portalStatus?: "NOT_SETUP" | "PENDING" | "ACTIVE";
-  username?: string | null;
   memberId: string;
   name: string;
   email: string | null;
