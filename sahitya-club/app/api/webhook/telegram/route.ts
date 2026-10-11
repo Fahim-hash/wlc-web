@@ -29,7 +29,7 @@ function getExpectedWebhookSecret() {
   const configured = process.env.TELEGRAM_WEBHOOK_SECRET?.trim();
   if (configured) return configured;
 
-  const token = process.env.TELEGRAM_BOT_TOKEN;
+  const token = process.env.TELEGRAM_BOT_TOKEN?.trim();
   if (!token) return "";
   return crypto.createHash("sha256").update(token).digest("hex");
 }
@@ -50,7 +50,7 @@ function isAdmin(userId: number) {
 }
 
 async function telegramApi(method: string, payload: Record<string, unknown>) {
-  const token = process.env.TELEGRAM_BOT_TOKEN;
+  const token = process.env.TELEGRAM_BOT_TOKEN?.trim();
   if (!token) throw new Error("TELEGRAM_BOT_TOKEN is not configured");
 
   const response = await fetch(`https://api.telegram.org/bot${token}/${method}`, {
