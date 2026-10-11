@@ -51,10 +51,10 @@ export default function RunningCommittee() {
           WLC Leadership Tree
         </span>
         <h1 className="text-3xl md:text-5xl font-bold text-gray-900 font-serif mt-3 mb-4">
-          বর্তমান কমিটি প্যানেল
+          জেনারেশন - ১ প্যানেল
         </h1>
         <p className="text-gray-600 max-w-xl mx-auto text-base md:text-lg">
-          ডিপার্টমেন্টাল হায়ারার্কি বা ট্রি স্ট্রাকচারের মাধ্যমে আমাদের কার্যনির্বাহী ও সম্পাদনা বিভাগের বিন্যাস।
+          উইল্‌স সাহিত্য ক্লাবের প্রথম প্রজন্মের কার্যনির্বাহী ও সম্পাদনা বিভাগের ইতিহাস এবং বিন্যাস।
         </p>
       </div>
 
@@ -64,7 +64,7 @@ export default function RunningCommittee() {
         {/* Top Root Node (Club Center) */}
         <div className="bg-gray-900 text-white px-8 py-4 rounded-xl shadow-md font-serif text-xl font-bold border border-gray-800 z-10 text-center">
           উইল্‌স সাহিত্য ক্লাব
-          <span className="block text-xs font-sans text-gray-400 font-normal mt-1">রানিং সেশন (২০২৬)</span>
+          <span className="block text-xs font-sans text-gray-400 font-normal mt-1">GEN-1 (২০২৪–২০২৫)</span>
         </div>
 
         {/* Vertical Main Stem (Top Line) */}
