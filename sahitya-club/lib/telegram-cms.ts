@@ -83,7 +83,7 @@ async function startFlow(userId: number, chatId: number | string, type: CmsType)
 }
 
 async function finishFlow(userId: number, chatId: number | string, session: CmsSession) {
-  const data = { ...session.data, status: "DRAFT", sortOrder: Date.now() };
+  const data: Record<string, unknown> = { ...session.data, status: "DRAFT", sortOrder: Date.now() };
   const preview = [
     `📋 ${titles[session.type]}`,
     "",
