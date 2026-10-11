@@ -5,3 +5,9 @@ export const metadata: Metadata = {
   alternates: { canonical: "/contributor" },
   openGraph: { title: "কনট্রিবিউটর | Willes Literary Club", description: "WLC-এর সাহিত্য ও সৃজনশীল কার্যক্রমে অবদান রাখা ব্যক্তিদের পরিচিতি।", url: "https://wlc.pro.bd/contributor", siteName: "Willes Literary Club", locale: "bn_BD", type: "website" }
 };
+
+import type { ReactNode } from "react";
+
+export default function MetadataLayout({ children }: { children: ReactNode }) {
+  return children;
+}
