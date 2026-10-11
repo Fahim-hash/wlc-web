@@ -20,8 +20,10 @@ const hindSiliguri = Hind_Siliguri({
 
 // 🚀 SEO & Metadata Setup
 export const metadata: Metadata = {
-  title: "উইল্‌স সাহিত্য ক্লাব | Willes Literary Club",
-  description: "উইল্‌স লিটল ফ্লাওয়ার স্কুল অ্যান্ড কলেজের অফিশিয়াল সাহিত্য ক্লাব ওয়েবসাইট। সাহিত্যের বন্ধনে, প্রতিভার সন্ধানে এগিয়ে চলেছে উইলিয়ানদের ভালোবাসার এই প্রাঙ্গণ।",
+  metadataBase: new URL("https://wlc.pro.bd"),
+  title: { default: "উইল্‌স সাহিত্য ক্লাব | Willes Literary Club", template: "%s | উইল্‌স সাহিত্য ক্লাব" },
+  description: "উইল্‌স লিটল ফ্লাওয়ার স্কুল অ্যান্ড কলেজের অফিসিয়াল সাহিত্য ক্লাব। বাংলা সাহিত্য, সৃজনশীল লেখালেখি, ইভেন্ট, অর্জন, সদস্যপদ ও উইলিয়ানদের সাহিত্যচর্চার খবর জানুন।",
+  alternates: { canonical: "/" },
   keywords: [
     "উইল্‌স সাহিত্য ক্লাব",
     "Willes Literary Club",
@@ -40,7 +42,7 @@ export const metadata: Metadata = {
   },
   openGraph: {
     title: "উইল্‌স সাহিত্য ক্লাব | Willes Literary Club",
-    description: "উইল্‌স লিটল ফ্লাওয়ার স্কুল অ্যান্ড কলেজের অফিশিয়াল সাহিত্য ক্লাব ওয়েবসাইট।",
+    description: "বাংলা সাহিত্য, সৃজনশীল লেখালেখি, ক্লাবের ইভেন্ট ও সদস্যদের অর্জন—উইল্‌স সাহিত্য ক্লাবের অফিসিয়াল ওয়েবসাইট।",
     url: "https://wlc.pro.bd",
     siteName: "Willes Literary Club",
     locale: "bn_BD",
@@ -57,7 +59,7 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary_large_image",
     title: "উইল্‌স সাহিত্য ক্লাব | Willes Literary Club",
-    description: "উইল্‌স লিটল ফ্লাওয়ার স্কুল অ্যান্ড কলেজের অফিশিয়াল সাহিত্য ক্লাব ওয়েবসাইট।",
+    description: "বাংলা সাহিত্য, সৃজনশীল লেখালেখি, ক্লাবের ইভেন্ট ও সদস্যদের অর্জন—উইল্‌স সাহিত্য ক্লাবের অফিসিয়াল ওয়েবসাইট।",
     images: ["/logo.png"],
   },
 };
