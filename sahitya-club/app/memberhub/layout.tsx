@@ -6,3 +6,9 @@ export const metadata: Metadata = {
   alternates: { canonical: "/memberhub" },
   openGraph: { title: "সদস্য পোর্টাল | Willes Literary Club", description: "WLC সদস্যদের জন্য নিরাপদ সদস্য পোর্টাল।", url: "https://wlc.pro.bd/memberhub", siteName: "Willes Literary Club", locale: "bn_BD", type: "website" }
 };
+
+import type { ReactNode } from "react";
+
+export default function MetadataLayout({ children }: { children: ReactNode }) {
+  return children;
+}
