@@ -5,3 +5,9 @@ export const metadata: Metadata = {
   alternates: { canonical: "/panel/temporary" },
   openGraph: { title: "অস্থায়ী প্যানেল | Willes Literary Club", description: "Willes Literary Club-এর অস্থায়ী কার্যনির্বাহী প্যানেল।", url: "https://wlc.pro.bd/panel/temporary", siteName: "Willes Literary Club", locale: "bn_BD", type: "website" }
 };
+
+import type { ReactNode } from "react";
+
+export default function MetadataLayout({ children }: { children: ReactNode }) {
+  return children;
+}
