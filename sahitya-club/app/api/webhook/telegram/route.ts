@@ -2,6 +2,7 @@ import { after, NextResponse } from "next/server";
 import crypto from "crypto";
 import { getAdminDb } from "@/lib/firebase-admin";
 import { handleTelegramCmsCommand, handleTelegramCmsCallback, handleTelegramCmsMessage } from "@/lib/telegram-cms";
+import { handleTelegramAdminAi } from "@/lib/telegram-ai-admin";
 import { sendGlobalPushNotification, getPushSubscriberCount } from "@/lib/push";
 
 type TelegramUser = { id: number };
@@ -833,6 +834,8 @@ async function handleMessage(message: TelegramMessage) {
     await sendPushPreview(chatId, draft, url);
     return;
   }
+
+  if (text && await handleTelegramAdminAi(userId, chatId, text)) return;
 }
 
 function getImageFromPost(post: TelegramPost) {
