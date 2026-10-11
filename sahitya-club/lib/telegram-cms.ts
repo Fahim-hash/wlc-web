@@ -1,5 +1,5 @@
 import { getAdminDb } from "@/lib/firebase-admin";
-import { writeCmsRecord, archiveCmsRecord, listCollection } from "@/lib/cms";
+import { writeCmsRecord, archiveCmsRecord, listCollection, type CmsCollection } from "@/lib/cms";
 
 type CmsType = "event" | "member" | "achievement" | "announcement" | "writing" | "knowledge";
 type CmsSession = {
@@ -28,7 +28,7 @@ const questions: Record<CmsType, string[]> = {
   knowledge: ["জ্ঞানটির বিষয়/শিরোনাম কী?", "কথাসখী কী উত্তর দেবে?", "উৎস/রেফারেন্স কী? না থাকলে “নেই” লিখুন।"],
 };
 
-const collections: Record<CmsType, string> = {
+const collections: Record<CmsType, CmsCollection> = {
   event: "events", member: "members", achievement: "achievements",
   announcement: "announcements", writing: "writing", knowledge: "kothasokhi_knowledge",
 };
