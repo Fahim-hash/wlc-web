@@ -177,11 +177,11 @@ export default function MemberHubPage() {
       setMembers((current) =>
         current.map((member) =>
           member.memberId === memberId
-            ? { ...member, emailStatus: "SENT", emailSentAt: Date.now() }
+            ? { ...member, emailStatus: "SENT", emailSentAt: Date.now(), portalStatus: "PENDING" }
             : member
         )
       );
-      setNotice(`Confirmation email sent for ${memberId}.`);
+      setNotice(`Portal activation email sent for ${memberId}.`);
     } finally {
       setEmailing(null);
     }
