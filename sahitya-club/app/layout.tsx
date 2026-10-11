@@ -21,9 +21,8 @@ const hindSiliguri = Hind_Siliguri({
 // 🚀 SEO & Metadata Setup
 export const metadata: Metadata = {
   metadataBase: new URL("https://wlc.pro.bd"),
-  title: { default: "উইল্‌স সাহিত্য ক্লাব | Willes Literary Club", template: "%s | উইল্‌স সাহিত্য ক্লাব" },
+  title: { default: "উইল্‌স সাহিত্য ক্লাব | Willes Literary Club", template: "%s" },
   description: "উইল্‌স লিটল ফ্লাওয়ার স্কুল অ্যান্ড কলেজের অফিসিয়াল সাহিত্য ক্লাব। বাংলা সাহিত্য, সৃজনশীল লেখালেখি, ইভেন্ট, অর্জন, সদস্যপদ ও উইলিয়ানদের সাহিত্যচর্চার খবর জানুন।",
-  alternates: { canonical: "/" },
   keywords: [
     "উইল্‌স সাহিত্য ক্লাব",
     "Willes Literary Club",
