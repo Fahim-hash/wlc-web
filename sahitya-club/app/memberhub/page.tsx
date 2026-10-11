@@ -18,6 +18,8 @@ import {
 } from "lucide-react";
 
 type Member = {
+  portalStatus?: "NOT_SETUP" | "PENDING" | "ACTIVE";
+  username?: string | null;
   memberId: string;
   name: string;
   email: string | null;
@@ -26,6 +28,8 @@ type Member = {
   notes: string | null;
   status: "ACTIVE" | "INACTIVE";
   emailStatus: "PENDING" | "SENT" | "FAILED" | "NOT_APPLICABLE";
+  portalStatus?: "NOT_SETUP" | "PENDING" | "ACTIVE";
+  username?: string | null;
   emailSentAt: number | null;
   createdAt: number;
   whatsappUrl: string | null;
@@ -38,7 +42,7 @@ const emptyForm = {
   phone: "",
   batch: "",
   notes: "",
-  notification: "none" as "none" | "email" | "whatsapp" | "both",
+  notification: "email" as "none" | "email" | "whatsapp" | "both",
 };
 
 export default function MemberHubPage() {
@@ -127,7 +131,7 @@ export default function MemberHubPage() {
       setForm(emptyForm);
 
       if (data.email?.status === "sent") {
-        setNotice(`Member ${data.member.memberId} added and confirmation email sent.`);
+        setNotice(`Member ${data.member.memberId} added and portal activation email sent.`);
       } else if (data.email?.status === "failed") {
         setNotice(
           `Member ${data.member.memberId} added, but email failed: ${data.email.message}`
