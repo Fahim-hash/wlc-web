@@ -5,3 +5,9 @@ export const metadata: Metadata = {
   alternates: { canonical: "/achievements" },
   openGraph: { title: "অর্জন ও সাফল্য | Willes Literary Club", description: "WLC ও এর সদস্যদের অর্জন, পুরস্কার এবং উল্লেখযোগ্য সাফল্য।", url: "https://wlc.pro.bd/achievements", siteName: "Willes Literary Club", locale: "bn_BD", type: "website" }
 };
+
+import type { ReactNode } from "react";
+
+export default function MetadataLayout({ children }: { children: ReactNode }) {
+  return children;
+}
