@@ -48,7 +48,19 @@ export async function createActivationLink(memberId: string) {
   if (!snap.exists) throw new Error("Member not found.");
   const member = snap.data()!;
   if (!member.email) throw new Error("An email address is required to activate a portal account.");
+  if (member.status !== "ACTIVE") throw new Error("This membership is inactive. Restore it before sending activation.");
   if (member.portalStatus === "ACTIVE") throw new Error("This member already has an active portal account.");
+
+  // Invalidate older unused links so only the newest email can activate the account.
+  const olderTokens = await db.collection("member_activation_tokens")
+    .where("memberId", "==", memberId)
+    .where("usedAt", "==", null)
+    .get();
+  if (!olderTokens.empty) {
+    const batch = db.batch();
+    olderTokens.docs.forEach((doc) => batch.update(doc.ref, { usedAt: Date.now(), invalidatedAt: Date.now() }));
+    await batch.commit();
+  }
 
   const token = crypto.randomBytes(32).toString("base64url");
   const tokenHash = hash(token);
