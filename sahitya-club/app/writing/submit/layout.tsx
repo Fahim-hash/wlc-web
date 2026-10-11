@@ -5,3 +5,9 @@ export const metadata: Metadata = {
   alternates: { canonical: "/writing/submit" },
   openGraph: { title: "লেখা জমা দিন | Willes Literary Club", description: "WLC-এর মুক্ত লেখনী ডেস্কে নিজের সৃজনশীল লেখা জমা দিন।", url: "https://wlc.pro.bd/writing/submit", siteName: "Willes Literary Club", locale: "bn_BD", type: "website" }
 };
+
+import type { ReactNode } from "react";
+
+export default function MetadataLayout({ children }: { children: ReactNode }) {
+  return children;
+}
