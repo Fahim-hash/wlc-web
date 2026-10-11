@@ -2,6 +2,21 @@
 import Link from "next/link";
 import Image from "next/image";
 import { ReactNode } from "react";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "সাবেক ও বর্তমান প্যানেল | উইল্‌স সাহিত্য ক্লাব",
+  description: "উইল্‌স সাহিত্য ক্লাবের বর্তমান ও সাবেক নেতৃত্ব, কার্যনির্বাহী সদস্য, শিক্ষক-মডারেটর এবং ক্লাব প্যানেলের আর্কাইভ দেখুন।",
+  alternates: { canonical: "/panel" },
+  openGraph: {
+    title: "ক্লাব প্যানেল ও আর্কাইভ | Willes Literary Club",
+    description: "Willes Literary Club-এর নেতৃত্ব, সদস্য ও প্যানেল আর্কাইভ এক জায়গায় দেখুন।",
+    url: "https://wlc.pro.bd/panel",
+    siteName: "Willes Literary Club",
+    locale: "bn_BD",
+    type: "website"
+  }
+};
 
 export default function PanelLayout({ children }: { children: ReactNode }) {
   const links = [
