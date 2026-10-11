@@ -49,10 +49,10 @@ export default function RunningCommittee() {
          উইল্‌স সাহিত্য ক্লাবের প্যানেল
         </span>
         <h1 className="text-3xl md:text-5xl font-bold text-gray-900 font-serif mt-3 mb-4">
-          বর্তমান কমিটি প্যানেল
+          জেনারেশন - ২ প্যানেল
         </h1>
         <p className="text-gray-600 max-w-xl mx-auto text-base md:text-lg">
-         উপদেষ্টা, প্রশাসনিক ও সম্পাদনা বিভাগের বিন্যাস।
+         GEN-2-এর উপদেষ্টা, প্রশাসনিক ও সম্পাদনা বিভাগের বিন্যাস।
         </p>
       </div>
 
@@ -62,7 +62,7 @@ export default function RunningCommittee() {
         {/* Top Root Node (Club Center) */}
         <div className="bg-gray-900 text-white px-8 py-4 rounded-xl shadow-md font-serif text-xl font-bold border border-gray-800 z-10 text-center">
           উইল্‌স সাহিত্য ক্লাব
-          <span className="block text-xs font-sans text-gray-400 font-normal mt-1">রানিং সেশন (২০২৬)</span>
+          <span className="block text-xs font-sans text-gray-400 font-normal mt-1">GEN-2 (২০২৬)</span>
         </div>
 
         {/* Vertical Main Stem -> Connecting to Advisors */}
