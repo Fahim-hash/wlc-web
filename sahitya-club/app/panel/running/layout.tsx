@@ -5,3 +5,9 @@ export const metadata: Metadata = {
   alternates: { canonical: "/panel/running" },
   openGraph: { title: "চলমান প্যানেল | Willes Literary Club", description: "Willes Literary Club-এর বর্তমান কার্যনির্বাহী সদস্য ও দায়িত্বসমূহ।", url: "https://wlc.pro.bd/panel/running", siteName: "Willes Literary Club", locale: "bn_BD", type: "website" }
 };
+
+import type { ReactNode } from "react";
+
+export default function MetadataLayout({ children }: { children: ReactNode }) {
+  return children;
+}
