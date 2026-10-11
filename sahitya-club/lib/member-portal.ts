@@ -242,10 +242,9 @@ export async function changeMemberUsername(input: { memberId: string; currentPas
     if (!freshMemberSnap.exists) throw new Error("Member account not found.");
     const freshMember = freshMemberSnap.data()!;
     if (freshMember.status !== "ACTIVE" || freshMember.portalStatus !== "ACTIVE") throw new Error("This account is not active.");
-    const freshCandidate = passwordHash(currentPassword, String(freshMember.passwordSalt || "")).hash;
-    if (!freshMember.passwordSalt || !freshMember.passwordHash || !equal(freshCandidate, String(freshMember.passwordHash))) {
-      throw new Error("Current password is incorrect.");
-    }
+    if (!freshMember.passwordSalt || !freshMember.passwordHash) throw new Error("Current password is incorrect.");
+    const freshCandidate = passwordHash(currentPassword, String(freshMember.passwordSalt)).hash;
+    if (!equal(freshCandidate, String(freshMember.passwordHash))) throw new Error("Current password is incorrect.");
     if (normalizeUsername(freshMember.username) !== oldUsername) throw new Error("Your UID changed in another session. Refresh and try again.");
     if (newUsernameSnap.exists) throw new Error("That UID is already taken. Please choose another.");
     if (!oldUsernameSnap.exists || String(oldUsernameSnap.data()?.memberId || "") !== memberId) {
