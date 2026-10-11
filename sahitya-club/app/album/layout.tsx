@@ -5,3 +5,9 @@ export const metadata: Metadata = {
   alternates: { canonical: "/album" },
   openGraph: { title: "ছবি ও স্মৃতির অ্যালবাম | Willes Literary Club", description: "WLC-এর অনুষ্ঠান ও সাহিত্য কার্যক্রমের ছবির সংগ্রহ।", url: "https://wlc.pro.bd/album", siteName: "Willes Literary Club", locale: "bn_BD", type: "website" }
 };
+
+import type { ReactNode } from "react";
+
+export default function MetadataLayout({ children }: { children: ReactNode }) {
+  return children;
+}
