@@ -18,6 +18,8 @@ export default function MemberPortalPage() {
   const [member, setMember] = useState<Member | null>(null);
   const [uid, setUid] = useState("");
   const [password, setPassword] = useState("");
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [nextUsername, setNextUsername] = useState("");
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
@@ -57,6 +59,32 @@ export default function MemberPortalPage() {
       await load();
     } catch {
       setMessage("Network error. Please try signing in again.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function changeUid(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setBusy(true);
+    setMessage("");
+    try {
+      const response = await fetch("/api/member-portal/username", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ currentPassword, username: nextUsername }),
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        setMessage(data.message || "Could not change your UID.");
+        return;
+      }
+      setCurrentPassword("");
+      setNextUsername("");
+      setMessage("Your UID has been updated successfully.");
+      await load();
+    } catch {
+      setMessage("Network error. Please try changing your UID again.");
     } finally {
       setBusy(false);
     }
@@ -118,6 +146,16 @@ export default function MemberPortalPage() {
                 <div><dt className="text-sm text-stone-500">Phone</dt><dd className="mt-1 font-medium">{member.phone || "Not provided"}</dd></div>
                 <div><dt className="text-sm text-stone-500">Class / Year</dt><dd className="mt-1 font-medium">{member.batch || "Not provided"}</dd></div>
               </dl>
+            </section>
+            <section className="mt-5 rounded-2xl border border-stone-200 bg-white p-6 sm:p-7">
+              <h2 className="text-xl font-semibold">Change your UID</h2>
+              <p className="mt-2 text-sm leading-6 text-stone-600">Your official Member ID never changes. You can update your personal sign-in UID after confirming your current password.</p>
+              <form onSubmit={changeUid} className="mt-4 grid gap-3 sm:grid-cols-3">
+                <input value={nextUsername} onChange={event => setNextUsername(event.target.value)} required minLength={4} maxLength={20} pattern="[A-Za-z0-9_]{4,20}" autoComplete="username" placeholder="New UID (4–20 chars)" className="rounded-xl border border-stone-300 p-3 outline-none focus:border-rose-800" />
+                <input value={currentPassword} onChange={event => setCurrentPassword(event.target.value)} required type="password" autoComplete="current-password" placeholder="Current password" className="rounded-xl border border-stone-300 p-3 outline-none focus:border-rose-800" />
+                <button disabled={busy} className="rounded-xl bg-rose-900 p-3 font-semibold text-white disabled:opacity-60">{busy ? "Please wait…" : "Update UID"}</button>
+              </form>
+              <p className="mt-2 text-xs text-stone-500">UIDs are unique and can contain English letters, numbers and underscores only.</p>
             </section>
             <section className="mt-5 grid gap-4 sm:grid-cols-2">
               <article className="rounded-2xl border border-stone-200 bg-white p-6"><h2 className="font-semibold">Digital membership card</h2><p className="mt-2 text-sm leading-6 text-stone-600">Your official Member ID is shown above. A verified QR card can be enabled once the club’s member-verification endpoint is connected.</p></article>
