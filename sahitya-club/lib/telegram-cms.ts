@@ -22,7 +22,7 @@ const titles: Record<CmsType, string> = {
 const questions: Record<CmsType, string[]> = {
   event: ["আয়োজনটির নাম কী?", "তারিখ কী?", "সময় কী? (না থাকলে “নেই” লিখুন)", "স্থান কী? (না থাকলে “নেই” লিখুন)", "আয়োজনটির সংক্ষিপ্ত বিবরণ লিখুন।", "আয়োজনের ব্যানার পাঠান। ছবি না থাকলে “নেই” লিখুন।", "এই আয়োজনের আলাদা কোনো ওয়েবপেজ আছে?"],
   member: ["সদস্যের নাম কী?", "পদ/দায়িত্ব কী?", "ব্যাচ কী?", "সংক্ষিপ্ত পরিচিতি লিখুন।"],
-  achievement: ["অর্জনের নাম কী?", "তারিখ কী?", "কোন ধরনের অর্জন? (যেমন: প্রতিযোগিতা, স্বীকৃতি)", "অর্জনের সংক্ষিপ্ত বিবরণ লিখুন।"],
+  achievement: ["অর্জনের নাম কী?", "তারিখ কী?", "কোন ধরনের অর্জন? (যেমন: প্রতিযোগিতা, স্বীকৃতি)", "অর্জনের সংক্ষিপ্ত বিবরণ লিখুন।", "অর্জনের ছবি পাঠান (ট্রফি, সার্টিফিকেট বা অনুষ্ঠানের ছবি)। ছবি না থাকলে “নেই” লিখুন।"],
   announcement: ["ঘোষণাটির শিরোনাম কী?", "ঘোষণার মূল বক্তব্য লিখুন।", "কোনো ওয়েব লিংক আছে? না থাকলে “নেই” লিখুন।"],
   writing: ["লেখাটির নাম কী?", "লেখকের নাম কী?", "কোন ধরনের লেখা?", "লেখাটি লিখুন বা পেস্ট করুন।"],
   knowledge: ["জ্ঞানটির বিষয়/শিরোনাম কী?", "কথাসখী কী উত্তর দেবে?", "উৎস/রেফারেন্স কী? না থাকলে “নেই” লিখুন।"],
@@ -34,14 +34,16 @@ const collections: Record<CmsType, string> = {
 };
 
 async function telegramApi(method: string, payload: Record<string, unknown>) {
-  const token = process.env.TELEGRAM_BOT_TOKEN;
+  const token = process.env.TELEGRAM_BOT_TOKEN?.trim();
   if (!token) throw new Error("TELEGRAM_BOT_TOKEN is not configured");
   const response = await fetch(`https://api.telegram.org/bot${token}/${method}`, {
     method: "POST", headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload), cache: "no-store",
   });
   const result = await response.json();
-  if (!result.ok) throw new Error(`Telegram ${method} failed`);
+  if (!response.ok || !result.ok) {
+    throw new Error(`Telegram ${method} failed: ${result.description || response.status}`);
+  }
   return result;
 }
 
@@ -85,7 +87,8 @@ async function finishFlow(userId: number, chatId: number | string, session: CmsS
   const preview = [
     `📋 ${titles[session.type]}`,
     "",
-    ...Object.entries(data).filter(([key]) => !["status", "sortOrder", "bannerFileId"].includes(key)).map(([key, value]) => `${key}: ${String(value || "নেই")}`),
+    ...Object.entries(data).filter(([key]) => !["status", "sortOrder", "bannerFileId", "imageFileId"].includes(key)).map(([key, value]) => `${key}: ${String(value || "নেই")}`),
+    ...(data.bannerFileId || data.imageFileId ? ["🖼️ ছবি: যোগ করা হয়েছে"] : []),
     "",
     "সব ঠিক আছে?",
   ].join("\n");
@@ -104,20 +107,23 @@ export async function handleTelegramCmsMessage(userId: number, chatId: number | 
   if (!session) return false;
 
   if (text === "/cancel") {
-    await clearSession(userId); await sendText(chatId, "❌ বাতিল করা হয়েছে।", [[{ text: "✨ আবার শুরু করুন", callback_data: "wlc:cms:menu" }]]);
+    await clearSession(userId);
+    await sendText(chatId, "❌ বাতিল করা হয়েছে।", [[{ text: "✨ আবার শুরু করুন", callback_data: "wlc:cms:menu" }]]);
     return true;
   }
 
   let answer: string | undefined = text;
-  const currentQuestion = questions[session.type][session.step];
+  const isEventImageStep = session.type === "event" && session.step === 5;
+  const isAchievementImageStep = session.type === "achievement" && session.step === 4;
 
-  if (session.type === "event" && session.step === 5) {
-    const fileId = message.photo?.at(-1)?.file_id || message.document?.file_id;
+  if (isEventImageStep || isAchievementImageStep) {
+    const documentIsImage = Boolean(message.document?.mime_type?.startsWith("image/"));
+    const fileId = message.photo?.at(-1)?.file_id || (documentIsImage ? message.document?.file_id : undefined);
     if (fileId) {
-      session.data.bannerFileId = fileId;
-      answer = "ব্যানার যোগ করা হয়েছে";
+      session.data[isEventImageStep ? "bannerFileId" : "imageFileId"] = fileId;
+      answer = "ছবি যোগ করা হয়েছে";
     } else if (!text) {
-      await sendText(chatId, "🖼️ ব্যানার হিসেবে একটি ছবি পাঠান, অথবা “নেই” লিখুন।");
+      await sendText(chatId, "🖼️ একটি ছবি পাঠান, অথবা ছবি না থাকলে “নেই” লিখুন।");
       return true;
     }
   }
@@ -145,8 +151,17 @@ export async function handleTelegramCmsMessage(userId: number, chatId: number | 
   }
 
   if (!answer) {
-    await sendText(chatId, `⚠️ উত্তরটি খালি রাখা যাবে না।\n\n${currentQuestion}`);
+    await sendText(chatId, `⚠️ উত্তরটি খালি রাখা যাবে না।\n\n${currentQuestionFor(session)}`);
     return true;
+  }
+
+  if (isEventImageStep && !session.data.bannerFileId && ["নেই", "না", "no"].includes(text.toLowerCase())) {
+    session.data.bannerFileId = "";
+    answer = "ছবি নেই";
+  }
+  if (isAchievementImageStep && !session.data.imageFileId && ["নেই", "না", "no"].includes(text.toLowerCase())) {
+    session.data.imageFileId = "";
+    answer = "ছবি নেই";
   }
 
   const fieldNames: Record<CmsType, string[]> = {
@@ -159,7 +174,7 @@ export async function handleTelegramCmsMessage(userId: number, chatId: number | 
   };
 
   const field = fieldNames[session.type][session.step];
-  session.data[field] = answer;
+  if (field) session.data[field] = answer;
   const nextStep = session.step + 1;
 
   if (nextStep >= questions[session.type].length) {
@@ -172,6 +187,10 @@ export async function handleTelegramCmsMessage(userId: number, chatId: number | 
   return true;
 }
 
+function currentQuestionFor(session: CmsSession) {
+  return questions[session.type][session.step] || "এই ধাপের উত্তর দিন।";
+}
+
 export async function handleTelegramCmsCallback(userId: number, chatId: number | string, action: string) {
   if (!action.startsWith("wlc:cms:")) return false;
   if (action === "wlc:cms:menu") { await sendCmsMenu(chatId); return true; }
@@ -180,7 +199,7 @@ export async function handleTelegramCmsCallback(userId: number, chatId: number |
     const session = await getSession(userId);
     if (!session) { await sendText(chatId, "⚠️ কোনো অসম্পূর্ণ বিষয় পাওয়া যায়নি।"); return true; }
     const data = { ...session.data, status: action.endsWith("publish") ? "PUBLISHED" : "DRAFT", sortOrder: Date.now() };
-    const result = await writeCmsRecord(collections[session.type] as any, data, undefined, "telegram:" + userId);
+    await writeCmsRecord(collections[session.type], data, undefined, "telegram:" + userId);
     await clearSession(userId);
     await sendText(chatId,
       action.endsWith("publish") ? "🎉 প্রকাশ হয়ে গেছে!\n\nওয়েবসাইটে এখন এটি দেখা যাবে।" : "📝 খসড়া হিসেবে সংরক্ষণ করা হয়েছে।\n\nপ্রয়োজনে পরে প্রকাশ করতে পারবেন।",
@@ -191,7 +210,7 @@ export async function handleTelegramCmsCallback(userId: number, chatId: number |
 
   if (action === "wlc:cms:list") {
     const names = Object.keys(collections) as CmsType[];
-    const chunks = await Promise.all(names.map(async type => ({ type, rows: await listCollection(collections[type] as any, 4) })));
+    const chunks = await Promise.all(names.map(async type => ({ type, rows: await listCollection(collections[type], 4) })));
     const lines = chunks.flatMap(({ type, rows }) => rows.map((item: any) => `• ${titles[type]} — ${item.title || item.name || "নামহীন"}`));
     await sendText(chatId, lines.length ? "📋 সাম্প্রতিক বিষয়\n\n" + lines.join("\n") : "📋 এখনো কোনো বিষয় নেই।", [[{ text: "⬅️ ফিরে যান", callback_data: "wlc:cms:menu" }]]);
     return true;
