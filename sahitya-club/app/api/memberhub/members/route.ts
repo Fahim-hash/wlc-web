@@ -16,9 +16,11 @@ export async function POST(request:Request) {
   const notification:MemberNotification=["email","whatsapp","both"].includes(body?.notification)?body.notification:"none";
   const member=await createRegisteredMember({name:body?.name,email:body?.email,phone:body?.phone,batch:body?.batch,notes:body?.notes,actor:"memberhub"});
   let email:{status:"not_requested"|"sent"|"failed";message?:string}={status:"not_requested"};
+  let activationIssued = false;
   if ((notification==="email"||notification==="both")&&member.email) {
    try {
     const activation=await createActivationLink(member.memberId);
+    activationIssued = true;
     const messageId=await sendActivationEmail({name:member.name,email:member.email,memberId:member.memberId},activation.url);
     await updateEmailStatus(member.memberId,"SENT",{emailSentAt:Date.now(),emailMessageId:messageId||null,lastEmailError:null});
     email={status:"sent"};
@@ -28,6 +30,6 @@ export async function POST(request:Request) {
     email={status:"failed",message};
    }
   }
-  return NextResponse.json({success:true,member:{...member,portalStatus:email.status==="sent"?"PENDING":"NOT_SETUP",whatsappUrl:member.phone?buildWhatsAppUrl(member.phone,buildMemberMessage(member)):null,whatsappText:member.phone?buildMemberMessage(member):null},email},{status:201});
+  return NextResponse.json({success:true,member:{...member,portalStatus:activationIssued?"PENDING":"NOT_SETUP",whatsappUrl:member.phone?buildWhatsAppUrl(member.phone,buildMemberMessage(member)):null,whatsappText:member.phone?buildMemberMessage(member):null},email},{status:201});
  } catch(error) { return NextResponse.json({success:false,message:error instanceof Error?error.message:"Unable to add member."},{status:400}); }
 }
