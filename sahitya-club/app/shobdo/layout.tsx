@@ -5,3 +5,9 @@ export const metadata: Metadata = {
   alternates: { canonical: "/shobdo" },
   openGraph: { title: "শব্দকোষ | উইল্‌স সাহিত্য ক্লাব", description: "বাংলা শব্দের অর্থ ও ব্যবহার জানার সাহিত্যভিত্তিক শব্দকোষ।", url: "https://wlc.pro.bd/shobdo", siteName: "Willes Literary Club", locale: "bn_BD", type: "website" }
 };
+
+import type { ReactNode } from "react";
+
+export default function MetadataLayout({ children }: { children: ReactNode }) {
+  return children;
+}
