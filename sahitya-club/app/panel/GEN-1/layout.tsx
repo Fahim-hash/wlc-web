@@ -5,3 +5,9 @@ export const metadata: Metadata = {
   alternates: { canonical: "/panel/GEN-1" },
   openGraph: { title: "জেনারেশন-১ আর্কাইভ | Willes Literary Club", description: "WLC-এর প্রথম প্রজন্মের সদস্য ও ক্লাব আর্কাইভ।", url: "https://wlc.pro.bd/panel/GEN-1", siteName: "Willes Literary Club", locale: "bn_BD", type: "website" }
 };
+
+import type { ReactNode } from "react";
+
+export default function MetadataLayout({ children }: { children: ReactNode }) {
+  return children;
+}
