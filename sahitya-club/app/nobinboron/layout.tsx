@@ -5,3 +5,9 @@ export const metadata: Metadata = {
   alternates: { canonical: "/nobinboron" },
   openGraph: { title: "নবীনবরণ | Willes Literary Club", description: "নতুন সদস্যদের স্বাগত জানাতে WLC-এর নবীনবরণ আয়োজন ও স্মৃতি।", url: "https://wlc.pro.bd/nobinboron", siteName: "Willes Literary Club", locale: "bn_BD", type: "website" }
 };
+
+import type { ReactNode } from "react";
+
+export default function MetadataLayout({ children }: { children: ReactNode }) {
+  return children;
+}
