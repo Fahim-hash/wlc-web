@@ -24,11 +24,8 @@ export type RegisteredMember = {
 };
 
 function getAdminSecret() {
-  return (
-    process.env.MEMBER_ADMIN_GATEWAY_KEY?.trim() ||
-    process.env.CONTROL_GATEWAY_KEY?.trim() ||
-    "WLC_Control_2026"
-  );
+  // Never fall back to a public, hard-coded admin password.
+  return process.env.MEMBER_ADMIN_GATEWAY_KEY?.trim() || process.env.CONTROL_GATEWAY_KEY?.trim() || "";
 }
 
 function safeString(value: unknown) {
