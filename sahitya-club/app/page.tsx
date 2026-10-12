@@ -22,20 +22,28 @@ export default function WillesSahityaClub() {
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
-    let animationFrameId: number;
+    let animationFrameId: number | undefined;
+    const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const fontSize = 16;
+    let drops: number[] = [];
+    const banglaChars = "অআইঈউঊঋএঐওঔকখগঘঙচছজঝঞটঠডঢণতথদধনপফবভমযরলভশষসহড়ঢ়য়ৎংঃঁ".split("");
 
     const resizeCanvas = () => {
+      const previousDrops = drops;
       canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight * 0.85; // হিরো সেকশনের হাইট অনুযায়ী
+      canvas.height = window.innerHeight * 0.85;
+      const nextColumns = Math.ceil(canvas.width / fontSize);
+      drops = Array.from({ length: nextColumns }, (_, index) =>
+        index < previousDrops.length ? previousDrops[index] : Math.floor(Math.random() * -20)
+      );
     };
+
     resizeCanvas();
     window.addEventListener("resize", resizeCanvas);
-
-    // বাংলা অক্ষরের সেট
-    const banglaChars = "অআইঈউঊঋএঐওঔকখগঘঙচছজঝঞটঠডঢণতথদধনপফবভমযরলভশষসহড়ঢ়য়ৎংঃঁ".split("");
-    const fontSize = 16;
-    const columns = Math.floor(canvas.width / fontSize);
-    const drops: number[] = Array(columns).fill(1);
+    if (prefersReducedMotion.matches) {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      return () => window.removeEventListener("resize", resizeCanvas);
+    }
 
     const draw = () => {
       // ব্যাকগ্রাউন্ডের ট্রেইল ইফেক্ট (আলতো আলফা দেওয়া যাতে ক্যারেক্টারগুলো ফেড আউট হয়)
@@ -66,7 +74,7 @@ export default function WillesSahityaClub() {
 
     return () => {
       window.removeEventListener("resize", resizeCanvas);
-      cancelAnimationFrame(animationFrameId);
+      if (animationFrameId !== undefined) cancelAnimationFrame(animationFrameId);
     };
   }, []);
 
