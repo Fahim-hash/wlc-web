@@ -57,52 +57,77 @@ export default function MemberHubPage() {
 
   async function loadMembers() {
     setLoading(true);
-    const response = await fetch("/api/memberhub/members", { cache: "no-store" });
-    if (response.status === 401) {
-      setAuthenticated(false);
+    try {
+      const response = await fetch("/api/memberhub/members", { cache: "no-store" });
+      if (response.status === 401) {
+        setAuthenticated(false);
+        setMembers([]);
+        setNotice("Your admin session has expired. Please sign in again.");
+        return;
+      }
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.message || "Unable to load members.");
+      setAuthenticated(true);
+      setMembers(Array.isArray(data.members) ? data.members : []);
+    } catch (error) {
+      setNotice(error instanceof Error ? error.message : "Unable to load members. Please try again.");
+    } finally {
       setLoading(false);
-      return;
     }
-    const data = await response.json();
-    setAuthenticated(true);
-    setMembers(data.members || []);
-    setLoading(false);
   }
 
   useEffect(() => {
+    let cancelled = false;
     (async () => {
-      const response = await fetch("/api/memberhub/auth", { cache: "no-store" });
-      const data = await response.json();
-      setAuthenticated(Boolean(data.authenticated));
-      if (data.authenticated) await loadMembers();
-      else setLoading(false);
+      try {
+        const response = await fetch("/api/memberhub/auth", { cache: "no-store" });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.message || "Unable to verify admin session.");
+        if (cancelled) return;
+        setAuthenticated(Boolean(data.authenticated));
+        if (data.authenticated) await loadMembers();
+        else setLoading(false);
+      } catch {
+        if (!cancelled) {
+          setNotice("Could not connect to the member service. Please refresh and try again.");
+          setLoading(false);
+        }
+      }
     })();
+    return () => { cancelled = true; };
   }, []);
 
   async function login(event: FormEvent) {
     event.preventDefault();
     setNotice("");
-    const response = await fetch("/api/memberhub/auth", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ gatewayKey }),
-    });
-    const data = await response.json();
-
-    if (!response.ok) {
-      setNotice(data.message || "Login failed.");
-      return;
+    try {
+      const response = await fetch("/api/memberhub/auth", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ gatewayKey }),
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        setNotice(data.message || "Login failed. Check the key and try again.");
+        return;
+      }
+      setGatewayKey("");
+      setAuthenticated(true);
+      await loadMembers();
+    } catch {
+      setNotice("Could not connect to the sign-in service. Please try again.");
     }
-
-    setGatewayKey("");
-    setAuthenticated(true);
-    await loadMembers();
   }
 
   async function logout() {
-    await fetch("/api/memberhub/auth", { method: "DELETE" });
-    setAuthenticated(false);
-    setMembers([]);
+    try {
+      await fetch("/api/memberhub/auth", { method: "DELETE" });
+    } catch {
+      setNotice("The sign-out request failed. Please refresh this page.");
+    } finally {
+      setAuthenticated(false);
+      setMembers([]);
+    }
   }
 
   async function addMember(event: FormEvent) {
@@ -143,7 +168,12 @@ export default function MemberHubPage() {
   }
 
   async function removeMember(member: Member) {
-    const confirmed = window.confirm('Remove ' + member.name + ' (' + member.memberId + ') from the active member registry? This marks the record inactive, not permanently erases it.');
+    const action = member.status === "ACTIVE" ? "remove" : "restore";
+    const confirmed = window.confirm(
+      action === "remove"
+        ? "Remove " + member.name + " (" + member.memberId + ") from the active member registry? This marks the record inactive; it does not permanently erase it."
+        : "Restore " + member.name + " (" + member.memberId + ") to the active member registry?"
+    );
     if (!confirmed) return;
     setNotice('');
     try {
@@ -180,14 +210,22 @@ export default function MemberHubPage() {
         )
       );
       setNotice(`Portal activation email sent for ${memberId}.`);
+    } catch {
+      setNotice("Email could not be sent because of a network error. Please try again.");
     } finally {
       setEmailing(null);
     }
   }
 
   async function copyText(text: string, successMessage: string) {
-    await navigator.clipboard.writeText(text);
-    setNotice(successMessage);
+    try {
+      if (!navigator.clipboard?.writeText) throw new Error("Clipboard unavailable");
+      await navigator.clipboard.writeText(text);
+      setNotice(successMessage);
+    } catch {
+      window.prompt("Copy this text manually:", text);
+      setNotice("Automatic copy was unavailable. Copy the text from the dialog.");
+    }
   }
 
   const filteredMembers = useMemo(() => {
