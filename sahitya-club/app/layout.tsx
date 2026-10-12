@@ -168,12 +168,12 @@ export default function RootLayout({
 
               {/* ▾ পিওর সিএসএস ডেক্সটপ ড্রপডাউন (Hover Triggered) */}
               <div className="relative group/desktop">
-                <button className="text-stone-600 group-hover/desktop:text-stone-950 px-2.5 xl:px-3.5 py-2 rounded-lg text-xs xl:text-sm font-semibold whitespace-nowrap transition-all duration-200 flex items-center gap-1 group-hover/desktop:bg-white">
-                  অন্যান্য ডিরেক্টরি <span className="text-[10px] text-stone-400 transition-transform group-hover/desktop:rotate-180">▼</span>
+                <button type="button" aria-haspopup="true" className="text-stone-600 group-hover/desktop:text-stone-950 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-800 focus-visible:ring-offset-2 px-2.5 xl:px-3.5 py-2 rounded-lg text-xs xl:text-sm font-semibold whitespace-nowrap transition-all duration-200 flex items-center gap-1 group-hover/desktop:bg-white">
+                  অন্যান্য ডিরেক্টরি <span aria-hidden="true" className="text-[10px] text-stone-400 transition-transform group-hover/desktop:rotate-180">▼</span>
                 </button>
 
-                {/* ড্রপডাউন মেনু প্যানেল */}
-                <div className="absolute right-0 top-full mt-2 w-64 bg-white border border-stone-200 rounded-2xl shadow-xl py-2 opacity-0 invisible translate-y-2 group-hover/desktop:opacity-100 group-hover/desktop:visible group-hover/desktop:translate-y-0 transition-all duration-200 z-50">
+                {/* Open on hover and keyboard focus so the directory is not hover-only. */}
+                <div className="absolute right-0 top-full mt-2 w-64 bg-white border border-stone-200 rounded-2xl shadow-xl py-2 opacity-0 invisible translate-y-2 group-hover/desktop:opacity-100 group-hover/desktop:visible group-hover/desktop:translate-y-0 group-focus-within/desktop:opacity-100 group-focus-within/desktop:visible group-focus-within/desktop:translate-y-0 transition-all duration-200 z-50">
                   {extendedLinks.map((link, idx) => (
                     <Link
                       key={idx}
@@ -189,11 +189,11 @@ export default function RootLayout({
             </nav>
 
             {/* ================= FIXED PURE CSS HAMBURGER & DROPDOWN SYSTEM (MOBILE) ================= */}
-            <input type="checkbox" id="menu-toggle" className="peer sr-only" />
+            <input type="checkbox" id="menu-toggle" aria-label="ওয়েবসাইট নেভিগেশন মেনু খুলুন বা বন্ধ করুন" className="peer sr-only" />
 
             <label 
               htmlFor="menu-toggle" 
-              className="flex lg:hidden shrink-0 flex-col justify-between w-9 h-9 items-center justify-center gap-1.5 cursor-pointer z-[60] relative rounded-lg hover:bg-stone-100 transition-colors"
+              className="flex lg:hidden shrink-0 flex-col justify-between w-11 h-11 items-center justify-center gap-1.5 cursor-pointer z-[60] relative rounded-lg hover:bg-stone-100 focus-within:ring-2 focus-within:ring-rose-800 focus-within:ring-offset-2 transition-colors"
             >
               <span className="w-5 h-0.5 bg-stone-950 rounded-full transition-all duration-300 transform origin-center peer-checked:rotate-45 peer-checked:translate-y-2"></span>
               <span className="w-5 h-0.5 bg-stone-950 rounded-full transition-all duration-300 peer-checked:opacity-0"></span>
@@ -256,7 +256,7 @@ export default function RootLayout({
                   📞 +8801974-745442
                 </a>
                 <a href="mailto:wlfsc.sahittoclub@gmail.com" className="hover:text-rose-900 transition-colors flex items-center justify-center md:justify-start gap-1.5">
-                  ✉️ wlfsc.sahittoclub.com@gmail.com
+                  ✉️ wlfsc.sahittoclub@gmail.com
                 </a>
               </div>
 
