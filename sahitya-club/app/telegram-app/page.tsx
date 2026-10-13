@@ -98,10 +98,6 @@ export default function TelegramAttendanceApp() {
     setScanning(false);
   }, []);
 
-  useEffect(() => {
-    if (initData && !loading && events.length > 0 && !scanning && !cameraError) void startCamera();
-  }, [initData, loading, events.length, scanning, cameraError, startCamera]);
-
   useEffect(() => () => {
     if (scanTimerRef.current !== null) window.clearInterval(scanTimerRef.current);
     streamRef.current?.getTracks().forEach(track => track.stop());
@@ -154,6 +150,10 @@ export default function TelegramAttendanceApp() {
       setCameraError("Camera চালু করা যায়নি। Telegram-এ camera permission দিন, অথবা Member ID হাতে লিখুন।");
     }
   }, [stopCamera, initData]);
+
+  useEffect(() => {
+    if (initData && !loading && events.length > 0 && !scanning && !cameraError) void startCamera();
+  }, [initData, loading, events.length, scanning, cameraError, startCamera]);
 
   async function recordAttendance(event?: React.FormEvent) {
     event?.preventDefault();
