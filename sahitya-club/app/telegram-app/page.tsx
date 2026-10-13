@@ -23,6 +23,9 @@ export default function TelegramAttendanceApp() {
   const [events, setEvents] = useState<WlcEvent[]>([]);
   const [eventId, setEventId] = useState("");
   const [memberId, setMemberId] = useState("");
+  const [memberName, setMemberName] = useState("");
+  const [memberLookupBusy, setMemberLookupBusy] = useState(false);
+  const lastScannedRef = useRef("");
   const [status, setStatus] = useState<"PRESENT" | "LATE">("PRESENT");
   const [adminName, setAdminName] = useState("");
   const [message, setMessage] = useState("");
@@ -95,6 +98,10 @@ export default function TelegramAttendanceApp() {
     setScanning(false);
   }, []);
 
+  useEffect(() => {
+    if (initData && !loading && events.length > 0 && !scanning && !cameraError) void startCamera();
+  }, [initData, loading, events.length, scanning, cameraError, startCamera]);
+
   useEffect(() => () => {
     if (scanTimerRef.current !== null) window.clearInterval(scanTimerRef.current);
     streamRef.current?.getTracks().forEach(track => track.stop());
@@ -121,7 +128,24 @@ export default function TelegramAttendanceApp() {
           const value = codes.find(code => code.rawValue)?.rawValue;
           if (value) {
             const id = memberIdFromQr(value);
-            if (id) { setMemberId(id); setMessage("QR captured. Confirm the member ID, then record attendance."); stopCamera(); }
+            if (id && id !== lastScannedRef.current) {
+              lastScannedRef.current = id;
+              setMemberId(id);
+              setMemberName("");
+              setMemberLookupBusy(true);
+              setMessage("QR scanned. Looking up member…");
+              void fetch("/api/telegram-app/attendance?memberId=" + encodeURIComponent(id), {
+                headers: { "x-telegram-init-data": initData }, cache: "no-store"
+              }).then(async response => {
+                const data = await response.json();
+                if (!response.ok) throw new Error(data.message || "Member not found.");
+                setMemberName(data.member.name || "Name not available");
+                setMessage("Member verified. Confirm check-in below.");
+              }).catch(error => {
+                setMemberName("");
+                setMessage(error instanceof Error ? error.message : "Could not look up member.");
+              }).finally(() => setMemberLookupBusy(false));
+            }
             else setCameraError("QR-এ WLC Member ID পাওয়া যায়নি।");
           }
         } catch { /* Wait for the next camera frame. */ }
@@ -129,7 +153,7 @@ export default function TelegramAttendanceApp() {
     } catch {
       setCameraError("Camera চালু করা যায়নি। Telegram-এ camera permission দিন, অথবা Member ID হাতে লিখুন।");
     }
-  }, [stopCamera]);
+  }, [stopCamera, initData]);
 
   async function recordAttendance(event?: React.FormEvent) {
     event?.preventDefault();
@@ -148,6 +172,8 @@ export default function TelegramAttendanceApp() {
       if (!response.ok) throw new Error(data.message || "Attendance could not be saved.");
       setMessage("✓ " + data.member.name + " (" + data.member.memberId + ") — " + data.event + ": " + data.status + " saved.");
       setMemberId("");
+      setMemberName("");
+      lastScannedRef.current = "";
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Network error. Try again.");
     } finally {
@@ -176,12 +202,13 @@ export default function TelegramAttendanceApp() {
 
         <section className="rounded-3xl bg-white p-5 shadow-sm">
           <div className="flex items-center justify-between gap-3">
-            <div><h2 className="font-bold">Scan member QR</h2><p className="mt-1 text-sm text-stone-500">Use the QR on the member card.</p></div>
+            <div><h2 className="font-bold">Scan member QR</h2><p className="mt-1 text-sm text-stone-500">Camera starts automatically and keeps scanning while this app is open.</p></div>
             <span className="rounded-2xl bg-rose-50 p-3 text-xl">▦</span>
           </div>
-          {scanning && <div className="mt-4 overflow-hidden rounded-2xl bg-black"><video ref={videoRef} playsInline muted className="max-h-72 w-full object-cover" /><button type="button" onClick={stopCamera} className="w-full bg-stone-900 p-3 text-sm font-semibold text-white">Stop camera</button></div>}
-          {!scanning && <button type="button" onClick={() => void startCamera()} className="mt-4 w-full rounded-xl border border-[#5b1725] px-4 py-3.5 font-semibold text-[#5b1725]">Open QR scanner</button>}
+          {<div className="mt-4 overflow-hidden rounded-2xl bg-black"><video ref={videoRef} playsInline muted className="max-h-72 w-full object-cover" /><div className="bg-stone-900 px-3 py-2 text-center text-xs font-semibold text-white">{scanning ? "● CAMERA LIVE · CONTINUOUS SCANNING" : "Camera not active"}</div><button type="button" onClick={stopCamera} className="w-full bg-stone-800 p-3 text-sm font-semibold text-white">Stop camera</button></div>}
+          {!scanning && <button type="button" onClick={() => void startCamera()} className="mt-4 w-full rounded-xl border border-[#5b1725] px-4 py-3.5 font-semibold text-[#5b1725]">Start camera</button>}
           {cameraError && <p className="mt-3 rounded-xl bg-amber-50 p-3 text-sm leading-5 text-amber-900">{cameraError}</p>}
+          {memberId && <div className="mt-4 rounded-2xl border border-emerald-200 bg-emerald-50 p-4"><p className="text-xs font-bold uppercase tracking-wide text-emerald-800">Scanned member</p><p className="mt-2 text-lg font-bold text-stone-900">{memberLookupBusy ? "Looking up name…" : memberName || "Member name unavailable"}</p><p className="mt-1 font-mono text-sm text-stone-700">{memberId}</p><button type="button" onClick={() => { setMemberId(""); setMemberName(""); setMessage(""); lastScannedRef.current = ""; }} className="mt-3 text-sm font-semibold text-[#5b1725]">Clear / scan next member</button></div>}
           <div className="my-4 flex items-center gap-3 text-xs text-stone-400"><span className="h-px flex-1 bg-stone-200" />OR ENTER MANUALLY<span className="h-px flex-1 bg-stone-200" /></div>
           <label className="block text-sm font-semibold">WLC Member ID</label>
           <input value={memberId} onChange={e => setMemberId(e.target.value.toUpperCase())} placeholder="e.g. WLC-GEN2-001" autoCapitalize="characters" autoComplete="off" className="mt-2 w-full rounded-xl border border-stone-200 bg-stone-50 p-3.5 font-mono outline-none focus:border-[#5b1725]" />
@@ -192,7 +219,7 @@ export default function TelegramAttendanceApp() {
           <div className="mt-3 grid grid-cols-2 gap-3">
             {(["PRESENT", "LATE"] as const).map(value => <button key={value} type="button" onClick={() => setStatus(value)} className={"rounded-xl border p-3.5 font-semibold " + (status === value ? "border-[#5b1725] bg-[#5b1725] text-white" : "border-stone-200 bg-white text-stone-600")}>{value === "PRESENT" ? "✓ Present" : "◷ Late"}</button>)}
           </div>
-          <button disabled={busy || !events.length || !eventId || !memberId.trim()} type="submit" className="mt-4 w-full rounded-xl bg-[#5b1725] p-4 font-bold text-white shadow-sm disabled:cursor-not-allowed disabled:opacity-40">{busy ? "Saving attendance…" : "Confirm check-in"}</button>
+          <button disabled={busy || memberLookupBusy || !events.length || !eventId || !memberId.trim() || !memberName} type="submit" className="mt-4 w-full rounded-xl bg-[#5b1725] p-4 font-bold text-white shadow-sm disabled:cursor-not-allowed disabled:opacity-40">{busy ? "Saving attendance…" : "Confirm check-in"}</button>
         </section>
       </form>}
 
