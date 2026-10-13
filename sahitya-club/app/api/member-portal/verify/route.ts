@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
-import { getAdminDb } from "@/lib/firebase-admin";\nimport { enforceRateLimit, rateLimitResponse } from "@/lib/api-rate-limit";
+import { getAdminDb } from "@/lib/firebase-admin";
+import { enforceRateLimit, rateLimitResponse } from "@/lib/api-rate-limit";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
