@@ -7,9 +7,15 @@ export const dynamic = "force-dynamic";
 function authorized(request: Request) {
   const expected = process.env.CRON_SECRET;
   if (!expected) return false;
-  const urlKey = new URL(request.url).searchParams.get("key");
-  const bearer = request.headers.get("authorization");
-  return urlKey === expected || bearer === `Bearer ${expected}`;
+  const bearer = request.headers.get("authorization") || "";
+  const match = bearer.match(/^Bearer\\s+(.+)$/i);
+  const supplied = match?.[1]?.trim() || "";
+  if (!supplied) return false;
+
+  const expectedBuffer = Buffer.from(expected);
+  const suppliedBuffer = Buffer.from(supplied);
+  return expectedBuffer.length === suppliedBuffer.length &&
+    crypto.timingSafeEqual(expectedBuffer, suppliedBuffer);
 }
 
 async function telegramApi(token: string, method: string, payload: Record<string, unknown>) {
