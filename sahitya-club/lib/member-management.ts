@@ -175,34 +175,26 @@ export function buildMemberEmail(member: Pick<RegisteredMember, "memberId" | "na
 export async function sendMemberEmail(member: RegisteredMember) {
   if (!member.email) throw new Error("This member does not have an email address.");
 
-  const apiToken = process.env.MAILERSEND_API_TOKEN?.trim();
-  const fromEmail = process.env.MAILERSEND_FROM_EMAIL?.trim();
-  const fromName = process.env.MAILERSEND_FROM_NAME?.trim() || "Willes Literary Club ";
+  const apiKey = process.env.RESEND_API_KEY?.trim();
+  const fromEmail = process.env.RESEND_FROM_EMAIL?.trim();
+  const fromName = process.env.RESEND_FROM_NAME?.trim() || "Willes Literary Club";
 
-  if (!apiToken || !fromEmail) {
+  if (!apiKey || !fromEmail) {
     throw new Error(
-      "Email service is not configured. Add MAILERSEND_API_TOKEN and MAILERSEND_FROM_EMAIL in Vercel."
+      "Email service is not configured. Add RESEND_API_KEY and RESEND_FROM_EMAIL in Vercel."
     );
   }
 
   const email = buildMemberEmail(member);
-  const response = await fetch("https://api.mailersend.com/v1/email", {
+  const response = await fetch("https://api.resend.com/emails", {
     method: "POST",
     headers: {
-      Authorization: `Bearer ${apiToken}`,
+      Authorization: `Bearer ${apiKey}`,
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      from: {
-        email: fromEmail,
-        name: fromName,
-      },
-      to: [
-        {
-          email: member.email,
-          name: member.name,
-        },
-      ],
+      from: `${fromName} <${fromEmail}>`,
+      to: [member.email],
       subject: email.subject,
       html: email.html,
       text: email.text,
@@ -210,18 +202,18 @@ export async function sendMemberEmail(member: RegisteredMember) {
     cache: "no-store",
   });
 
+  const body = await response.json().catch(() => ({}));
   if (!response.ok) {
-    const body = await response.json().catch(() => ({}));
     const reason =
       typeof body?.message === "string"
         ? body.message
-        : typeof body?.error === "string"
-          ? body.error
-          : `MailerSend returned HTTP ${response.status}`;
+        : typeof body?.name === "string"
+          ? body.name
+          : `Resend returned HTTP ${response.status}`;
     throw new Error(reason);
   }
 
-  return response.headers.get("x-message-id") || "";
+  return typeof body?.id === "string" ? body.id : "";
 }
 
 export async function updateEmailStatus(
