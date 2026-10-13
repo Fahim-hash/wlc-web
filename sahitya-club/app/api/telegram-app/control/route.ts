@@ -145,6 +145,12 @@ export async function POST(request: Request) {
       const [conversations,knowledge]=await Promise.all([db.collection("telegram_ai_conversations").count().get(),db.collection("kothasokhi_knowledge").where("status","==","PUBLISHED").count().get()]);
       return NextResponse.json({ok:true,conversations:conversations.data().count,knowledge:knowledge.data().count});
     }
+    if (action === "member_export") {
+      const snap=await db.collection("registered_members").orderBy("createdAt","desc").limit(500).get();
+      const records=snap.docs.map(doc=>{const m=doc.data();const phone=String(m.phone||"").replace(/\\D/g,"");const masked=phone.length>5?phone.slice(0,2)+"x".repeat(phone.length-5)+phone.slice(-3):"x".repeat(phone.length);return {name:String(m.name||""),class:String(m.batch||""),memberId:String(m.memberId||doc.id),phone:masked,status:String(m.status||""),email:String(m.email||"")};});
+      await db.collection("audit_logs").add({action:"EXPORT",collection:"registered_members",actor:"telegram:"+admin.id,recordCount:records.length,fields:["name","class","memberId","phone","status","email"],createdAt:Date.now()});
+      return NextResponse.json({ok:true,records,scanned:snap.size});
+    }
     if (action === "member_count") {
       const snap=await db.collection("registered_members").count().get();
       return NextResponse.json({ok:true,count:snap.data().count});
