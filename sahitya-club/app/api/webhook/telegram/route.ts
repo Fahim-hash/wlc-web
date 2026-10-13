@@ -276,30 +276,28 @@ async function sendKothasokhiStats(chatId: number | string) {
 async function sendControlMenu(chatId: number | string) {
   return sendText(
     chatId,
-    "উইল্‌স সাহিত্য ক্লাব\n\nওয়েবসাইটের নোটিফিকেশন ও অন্যান্য ব্যবস্থাপনা এখান থেকেই করা যাবে।",
+    "✦ WILLES LITERARY CLUB\n━━━━━━━━━━━━━━━━━━\n🛡️ ADMIN CONTROL CENTER\n\nস্বাগতম, Admin. আপনার ক্লাবের ডিজিটাল অপারেশন এক জায়গায় পরিচালনা করুন।\n\n◈ Attendance & Members\n◈ Website notifications\n◈ Content, media & AI tools\n\nনিচের একটি সার্ভিস বেছে নিন।",
     [
       [
-        { text: "📷 Attendance App", web_app: { url: (process.env.NEXT_PUBLIC_SITE_URL || "https://wlc.pro.bd").replace(/\/$/, "") + "/telegram-app" } },
+        { text: "📲 Open Admin Dashboard", web_app: { url: (process.env.NEXT_PUBLIC_SITE_URL || "https://wlc.pro.bd").replace(/\/$/, "") + "/telegram-app" } },
       ],
       [
-        { text: "📢 নোটিফিকেশন পাঠান", callback_data: "wlc:push" },
-        { text: "🧪 পরীক্ষা করুন", callback_data: "wlc:test" },
+        { text: "📢 Send Notification", callback_data: "wlc:push" },
+        { text: "🧪 Test Push", callback_data: "wlc:test" },
       ],
       [
-        { text: "📊 সাবস্ক্রাইবার", callback_data: "wlc:stats" },
-        { text: "🖼️ অ্যালবাম", callback_data: "wlc:album_list" },
+        { text: "📊 Subscriber Stats", callback_data: "wlc:stats" },
+        { text: "🖼️ Media Album", callback_data: "wlc:album_list" },
       ],
       [
-        { text: "✨ বিষয় ব্যবস্থাপনা", callback_data: "wlc:cms:menu" },
+        { text: "📝 CMS & Publishing", callback_data: "wlc:cms:menu" },
       ],
       [
-        { text: "🤖 AI Admin Assistant — Beta", callback_data: "wlc:aiadmin:help" },
+        { text: "🤖 AI Admin Assistant · Beta", callback_data: "wlc:aiadmin:help" },
+        { text: "🌸 Kothasokhi AI", callback_data: "wlc:kothasokhi:menu" },
       ],
       [
-        { text: "🤖 Kothasokhi AI Control", callback_data: "wlc:kothasokhi:menu" },
-      ],
-      [
-        { text: "❌ বাতিল", callback_data: "wlc:cancel" },
+        { text: "↻ Refresh Control Center", callback_data: "wlc:cancel" },
       ],
     ]
   );
