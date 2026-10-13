@@ -175,19 +175,20 @@ export default function MemberPortalPage() {
               </form>
               <p className="mt-2 text-xs text-stone-500">UIDs are unique and can contain English letters, numbers and underscores only.</p>
             </section>
-            <section className="mt-5 rounded-2xl border border-stone-200 bg-white p-6">
-              <h2 className="font-semibold">Digital membership card</h2>
-              <div className="mt-4 flex flex-col gap-4 rounded-2xl border border-stone-200 bg-stone-50 p-4 sm:flex-row sm:items-center">
+            <section className="mt-5 rounded-2xl border border-stone-200 bg-white p-6 print-card-section">
+              <div className="flex flex-wrap items-center justify-between gap-3 print:hidden"><h2 className="font-semibold">Digital membership card</h2><button type="button" onClick={() => window.print()} className="rounded-xl bg-rose-900 px-4 py-2.5 text-sm font-semibold text-white hover:bg-rose-800">Print member card</button></div>
+              <div id="wlc-member-card" className="relative mt-4 flex min-h-[210px] flex-col justify-between gap-4 overflow-hidden rounded-2xl border-2 border-rose-900/20 bg-gradient-to-br from-white via-stone-50 to-rose-50 p-5 shadow-sm sm:flex-row sm:items-center print-card">
                 <div className="min-w-0 flex-1">
-                  <p className="text-xs font-bold uppercase tracking-wider text-rose-900">Willes Literary Club</p>
+                  <p className="text-xs font-bold uppercase tracking-[0.2em] text-rose-900">Willes Literary Club · Official Member Card</p>
                   <p className="mt-2 text-xl font-bold">{member.name}</p>
                   <p className="mt-1 break-all font-mono text-sm text-rose-900">{member.memberId}</p>
-                  <p className="mt-3 text-xs text-stone-500">Permanent official member ID · {member.status}</p>
+                  <p className="mt-3 text-xs font-medium uppercase tracking-wider text-stone-600">Permanent Member ID · {member.status}</p>
                   <a href={"/member-portal/verify?id=" + encodeURIComponent(member.memberId)} className="mt-3 inline-block text-sm font-semibold text-rose-900 underline">Verify membership ↗</a>
                 </div>
                 <img alt="QR code for official member verification" width="132" height="132" loading="lazy" className="h-[132px] w-[132px] self-center rounded-lg border bg-white p-1" src={"https://api.qrserver.com/v1/create-qr-code/?size=132x132&margin=6&data=" + encodeURIComponent("https://wlc.pro.bd/member-portal/verify?id=" + member.memberId)} />
               </div>
-              <p className="mt-3 text-xs leading-5 text-stone-500">The QR opens the club’s public verification page. It shows the official ID, member name and membership status only—not contact details.</p>
+              <p className="mt-3 text-xs leading-5 text-stone-500 print:hidden">Scan this QR to verify membership. When a signed-in WLC admin scans it, the same page also offers event attendance check-in. The QR contains no contact details.</p>
+              <style jsx global>{`@media print { @page { size: auto; margin: 8mm; } body * { visibility: hidden !important; } #wlc-member-card, #wlc-member-card * { visibility: visible !important; } #wlc-member-card { position: absolute !important; left: 0 !important; top: 0 !important; width: 85.6mm !important; min-height: 54mm !important; box-sizing: border-box !important; margin: 0 !important; padding: 5mm !important; border: 1px solid #881337 !important; border-radius: 3mm !important; box-shadow: none !important; background: #fff !important; color: #111 !important; print-color-adjust: exact; -webkit-print-color-adjust: exact; } #wlc-member-card img { width: 28mm !important; height: 28mm !important; } .print-card-section { border: 0 !important; padding: 0 !important; } }`}</style>
             </section>
             <section className="mt-5 grid gap-4 sm:grid-cols-2">
               <article className="rounded-2xl border border-stone-200 bg-white p-6"><div className="flex items-center justify-between"><h2 className="font-semibold">Upcoming / published events</h2><span className="rounded-full bg-stone-100 px-2.5 py-1 text-xs">{activity.events.length}</span></div>{activity.events.length ? <div className="mt-4 space-y-4">{activity.events.map(event => <div key={String(event.id)} className="border-t border-stone-100 pt-3"><p className="font-medium">{event.title || "WLC event"}</p><p className="mt-1 text-xs text-stone-500">{[event.date,event.time,event.venue].filter(Boolean).join(" · ")}</p>{event.description && <p className="mt-2 whitespace-pre-line text-sm leading-6 text-stone-600">{event.description}</p>}{event.link && (String(event.link).startsWith("/") || /^https?:\/\//i.test(String(event.link))) && <a href={String(event.link)} className="mt-2 inline-block text-sm font-semibold text-rose-900 underline">Event details ↗</a>}</div>)}</div> : <p className="mt-3 text-sm text-stone-500">No published events right now.</p>}</article>
