@@ -279,6 +279,9 @@ async function sendControlMenu(chatId: number | string) {
     "উইল্‌স সাহিত্য ক্লাব\n\nওয়েবসাইটের নোটিফিকেশন ও অন্যান্য ব্যবস্থাপনা এখান থেকেই করা যাবে।",
     [
       [
+        { text: "📷 Attendance App", web_app: { url: (process.env.NEXT_PUBLIC_SITE_URL || "https://wlc.pro.bd").replace(/\/$/, "") + "/telegram-app" } },
+      ],
+      [
         { text: "📢 নোটিফিকেশন পাঠান", callback_data: "wlc:push" },
         { text: "🧪 পরীক্ষা করুন", callback_data: "wlc:test" },
       ],
