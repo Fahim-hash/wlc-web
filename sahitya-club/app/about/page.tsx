@@ -21,7 +21,7 @@ export default function AboutPage() {
             আমাদের গল্পকথা 📖
           </h1>
           <p className="text-sm md:text-base text-stone-600 leading-relaxed">
-            শব্দে, ছнде ও ভাবনায় উইল্‌স লিটল ফ্লাওয়ার স্কুল অ্যান্ড কলেজের তরুণ সাহিত্যপ্রেমীদের এক মিলনমেলা।
+            শব্দে, ছন্দে ও ভাবনায় উইল্‌স লিটল ফ্লাওয়ার স্কুল অ্যান্ড কলেজের তরুণ সাহিত্যপ্রেমীদের এক মিলনমেলা।
           </p>
           <div className="w-16 h-1 bg-rose-800 mx-auto mt-4 rounded-full"></div>
         </div>
