@@ -26,27 +26,46 @@ export async function POST(request: Request) {
     // Initialize the existing Firebase Admin app through the shared database helper.
     getAdminDb();
     const app = getApps()[0];
-    const bucketName = process.env.FIREBASE_STORAGE_BUCKET?.trim() || String(app?.options.storageBucket || "");
-    if (!bucketName) {
+    const explicitBucket = process.env.FIREBASE_STORAGE_BUCKET?.trim() || String(app?.options.storageBucket || "");
+    const projectId = String(app?.options.projectId || "");
+    const bucketNames = explicitBucket
+      ? [explicitBucket]
+      : [projectId ? `${projectId}.firebasestorage.app` : "", projectId ? `${projectId}.appspot.com` : ""].filter(Boolean);
+    if (!bucketNames.length) {
       return NextResponse.json({ ok: false, error: "Firebase Storage bucket is not configured. Set FIREBASE_STORAGE_BUCKET in Vercel to your Firebase Storage bucket name." }, { status: 503 });
     }
 
-    const extension = file.type === "image/jpeg" ? "jpg" : file.type.split("/")[1].replace("svg+xml", "svg");
+    const extension = file.type === "image/jpeg" ? "jpg" : file.type.split("/")[1];
     const objectPath = `wlc-control-hub/${new Date().toISOString().slice(0, 10)}/${crypto.randomUUID()}.${extension}`;
     const token = crypto.randomUUID();
-    const bucket = getStorage(app).bucket(bucketName);
-    const object = bucket.file(objectPath);
-    await object.save(Buffer.from(await file.arrayBuffer()), {
-      resumable: false,
-      metadata: {
-        contentType: file.type,
-        cacheControl: "public, max-age=31536000, immutable",
-        metadata: { firebaseStorageDownloadTokens: token, uploadedBy: String(admin.id), originalName: file.name.slice(0, 180) },
-      },
-    });
+    const bytes = Buffer.from(await file.arrayBuffer());
+    let bucketName = bucketNames[0];
+    let saved = false;
+    let lastError: unknown;
+    for (const candidate of bucketNames) {
+      try {
+        const bucket = getStorage(app).bucket(candidate);
+        await bucket.file(objectPath).save(bytes, {
+          resumable: false,
+          metadata: {
+            contentType: file.type,
+            cacheControl: "public, max-age=31536000, immutable",
+            metadata: { firebaseStorageDownloadTokens: token, uploadedBy: String(admin.id), originalName: file.name.slice(0, 180) },
+          },
+        });
+        bucketName = candidate;
+        saved = true;
+        break;
+      } catch (e) {
+        lastError = e;
+        if (explicitBucket) break;
+      }
+    }
+    if (!saved) throw new Error(`Could not upload to Firebase Storage bucket ${bucketName}. Set FIREBASE_STORAGE_BUCKET to the exact bucket name in Vercel. ${lastError instanceof Error ? lastError.message : ""}`);
 
+    await getAdminDb().collection("audit_logs").add({ action: "MINI_APP_IMAGE_UPLOAD", actor: "telegram:" + admin.id, objectPath, bucket: bucketName, size: file.size, createdAt: Date.now() });
     const encodedPath = encodeURIComponent(objectPath);
-    const imageUrl = `https://firebasestorage.googleapis.com/v0/b/${bucket.name}/o/${encodedPath}?alt=media&token=${token}`;
+    const imageUrl = `https://firebasestorage.googleapis.com/v0/b/${bucketName}/o/${encodedPath}?alt=media&token=${token}`;
     return NextResponse.json({ ok: true, imageUrl, name: file.name, size: file.size });
   } catch (e) {
     console.error("Telegram Mini App image upload failed:", e);
