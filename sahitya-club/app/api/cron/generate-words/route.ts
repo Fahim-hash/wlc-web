@@ -1,5 +1,5 @@
 // app/api/cron/generate-words/route.ts
-import { NextResponse } from "next/server";
+import { NextResponse } from "next/server";\nimport { isAuthorizedCronRequest } from "@/lib/cron-auth";
 import { db } from "@/lib/firebase";
 import {
   collection,
@@ -186,11 +186,7 @@ async function releaseGenerationLock(): Promise<void> {
 }
 
 export async function GET(request: Request) {
-  const { searchParams } = new URL(request.url);
-  const cronKey = searchParams.get("key");
-  const expectedCronKey = process.env.CRON_SECRET;
-
-  if (!expectedCronKey || cronKey !== expectedCronKey) {
+  if (!isAuthorizedCronRequest(request)) {
     return NextResponse.json(
       { error: "Access Denied. Invalid token signature." },
       { status: 401 }
