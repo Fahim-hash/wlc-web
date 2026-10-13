@@ -179,10 +179,10 @@ export async function currentMember() {
 }
 
 export async function sendActivationEmail(member: { name: string; email: string; memberId: string }, activationUrl: string) {
-  const apiToken = process.env.MAILERSEND_API_TOKEN?.trim();
-  const fromEmail = process.env.MAILERSEND_FROM_EMAIL?.trim();
-  const fromName = process.env.MAILERSEND_FROM_NAME?.trim() || "Willes Literary Club";
-  if (!apiToken || !fromEmail) throw new Error("Email service is not configured. Check MailerSend environment variables in Vercel.");
+  const apiKey = process.env.RESEND_API_KEY?.trim();
+  const fromEmail = process.env.RESEND_FROM_EMAIL?.trim();
+  const fromName = process.env.RESEND_FROM_NAME?.trim() || "Willes Literary Club";
+  if (!apiKey || !fromEmail) throw new Error("Email service is not configured. Add RESEND_API_KEY and RESEND_FROM_EMAIL in Vercel.");
 
   const safe = (v: string) => v.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
   const name = safe(member.name);
@@ -190,17 +190,17 @@ export async function sendActivationEmail(member: { name: string; email: string;
   const url = safe(activationUrl);
   const text = `Willes Literary Club — Member Portal Activation\n\nDear ${member.name},\nYour member ID is ${member.memberId}. Activate your personal portal account using this secure link within 48 hours:\n${activationUrl}\n\nCreate your own memorable UID and password. Never share your password.\n\n— Willes Literary Club`;
   const html = `<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><body style="margin:0;background:#f7f3ef;font-family:Arial,sans-serif;color:#292524;padding:28px 12px"><main style="max-width:600px;margin:auto;background:#fff;border:1px solid #eadfd8;border-radius:20px;overflow:hidden"><header style="padding:26px;text-align:center;border-bottom:1px solid #eee7e1"><img src="https://wlc.pro.bd/logo.png" alt="WLC" width="64" height="64" style="object-fit:contain"><p style="color:#7f1d1d;font-weight:bold;letter-spacing:2px">WILLES LITERARY CLUB</p></header><div style="height:5px;background:#991b1b"></div><section style="padding:30px"><p style="font-size:12px;color:#991b1b;font-weight:bold;letter-spacing:1px">MEMBER PORTAL</p><h1 style="font-size:28px">Welcome, ${name}!</h1><p style="line-height:1.8;color:#57534e">Your membership has been registered. Activate your personal WLC Member Portal to set a memorable UID and password.</p><div style="background:#faf8f6;border:1px solid #eadfd8;border-radius:14px;padding:18px"><div style="font-size:12px;color:#78716c">OFFICIAL MEMBER ID</div><strong style="display:block;margin-top:8px;font-size:26px;color:#7f1d1d">${id}</strong></div><p style="text-align:center;margin:28px 0"><a href="${url}" style="background:#7f1d1d;color:white;text-decoration:none;padding:14px 22px;border-radius:10px;font-weight:bold;display:inline-block">Activate Member Portal</a></p><p style="font-size:13px;color:#78716c;line-height:1.7">This one-time link expires in 48 hours. If you did not expect this email, you can ignore it. Never share your password.</p><p style="margin-top:28px">With literary regards,<br><strong style="color:#7f1d1d">Willes Literary Club</strong></p></section><footer style="background:#1c1917;color:#d6d3d1;text-align:center;padding:20px;font-size:12px">Willes Little Flower School & College, Dhaka<br><a href="https://wlc.pro.bd" style="color:#fca5a5">wlc.pro.bd</a></footer></main></body></html>`;
-  const response = await fetch("https://api.mailersend.com/v1/email", {
+  const response = await fetch("https://api.resend.com/emails", {
     method: "POST",
-    headers: { Authorization: `Bearer ${apiToken}`, "Content-Type": "application/json" },
-    body: JSON.stringify({ from: { email: fromEmail, name: fromName }, to: [{ email: member.email, name: member.name }], subject: "Willes Literary Club — Activate Your Member Portal", text, html }),
+    headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
+    body: JSON.stringify({ from: `${fromName} <${fromEmail}>`, to: [member.email], subject: "Willes Literary Club — Activate Your Member Portal", text, html }),
     cache: "no-store",
   });
+  const body = await response.json().catch(() => ({}));
   if (!response.ok) {
-    const body = await response.json().catch(() => ({}));
-    throw new Error(typeof body?.message === "string" ? body.message : `MailerSend returned HTTP ${response.status}`);
+    throw new Error(typeof body?.message === "string" ? body.message : typeof body?.name === "string" ? body.name : `Resend returned HTTP ${response.status}`);
   }
-  return response.headers.get("x-message-id") || "";
+  return typeof body?.id === "string" ? body.id : "";
 }
 
 
