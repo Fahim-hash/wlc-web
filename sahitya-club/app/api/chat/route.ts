@@ -2,7 +2,8 @@ import { NextResponse } from "next/server";
 import Groq from "groq-sdk";
 import fs from "fs";
 import path from "path";
-import { getAdminDb } from "@/lib/firebase-admin";\nimport { enforceRateLimit, rateLimitResponse } from "@/lib/api-rate-limit";
+import { getAdminDb } from "@/lib/firebase-admin";
+import { enforceRateLimit, rateLimitResponse } from "@/lib/api-rate-limit";
 
 type ChatMessage = {
   role: "user" | "assistant";
