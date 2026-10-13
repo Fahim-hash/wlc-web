@@ -3,227 +3,135 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
 type WlcEvent = { id: string; title: string; date: string };
-type MiniAppWindow = Window & {
-  Telegram?: { WebApp?: { initData?: string; ready?: () => void; expand?: () => void; close?: () => void; colorScheme?: string; themeParams?: Record<string, string> } };
-  BarcodeDetector?: new (options?: { formats?: string[] }) => { detect: (source: HTMLVideoElement) => Promise<Array<{ rawValue?: string }>> };
-};
-
-function memberIdFromQr(value: string) {
-  const raw = value.trim();
-  try {
-    const url = new URL(raw);
-    return (url.searchParams.get("id") || url.searchParams.get("memberId") || "").trim().toUpperCase();
-  } catch {
-    return raw.toUpperCase();
-  }
-}
+type MiniAppWindow = Window & { Telegram?: { WebApp?: { initData?: string; ready?: () => void; expand?: () => void; colorScheme?: string } }; BarcodeDetector?: new (options?: { formats?: string[] }) => { detect: (source: HTMLVideoElement) => Promise<Array<{ rawValue?: string }>> } };
+type Tab = "home"|"attendance"|"notifications"|"members"|"cms"|"albums"|"kothasokhi";
+const cmsCollections = [{id:"events",label:"Events"},{id:"members",label:"Members"},{id:"achievements",label:"Achievements"},{id:"announcements",label:"Announcements"},{id:"writing",label:"Writing"},{id:"kothasokhi_knowledge",label:"Kothasokhi Knowledge"},{id:"committee",label:"Committee"},{id:"albums",label:"Albums"},{id:"media",label:"Media"},{id:"shobdo",label:"Shobdo"}];
+function memberIdFromQr(value: string) { const raw=value.trim(); try { const url=new URL(raw); return (url.searchParams.get("id")||url.searchParams.get("memberId")||"").trim().toUpperCase(); } catch { return raw.toUpperCase(); } }
 
 export default function TelegramAttendanceApp() {
-  const [initData, setInitData] = useState("");
-  const [events, setEvents] = useState<WlcEvent[]>([]);
-  const [eventId, setEventId] = useState("");
-  const [memberId, setMemberId] = useState("");
-  const [memberName, setMemberName] = useState("");
-  const [memberLookupBusy, setMemberLookupBusy] = useState(false);
-  const lastScannedRef = useRef("");
-  const [status, setStatus] = useState<"PRESENT" | "LATE">("PRESENT");
-  const [adminName, setAdminName] = useState("");
-  const [message, setMessage] = useState("");
-  const [busy, setBusy] = useState(false);
-  const [loading, setLoading] = useState(true);
-  const [scanning, setScanning] = useState(false);
-  const [cameraError, setCameraError] = useState("");
-  const videoRef = useRef<HTMLVideoElement>(null);
-  const streamRef = useRef<MediaStream | null>(null);
-  const scanTimerRef = useRef<number | null>(null);
+  const [initData,setInitData]=useState("");
+  const [events,setEvents]=useState<WlcEvent[]>([]);
+  const [eventId,setEventId]=useState("");
+  const [memberId,setMemberId]=useState("");
+  const [memberName,setMemberName]=useState("");
+  const [memberLookupBusy,setMemberLookupBusy]=useState(false);
+  const lastScannedRef=useRef("");
+  const [status,setStatus]=useState<"PRESENT"|"LATE">("PRESENT");
+  const [adminName,setAdminName]=useState("");
+  const [message,setMessage]=useState("");
+  const [busy,setBusy]=useState(false);
+  const [loading,setLoading]=useState(true);
+  const [scanning,setScanning]=useState(false);
+  const [cameraError,setCameraError]=useState("");
+  const videoRef=useRef<HTMLVideoElement>(null);
+  const streamRef=useRef<MediaStream|null>(null);
+  const scanTimerRef=useRef<number|null>(null);
+  const [tab,setTab]=useState<Tab>("home");
+  const [hubBusy,setHubBusy]=useState(false);
+  const [hubError,setHubError]=useState("");
+  const [stats,setStats]=useState<any>(null);
+  const [cmsCounts,setCmsCounts]=useState<any[]>([]);
+  const [noticeTitle,setNoticeTitle]=useState("উইল্‌স সাহিত্য ক্লাব");
+  const [noticeMessage,setNoticeMessage]=useState("");
+  const [noticeUrl,setNoticeUrl]=useState("/");
+  const [noticeImage,setNoticeImage]=useState("");
+  const [actionResult,setActionResult]=useState("");
+  const [memberQuery,setMemberQuery]=useState("");
+  const [memberBatch,setMemberBatch]=useState("");
+  const [memberRows,setMemberRows]=useState<any[]>([]);
+  const [cmsCollection,setCmsCollection]=useState("events");
+  const [cmsTitle,setCmsTitle]=useState("");
+  const [cmsDescription,setCmsDescription]=useState("");
+  const [cmsDate,setCmsDate]=useState("");
+  const [cmsPublish,setCmsPublish]=useState(false);
+  const [cmsRows,setCmsRows]=useState<any[]>([]);
+  const [albumRows,setAlbumRows]=useState<any[]>([]);
+  const [selectedAlbum,setSelectedAlbum]=useState("");
+  const [albumCaption,setAlbumCaption]=useState("");
+  const [aiReply,setAiReply]=useState("");
+  const [kothasokhi,setKothasokhi]=useState<any>(null);
 
-  useEffect(() => {
-    // Wait for Telegram's WebApp SDK before deciding whether initData is missing.
-    let attempts = 0;
-    let intervalId: number | undefined;
-    let timeoutId: number | undefined;
+  const api = useCallback(async (action:string, payload:Record<string,unknown>={}) => {
+    const response=await fetch("/api/telegram-app/control",{method:"POST",headers:{"Content-Type":"application/json","x-telegram-init-data":initData},body:JSON.stringify({action,...payload}),cache:"no-store"});
+    const data=await response.json();
+    if(!response.ok||!data.ok) throw new Error(data.error||"Action failed.");
+    return data;
+  },[initData]);
 
-    const initialize = () => {
-      const webApp = (window as MiniAppWindow).Telegram?.WebApp;
-      if (!webApp) return false;
-      webApp.ready?.();
-      webApp.expand?.();
-      setInitData(webApp.initData || "");
-      if (intervalId !== undefined) window.clearInterval(intervalId);
-      if (timeoutId !== undefined) window.clearTimeout(timeoutId);
-      return true;
-    };
+  useEffect(()=>{let attempts=0;let intervalId:number|undefined;let timeoutId:number|undefined;
+    const initialize=()=>{const webApp=(window as MiniAppWindow).Telegram?.WebApp;if(!webApp)return false;webApp.ready?.();webApp.expand?.();setInitData(webApp.initData||"");if(intervalId!==undefined)window.clearInterval(intervalId);if(timeoutId!==undefined)window.clearTimeout(timeoutId);return true;};
+    if(initialize())return;
+    intervalId=window.setInterval(()=>{attempts++;if(initialize()||attempts>=30){if(intervalId!==undefined)window.clearInterval(intervalId);intervalId=undefined;}},100);
+    timeoutId=window.setTimeout(()=>{if(intervalId!==undefined)window.clearInterval(intervalId);intervalId=undefined;if(!(window as MiniAppWindow).Telegram?.WebApp)setInitData("");},3500);
+    return()=>{if(intervalId!==undefined)window.clearInterval(intervalId);if(timeoutId!==undefined)window.clearTimeout(timeoutId);};
+  },[]);
 
-    if (initialize()) return;
-
-    intervalId = window.setInterval(() => {
-      attempts += 1;
-      if (initialize() || attempts >= 30) {
-        if (intervalId !== undefined) window.clearInterval(intervalId);
-        intervalId = undefined;
-      }
-    }, 100);
-
-    timeoutId = window.setTimeout(() => {
-      if (intervalId !== undefined) window.clearInterval(intervalId);
-      intervalId = undefined;
-      if (!(window as MiniAppWindow).Telegram?.WebApp) setInitData("");
-    }, 3500);
-
-    return () => {
-      if (intervalId !== undefined) window.clearInterval(intervalId);
-      if (timeoutId !== undefined) window.clearTimeout(timeoutId);
-    };
-  }, []);
-
-  useEffect(() => {
-    if (!initData) { setLoading(false); return; }
-    fetch("/api/telegram-app/attendance", { headers: { "x-telegram-init-data": initData }, cache: "no-store" })
-      .then(async response => {
-        const data = await response.json();
-        if (!response.ok) throw new Error(data.message || "Could not verify Telegram admin.");
-        setEvents(data.events || []);
-        setAdminName(data.admin?.firstName || "WLC Admin");
-        if (data.events?.length) setEventId(data.events[0].id);
-      })
-      .catch(error => setMessage(error instanceof Error ? error.message : "Unable to load events."))
-      .finally(() => setLoading(false));
-  }, [initData]);
-
-  const stopCamera = useCallback(() => {
-    if (scanTimerRef.current !== null) window.clearInterval(scanTimerRef.current);
-    scanTimerRef.current = null;
-    streamRef.current?.getTracks().forEach(track => track.stop());
-    streamRef.current = null;
-    setScanning(false);
-  }, []);
-
-  useEffect(() => () => {
-    if (scanTimerRef.current !== null) window.clearInterval(scanTimerRef.current);
-    streamRef.current?.getTracks().forEach(track => track.stop());
-  }, []);
-
-  const startCamera = useCallback(async () => {
-    setCameraError("");
-    const Detector = (window as MiniAppWindow).BarcodeDetector;
-    if (!Detector) {
-      setCameraError("এই ডিভাইসের ব্রাউজারে QR camera scanning নেই। নিচে Member ID লিখুন অথবা ফোনের Camera দিয়ে QR খুলে ID কপি করুন।");
-      return;
-    }
+  const loadHub=useCallback(async()=>{
+    if(!initData)return;
+    setHubBusy(true);setHubError("");
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: "environment" } }, audio: false });
-      streamRef.current = stream;
-      setScanning(true);
-      requestAnimationFrame(() => { if (videoRef.current) { videoRef.current.srcObject = stream; void videoRef.current.play(); } });
-      const detector = new Detector({ formats: ["qr_code"] });
-      scanTimerRef.current = window.setInterval(async () => {
-        const video = videoRef.current;
-        if (!video || video.readyState < 2 || !streamRef.current) return;
-        try {
-          const codes = await detector.detect(video);
-          const value = codes.find(code => code.rawValue)?.rawValue;
-          if (value) {
-            const id = memberIdFromQr(value);
-            if (id && id !== lastScannedRef.current) {
-              lastScannedRef.current = id;
-              setMemberId(id);
-              setMemberName("");
-              setMemberLookupBusy(true);
-              setMessage("QR scanned. Looking up member…");
-              void fetch("/api/telegram-app/attendance?memberId=" + encodeURIComponent(id), {
-                headers: { "x-telegram-init-data": initData }, cache: "no-store"
-              }).then(async response => {
-                const data = await response.json();
-                if (!response.ok) throw new Error(data.message || "Member not found.");
-                setMemberName(data.member.name || "Name not available");
-                setMessage("Member verified. Confirm check-in below.");
-              }).catch(error => {
-                setMemberName("");
-                setMessage(error instanceof Error ? error.message : "Could not look up member.");
-              }).finally(() => setMemberLookupBusy(false));
-            }
-            else setCameraError("QR-এ WLC Member ID পাওয়া যায়নি।");
-          }
-        } catch { /* Wait for the next camera frame. */ }
-      }, 450);
-    } catch {
-      setCameraError("Camera চালু করা যায়নি। Telegram-এ camera permission দিন, অথবা Member ID হাতে লিখুন।");
-    }
-  }, [stopCamera, initData]);
+      const response=await fetch("/api/telegram-app/control",{headers:{"x-telegram-init-data":initData},cache:"no-store"});
+      const data=await response.json();if(!response.ok||!data.ok)throw new Error(data.error||"Could not load control hub.");
+      setStats(data.stats);setAdminName(data.admin?.firstName||"WLC Admin");setAlbumRows(data.albums||[]);setKothasokhi(data.kothasokhi||null);
+    }catch(e){setHubError(e instanceof Error?e.message:"Unable to load controls.");}
+    finally{setHubBusy(false);}
+  },[initData]);
+  useEffect(()=>{if(!initData){setLoading(false);return;}let active=true;
+    fetch("/api/telegram-app/attendance",{headers:{"x-telegram-init-data":initData},cache:"no-store"}).then(async response=>{const data=await response.json();if(!response.ok)throw new Error(data.message||"Could not verify Telegram admin.");if(!active)return;setEvents(data.events||[]);if(data.events?.length)setEventId(data.events[0].id);}).catch(e=>{if(active)setMessage(e instanceof Error?e.message:"Unable to load events.");}).finally(()=>{if(active)setLoading(false);});
+    void loadHub();return()=>{active=false;};
+  },[initData,loadHub]);
 
-  useEffect(() => {
-    if (initData && !loading && events.length > 0 && !scanning && !cameraError) void startCamera();
-  }, [initData, loading, events.length, scanning, cameraError, startCamera]);
+  const stopCamera=useCallback(()=>{if(scanTimerRef.current!==null)window.clearInterval(scanTimerRef.current);scanTimerRef.current=null;streamRef.current?.getTracks().forEach(track=>track.stop());streamRef.current=null;setScanning(false);},[]);
+  useEffect(()=>()=>{if(scanTimerRef.current!==null)window.clearInterval(scanTimerRef.current);streamRef.current?.getTracks().forEach(track=>track.stop());},[]);
+  const startCamera=useCallback(async()=>{
+    setCameraError("");const Detector=(window as MiniAppWindow).BarcodeDetector;
+    if(!Detector){setCameraError("এই browser-এ built-in QR scanner নেই। Member ID হাতে লিখুন অথবা supported browser-এ খুলুন।");return;}
+    try{
+      const stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:"environment"}},audio:false});streamRef.current=stream;setScanning(true);
+      requestAnimationFrame(()=>{if(videoRef.current){videoRef.current.srcObject=stream;void videoRef.current.play();}});
+      const detector=new Detector({formats:["qr_code"]});
+      scanTimerRef.current=window.setInterval(async()=>{const video=videoRef.current;if(!video||video.readyState<2||!streamRef.current)return;try{const codes=await detector.detect(video);const value=codes.find(code=>code.rawValue)?.rawValue;if(!value)return;const id=memberIdFromQr(value);if(!id||id===lastScannedRef.current)return;lastScannedRef.current=id;setMemberId(id);setMemberName("");setMemberLookupBusy(true);setMessage("QR scanned. Looking up member…");void fetch("/api/telegram-app/attendance?memberId="+encodeURIComponent(id),{headers:{"x-telegram-init-data":initData},cache:"no-store"}).then(async response=>{const data=await response.json();if(!response.ok)throw new Error(data.message||"Member not found.");setMemberName(data.member.name||"Name not available");setMessage("Member verified. Confirm check-in below.");}).catch(e=>{setMemberName("");setMessage(e instanceof Error?e.message:"Could not look up member.");}).finally(()=>setMemberLookupBusy(false));}catch{/* Wait for next camera frame. */}},450);
+    }catch{setCameraError("Camera চালু হয়নি। Telegram camera permission দিন অথবা Member ID হাতে লিখুন।");}
+  },[initData]);
+  useEffect(()=>{if(tab!=="attendance")stopCamera();},[tab,stopCamera]);
+  useEffect(()=>{if(tab==="attendance"&&initData&&!loading&&events.length>0&&!scanning&&!cameraError)void startCamera();},[tab,initData,loading,events.length,scanning,cameraError,startCamera]);
 
-  async function recordAttendance(event?: React.FormEvent) {
-    event?.preventDefault();
-    setMessage("");
-    if (!initData) { setMessage("Telegram-এর ভেতর থেকে WLC bot-এর Attendance App খুলুন।"); return; }
-    if (!eventId) { setMessage("আগে একটি published event নির্বাচন করুন।"); return; }
-    if (!memberId.trim()) { setMessage("QR scan করুন অথবা Member ID লিখুন।"); return; }
-    setBusy(true);
-    try {
-      const response = await fetch("/api/telegram-app/attendance", {
-        method: "POST",
-        headers: { "Content-Type": "application/json", "x-telegram-init-data": initData },
-        body: JSON.stringify({ memberId: memberIdFromQr(memberId), eventId, status })
-      });
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.message || "Attendance could not be saved.");
-      setMessage("✓ " + data.member.name + " (" + data.member.memberId + ") — " + data.event + ": " + data.status + " saved.");
-      setMemberId("");
-      setMemberName("");
-    } catch (error) {
-      setMessage(error instanceof Error ? error.message : "Network error. Try again.");
-    } finally {
-      setBusy(false);
-    }
-  }
-
-  return <main className="min-h-screen bg-[#f7f4f0] px-4 py-5 text-stone-900 sm:px-6">
-    <div className="mx-auto max-w-lg">
-      <header className="rounded-[2rem] bg-[#5b1725] p-6 text-white shadow-lg">
-        <p className="text-xs font-bold uppercase tracking-[0.24em] text-rose-100">Willes Literary Club</p>
-        <h1 className="mt-3 text-3xl font-bold">Attendance Desk</h1>
-        <p className="mt-2 text-sm text-rose-100">Telegram Mini App · Member check-in</p>
-        {adminName && <p className="mt-4 inline-flex rounded-full bg-white/10 px-3 py-1.5 text-xs">Signed in as {adminName}</p>}
-      </header>
-
-      {loading ? <section className="mt-5 rounded-3xl bg-white p-6 text-center text-stone-500">Verifying Telegram admin…</section> : !initData ? <section className="mt-5 rounded-3xl border border-amber-200 bg-amber-50 p-5"><h2 className="font-bold">Open inside Telegram</h2><p className="mt-2 text-sm leading-6">Security verification requires Telegram. Open the WLC Control Hub bot and tap “📷 Attendance App”.</p></section> : <form onSubmit={recordAttendance} className="mt-5 space-y-4">
-        <section className="rounded-3xl bg-white p-5 shadow-sm">
-          <label className="block text-sm font-semibold">Event to take attendance</label>
-          <select value={eventId} onChange={e => setEventId(e.target.value)} className="mt-2 w-full rounded-xl border border-stone-200 bg-stone-50 p-3.5 outline-none focus:border-[#5b1725]" required>
-            <option value="">Choose published event</option>
-            {events.map(event => <option key={event.id} value={event.id}>{event.title}{event.date ? " · " + event.date : ""}</option>)}
-          </select>
-          {!events.length && <p className="mt-3 text-sm text-amber-800">No published events found. Publish an event on the WLC website first.</p>}
+  async function recordAttendance(event?:React.FormEvent){event?.preventDefault();setMessage("");if(!initData){setMessage("WLC bot-এর ভেতর থেকে Attendance App খুলুন.");return;}if(!eventId){setMessage("আগে একটি published event নির্বাচন করুন.");return;}if(!memberId.trim()){setMessage("QR scan করুন অথবা Member ID লিখুন.");return;}setBusy(true);try{const response=await fetch("/api/telegram-app/attendance",{method:"POST",headers:{"Content-Type":"application/json","x-telegram-init-data":initData},body:JSON.stringify({memberId:memberIdFromQr(memberId),eventId,status}),cache:"no-store"});const data=await response.json();if(!response.ok)throw new Error(data.message||"Attendance could not be saved.");setMessage("✓ "+data.member.name+" ("+data.member.memberId+") — "+data.event+": "+data.status+" saved.");setMemberId("");setMemberName("");lastScannedRef.current="";}catch(e){setMessage(e instanceof Error?e.message:"Network error. Try again.");}finally{setBusy(false);}}
+  async function runAction(action:string,payload:Record<string,unknown>={}){setHubBusy(true);setActionResult("");setHubError("");try{const data=await api(action,payload);setActionResult(JSON.stringify(data,null,2));if(action==="push_send"||action==="push_test")await loadHub();if(action==="cms_stats"){setCmsCounts(data.counts||[]);}if(action==="member_search")setMemberRows(data.records||[]);if(action==="cms_list")setCmsRows(data.records||[]);if(action==="album_list")setAlbumRows(data.records||[]);if(action==="album_caption")await loadHub();if(action.startsWith("kothasokhi_")){setKothasokhi(data);if(action==="kothasokhi_test")setAiReply(data.reply||"");}}catch(e){setHubError(e instanceof Error?e.message:"Action failed.");}finally{setHubBusy(false);}}
+  const panel="rounded-3xl bg-white p-5 shadow-sm";
+  const input="mt-2 w-full rounded-xl border border-stone-200 bg-stone-50 p-3 text-sm outline-none focus:border-[#5b1725]";
+  const btn="rounded-xl bg-[#5b1725] px-4 py-3 text-sm font-bold text-white disabled:opacity-40";
+  const secondary="rounded-xl border border-stone-200 bg-white px-4 py-3 text-sm font-semibold text-stone-700";
+  const tabs:[Tab,string,string][]=[["home","⌂","Home"],["attendance","▦","Attendance"],["notifications","♧","Notify"],["members","♙","Members"],["cms","▤","CMS"],["albums","▧","Albums"],["kothasokhi","✿","AI"]];
+  if(loading)return <main className="min-h-screen bg-[#f7f4f0] p-6 text-stone-700"><div className="mx-auto max-w-lg rounded-3xl bg-white p-8 text-center">Verifying Telegram admin…</div></main>;
+  if(!initData)return <main className="min-h-screen bg-[#f7f4f0] p-4 text-stone-900"><div className="mx-auto mt-8 max-w-lg rounded-3xl bg-white p-6"><h1 className="text-2xl font-bold">Open inside Telegram</h1><p className="mt-3 text-sm leading-6">Security verification requires Telegram. Open WLC Control Hub bot and tap “Attendance App”.</p></div></main>;
+  return <main className="min-h-screen bg-[#f7f4f0] px-3 pb-8 pt-4 text-stone-900 sm:px-5">
+    <div className="mx-auto max-w-2xl">
+      <header className="rounded-[2rem] bg-[#5b1725] p-5 text-white shadow-lg sm:p-6"><div className="flex items-start justify-between gap-3"><div><p className="text-xs font-bold uppercase tracking-[0.22em] text-rose-100">Willes Literary Club</p><h1 className="mt-2 text-2xl font-bold sm:text-3xl">Control Hub</h1><p className="mt-1 text-sm text-rose-100">Bot features · Mini App</p></div><button onClick={()=>void loadHub()} className="rounded-xl bg-white/15 px-3 py-2 text-xs font-bold">↻ Refresh</button></div><p className="mt-4 inline-flex rounded-full bg-white/10 px-3 py-1.5 text-xs">Signed in as {adminName||"WLC Admin"}</p></header>
+      <nav className="sticky top-1 z-10 mt-4 grid grid-cols-4 gap-1 rounded-2xl border border-stone-200 bg-white/95 p-1 shadow-sm backdrop-blur sm:grid-cols-7">{tabs.map(([id,icon,label])=><button key={id} onClick={()=>{setTab(id);setActionResult("");setHubError("");}} className={"flex flex-col items-center rounded-xl px-1 py-2 text-[10px] font-semibold sm:text-xs "+(tab===id?"bg-[#5b1725] text-white":"text-stone-600")}><span className="text-lg">{icon}</span>{label}</button>)}</nav>
+      {hubError&&<div role="alert" className="mt-4 rounded-2xl border border-red-200 bg-red-50 p-3 text-sm text-red-800">{hubError}</div>}
+      {hubBusy&&<div className="mt-3 text-center text-xs text-stone-500">Working…</div>}
+      {tab==="home"&&<div className="mt-4 space-y-4">
+        <section className={panel}><h2 className="text-lg font-bold">WLC at a glance</h2><div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">{[{label:"Members",value:stats?.members},{label:"Attendance logs",value:stats?.attendance},{label:"Push subscribers",value:stats?.subscribers},{label:"CMS sections",value:stats?.cms?.length}].map(item=><div key={item.label} className="rounded-2xl bg-stone-50 p-4"><p className="text-2xl font-extrabold text-[#5b1725]">{item.value??"—"}</p><p className="mt-1 text-xs text-stone-500">{item.label}</p></div>)}</div></section>
+        <section className={panel}><h2 className="font-bold">All bot features, in one place</h2><p className="mt-2 text-sm leading-6 text-stone-600">Attendance scanner, website push notifications, subscriber statistics, member search, CMS drafts and publishing, album captions, AI bot diagnostics, and read-only admin tools.</p><div className="mt-4 grid grid-cols-2 gap-2">{tabs.filter(t=>t[0]!=="home").map(([id,icon,label])=><button key={id} onClick={()=>setTab(id)} className={secondary+" text-left"}><span className="mr-2">{icon}</span>{label} <span className="float-right">→</span></button>)}</div></section>
+        <section className={panel}><div className="flex items-center justify-between"><h2 className="font-bold">Kothasokhi AI</h2><span className={"rounded-full px-2 py-1 text-xs font-bold "+(kothasokhi?.available?"bg-emerald-100 text-emerald-800":"bg-amber-100 text-amber-800")}>{kothasokhi?.available?"Connected":"Check status"}</span></div><p className="mt-2 text-sm text-stone-600">{kothasokhi?.username?"@"+kothasokhi.username:"Separate AI bot diagnostics and setup."}</p><button className={secondary+" mt-3"} onClick={()=>setTab("kothasokhi")}>Open AI control →</button></section>
+      </div>}
+      {tab==="attendance"&&<form onSubmit={recordAttendance} className="mt-4 space-y-4">
+        <section className={panel}><h2 className="font-bold">Event attendance</h2><label className="mt-3 block text-sm font-semibold">Event</label><select value={eventId} onChange={e=>setEventId(e.target.value)} className={input} required><option value="">Choose published event</option>{events.map(event=><option key={event.id} value={event.id}>{event.title}{event.date?" · "+event.date:""}</option>)}</select>{!events.length&&<p className="mt-3 text-sm text-amber-800">No published events found. Publish one in CMS first.</p>}</section>
+        <section className={panel}><div className="flex items-center justify-between"><div><h2 className="font-bold">Continuous QR scanner</h2><p className="mt-1 text-xs text-stone-500">Keeps scanning while this tab is open.</p></div><span className={"rounded-full px-2 py-1 text-xs font-bold "+(scanning?"bg-emerald-100 text-emerald-800":"bg-stone-100 text-stone-500")}>{scanning?"LIVE":"OFF"}</span></div><div className="mt-4 overflow-hidden rounded-2xl bg-black"><video ref={videoRef} playsInline muted className="max-h-72 min-h-32 w-full object-cover"/><div className="bg-stone-900 p-2 text-center text-xs text-white">{scanning?"CAMERA LIVE · SCANNING CONTINUOUSLY":"Camera inactive"}</div></div>{!scanning&&<button type="button" className={secondary+" mt-3 w-full"} onClick={()=>void startCamera()}>Start camera</button>}{cameraError&&<p className="mt-3 rounded-xl bg-amber-50 p-3 text-sm text-amber-900">{cameraError}</p>}
+          {memberId&&<div className="mt-4 rounded-2xl border border-emerald-200 bg-emerald-50 p-4"><p className="text-xs font-bold uppercase text-emerald-800">Member verified</p><p className="mt-1 text-lg font-bold">{memberLookupBusy?"Looking up…":memberName||"Name unavailable"}</p><p className="font-mono text-sm">{memberId}</p><button type="button" className="mt-2 text-sm font-semibold text-[#5b1725]" onClick={()=>{setMemberId("");setMemberName("");setMessage("");lastScannedRef.current="";}}>Clear / scan next</button></div>}
+          <label className="mt-4 block text-sm font-semibold">Or enter Member ID</label><input value={memberId} onChange={e=>setMemberId(e.target.value.toUpperCase())} placeholder="WLC-GEN2-001" className={input+" font-mono"} autoComplete="off"/>
         </section>
-
-        <section className="rounded-3xl bg-white p-5 shadow-sm">
-          <div className="flex items-center justify-between gap-3">
-            <div><h2 className="font-bold">Scan member QR</h2><p className="mt-1 text-sm text-stone-500">Camera starts automatically and keeps scanning while this app is open.</p></div>
-            <span className="rounded-2xl bg-rose-50 p-3 text-xl">▦</span>
-          </div>
-          {<div className="mt-4 overflow-hidden rounded-2xl bg-black"><video ref={videoRef} playsInline muted className="max-h-72 w-full object-cover" /><div className="bg-stone-900 px-3 py-2 text-center text-xs font-semibold text-white">{scanning ? "● CAMERA LIVE · CONTINUOUS SCANNING" : "Camera not active"}</div><div className="bg-stone-800 p-3 text-center text-xs font-semibold text-white">Camera stays active until you close the Mini App</div></div>}
-          {!scanning && <button type="button" onClick={() => void startCamera()} className="mt-4 w-full rounded-xl border border-[#5b1725] px-4 py-3.5 font-semibold text-[#5b1725]">Start camera</button>}
-          {cameraError && <p className="mt-3 rounded-xl bg-amber-50 p-3 text-sm leading-5 text-amber-900">{cameraError}</p>}
-          {memberId && <div className="mt-4 rounded-2xl border border-emerald-200 bg-emerald-50 p-4"><p className="text-xs font-bold uppercase tracking-wide text-emerald-800">Scanned member</p><p className="mt-2 text-lg font-bold text-stone-900">{memberLookupBusy ? "Looking up name…" : memberName || "Member name unavailable"}</p><p className="mt-1 font-mono text-sm text-stone-700">{memberId}</p><button type="button" onClick={() => { setMemberId(""); setMemberName(""); setMessage(""); lastScannedRef.current = ""; }} className="mt-3 text-sm font-semibold text-[#5b1725]">Clear / scan next member</button></div>}
-          <div className="my-4 flex items-center gap-3 text-xs text-stone-400"><span className="h-px flex-1 bg-stone-200" />OR ENTER MANUALLY<span className="h-px flex-1 bg-stone-200" /></div>
-          <label className="block text-sm font-semibold">WLC Member ID</label>
-          <input value={memberId} onChange={e => setMemberId(e.target.value.toUpperCase())} placeholder="e.g. WLC-GEN2-001" autoCapitalize="characters" autoComplete="off" className="mt-2 w-full rounded-xl border border-stone-200 bg-stone-50 p-3.5 font-mono outline-none focus:border-[#5b1725]" />
-        </section>
-
-        <section className="rounded-3xl bg-white p-5 shadow-sm">
-          <h2 className="font-bold">Attendance status</h2>
-          <div className="mt-3 grid grid-cols-2 gap-3">
-            {(["PRESENT", "LATE"] as const).map(value => <button key={value} type="button" onClick={() => setStatus(value)} className={"rounded-xl border p-3.5 font-semibold " + (status === value ? "border-[#5b1725] bg-[#5b1725] text-white" : "border-stone-200 bg-white text-stone-600")}>{value === "PRESENT" ? "✓ Present" : "◷ Late"}</button>)}
-          </div>
-          <button disabled={busy || memberLookupBusy || !events.length || !eventId || !memberId.trim() || !memberName} type="submit" className="mt-4 w-full rounded-xl bg-[#5b1725] p-4 font-bold text-white shadow-sm disabled:cursor-not-allowed disabled:opacity-40">{busy ? "Saving attendance…" : "Confirm check-in"}</button>
-        </section>
+        <section className={panel}><h2 className="font-bold">Attendance status</h2><div className="mt-3 grid grid-cols-2 gap-2">{(["PRESENT","LATE"] as const).map(value=><button type="button" key={value} onClick={()=>setStatus(value)} className={"rounded-xl border p-3 font-bold "+(status===value?"border-[#5b1725] bg-[#5b1725] text-white":"border-stone-200")}>{value==="PRESENT"?"✓ Present":"◷ Late"}</button>)}</div><button disabled={busy||memberLookupBusy||!eventId||!memberId.trim()||!memberName} type="submit" className={btn+" mt-4 w-full"}>{busy?"Saving…":"Confirm check-in"}</button></section>
+        {message&&<div role="status" className="rounded-2xl bg-white p-4 text-sm leading-6 shadow-sm">{message}</div>}
       </form>}
-
-      {message && <div role="status" className="mt-4 rounded-2xl border border-stone-200 bg-white p-4 text-sm leading-6 shadow-sm">{message}</div>}
-      <footer className="px-3 py-6 text-center text-xs leading-5 text-stone-500">WLC · Attendance is saved to the existing member attendance registry. Duplicate check-ins are blocked.</footer>
+      {tab==="notifications"&&<div className="mt-4 space-y-4"><section className={panel}><h2 className="text-lg font-bold">Website notifications</h2><p className="mt-1 text-sm text-stone-500">Prepare and send a push notification to website subscribers.</p><label className="mt-4 block text-sm font-semibold">Title</label><input value={noticeTitle} onChange={e=>setNoticeTitle(e.target.value)} maxLength={80} className={input}/><label className="mt-3 block text-sm font-semibold">Message (max 300)</label><textarea value={noticeMessage} onChange={e=>setNoticeMessage(e.target.value)} maxLength={300} rows={4} className={input}/><label className="mt-3 block text-sm font-semibold">Website path</label><input value={noticeUrl} onChange={e=>setNoticeUrl(e.target.value)} placeholder="/events" className={input}/><label className="mt-3 block text-sm font-semibold">Optional image URL</label><input value={noticeImage} onChange={e=>setNoticeImage(e.target.value)} placeholder="https://…" className={input}/><button disabled={!noticeTitle.trim()||!noticeMessage.trim()||hubBusy} className={btn+" mt-4 w-full"} onClick={()=>void runAction("push_send",{title:noticeTitle,message:noticeMessage,url:noticeUrl,image:noticeImage})}>Send notification</button><button disabled={hubBusy} className={secondary+" mt-2 w-full"} onClick={()=>void runAction("push_test")}>Send test notification</button><p className="mt-3 text-xs text-amber-800">Sending reaches subscribers immediately. Review the message before tapping Send.</p></section><section className={panel}><p className="text-sm text-stone-600">Active website subscribers</p><p className="mt-1 text-3xl font-extrabold text-[#5b1725]">{stats?.subscribers??"—"}</p><button className={secondary+" mt-3"} onClick={()=>void loadHub()}>Refresh subscriber count</button></section></div>}
+      {tab==="members"&&<div className="mt-4 space-y-4"><section className={panel}><h2 className="text-lg font-bold">Member search & reports</h2><p className="mt-1 text-sm text-stone-500">Search up to the latest 500 member records. Phone numbers are not displayed here.</p><label className="mt-4 block text-sm font-semibold">Name or Member ID</label><input value={memberQuery} onChange={e=>setMemberQuery(e.target.value)} className={input} placeholder="Search member…"/><label className="mt-3 block text-sm font-semibold">Class / year filter (optional)</label><input value={memberBatch} onChange={e=>setMemberBatch(e.target.value)} className={input} placeholder="Class 10, 1st year…"/><button className={btn+" mt-4 w-full"} onClick={()=>void runAction("member_search",{query:memberQuery,batch:memberBatch})}>Search members</button><button className={secondary+" mt-2 w-full"} onClick={()=>void runAction("member_count")}>Get total member count</button><div className="mt-3 text-xs text-stone-500">Total registered members: {stats?.members??"—"}</div></section>{memberRows.length>0&&<section className={panel}><h2 className="font-bold">Results ({memberRows.length})</h2><div className="mt-3 space-y-2">{memberRows.map((m,i)=><div key={m.memberId||i} className="rounded-xl bg-stone-50 p-3"><div className="font-semibold">{m.name||"Unnamed member"}</div><div className="mt-1 font-mono text-xs">{m.memberId}</div><div className="mt-1 flex justify-between gap-2 text-xs text-stone-500"><span>{m.batch||"Class not set"}</span><span>{m.status}</span></div></div>)}</div></section>}</div>}
+      {tab==="cms"&&<div className="mt-4 space-y-4"><section className={panel}><h2 className="text-lg font-bold">Website CMS</h2><p className="mt-1 text-sm text-stone-500">Create a draft or publish a simple record. Rich media and advanced fields can be completed in the existing bot flow.</p><label className="mt-4 block text-sm font-semibold">Section</label><select value={cmsCollection} onChange={e=>setCmsCollection(e.target.value)} className={input}>{cmsCollections.map(c=><option key={c.id} value={c.id}>{c.label}</option>)}</select><label className="mt-3 block text-sm font-semibold">Title / name</label><input value={cmsTitle} onChange={e=>setCmsTitle(e.target.value)} maxLength={180} className={input}/><label className="mt-3 block text-sm font-semibold">Description / content</label><textarea value={cmsDescription} onChange={e=>setCmsDescription(e.target.value)} maxLength={12000} rows={4} className={input}/><label className="mt-3 block text-sm font-semibold">Date (optional)</label><input value={cmsDate} onChange={e=>setCmsDate(e.target.value)} className={input} placeholder="YYYY-MM-DD"/><label className="mt-4 flex items-center gap-2 text-sm"><input type="checkbox" checked={cmsPublish} onChange={e=>setCmsPublish(e.target.checked)}/> Publish immediately (otherwise save as draft)</label><button className={btn+" mt-4 w-full"} disabled={!cmsTitle.trim()||hubBusy} onClick={()=>void runAction("cms_save",{collection:cmsCollection,title:cmsTitle,description:cmsDescription,date:cmsDate,publish:cmsPublish})}>Save {cmsPublish?"& publish":"draft"}</button><button className={secondary+" mt-2 w-full"} onClick={()=>void runAction("cms_list",{collection:cmsCollection})}>Load recent records</button><button className={secondary+" mt-2 w-full"} onClick={()=>void runAction("cms_stats")}>Refresh CMS statistics</button></section>{cmsCounts.length>0&&<section className={panel}><h2 className="font-bold">CMS totals</h2><div className="mt-3 grid grid-cols-2 gap-2">{cmsCounts.map(c=><div key={c.name} className="rounded-xl bg-stone-50 p-3"><div className="text-sm font-semibold">{c.name}</div><div className="text-xl font-bold text-[#5b1725]">{c.count}</div></div>)}</div></section>}{cmsRows.length>0&&<section className={panel}><h2 className="font-bold">Recent records</h2><div className="mt-3 space-y-2">{cmsRows.map(r=><div key={r.id} className="rounded-xl border border-stone-100 p-3"><div className="font-semibold">{r.title||r.name||"Untitled"}</div><div className="mt-1 break-all text-[10px] text-stone-500">{r.id} · {r.status||"No status"}</div>{r.status!=="ARCHIVED"&&<button className="mt-2 text-xs font-bold text-red-700" onClick={()=>void runAction("cms_archive",{collection:cmsCollection,id:r.id})}>Archive record</button>}</div>)}</div></section>}</div>}
+      {tab==="albums"&&<div className="mt-4 space-y-4"><section className={panel}><div className="flex items-center justify-between gap-2"><h2 className="text-lg font-bold">Album manager</h2><button className={secondary} onClick={()=>void runAction("album_list")}>Refresh</button></div><p className="mt-1 text-sm text-stone-500">Edit captions for media already registered by the Telegram channel webhook.</p>{albumRows.length===0?<p className="mt-4 text-sm text-stone-500">No media records loaded yet.</p>:<div className="mt-4 space-y-2">{albumRows.map(a=><button key={a.id} className={"w-full rounded-xl border p-3 text-left "+(selectedAlbum===a.id?"border-[#5b1725] bg-rose-50":"border-stone-200")} onClick={()=>{setSelectedAlbum(a.id);setAlbumCaption(a.caption||"");}}><span className="block font-semibold">Telegram #{a.messageId||a.id}</span><span className="mt-1 block text-xs text-stone-500">{a.caption||"No caption"}</span></button>)}</div>}{selectedAlbum&&<div className="mt-4"><label className="text-sm font-semibold">New caption</label><textarea value={albumCaption} onChange={e=>setAlbumCaption(e.target.value)} maxLength={1024} rows={4} className={input}/><button className={btn+" mt-3 w-full"} onClick={()=>void runAction("album_caption",{id:selectedAlbum,caption:albumCaption})}>Save caption to Telegram</button></div>}</section></div>}
+      {tab==="kothasokhi"&&<div className="mt-4 space-y-4"><section className={panel}><h2 className="text-lg font-bold">Kothasokhi AI Control</h2><p className="mt-1 text-sm text-stone-500">Separate bot diagnostics; these controls do not change the WLC Control Hub bot.</p><div className="mt-4 grid grid-cols-2 gap-2"><button className={btn} onClick={()=>void runAction("kothasokhi_status")}>Webhook status</button><button className={secondary} onClick={()=>void runAction("kothasokhi_setup")}>Setup / repair</button><button className={secondary} onClick={()=>void runAction("kothasokhi_test")}>Test AI reply</button><button className={secondary} onClick={()=>void runAction("kothasokhi_stats")}>Chat & knowledge stats</button></div>{kothasokhi&&<div className="mt-4 rounded-xl bg-stone-50 p-3 text-xs leading-6"><div><b>Bot:</b> {kothasokhi.username||"Not loaded"}</div><div className="break-all"><b>Webhook:</b> {kothasokhi.url||kothasokhi.webhookUrl||"Unknown"}</div><div><b>Expected:</b> {kothasokhi.expectedUrl||"—"}</div><div><b>Pending:</b> {kothasokhi.pendingUpdates??"—"}</div><div><b>Last error:</b> {kothasokhi.lastError||"None"}</div>{kothasokhi.conversations!==undefined&&<div><b>Conversations:</b> {kothasokhi.conversations} · <b>Knowledge:</b> {kothasokhi.knowledge}</div>}</div>}{aiReply&&<div className="mt-3 rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-sm leading-6"><b>AI test reply</b><p className="mt-2">{aiReply}</p></div>}</section><section className={panel}><h2 className="font-bold">AI Admin Assistant · Beta</h2><p className="mt-1 text-sm text-stone-500">Member search, counts, and CMS statistics are available above. Data-changing AI commands remain disabled for safety.</p><button className={secondary+" mt-3 w-full"} onClick={()=>setTab("members")}>Open member assistant tools →</button></section></div>}
+      {actionResult&&<section className="mt-4 rounded-2xl border border-stone-200 bg-white p-4"><div className="flex items-center justify-between"><h2 className="font-bold">Action result</h2><button className="text-xs font-semibold text-stone-500" onClick={()=>setActionResult("")}>Dismiss</button></div><pre className="mt-2 max-h-64 overflow-auto whitespace-pre-wrap break-words text-xs leading-5 text-stone-600">{actionResult}</pre></section>}
+      <footer className="px-3 py-6 text-center text-xs leading-5 text-stone-500">WLC Control Hub · Authorized Telegram admins only · Camera is active only while the Attendance tab is open and in the foreground.</footer>
     </div>
   </main>;
 }
