@@ -11,6 +11,13 @@ export async function GET(request: Request) {
   if (!admin) return NextResponse.json({ message: "Telegram admin verification failed. Open this app from the WLC bot." }, { status: 401 });
   try {
     const db = getAdminDb();
+    const requestedMemberId = String(new URL(request.url).searchParams.get("memberId") || "").trim().toUpperCase();
+    if (requestedMemberId) {
+      if (!/^WLC-[A-Z0-9]+-\d{3,}$/.test(requestedMemberId)) return NextResponse.json({ message: "Invalid WLC member ID." }, { status: 400 });
+      const memberSnap = await db.collection("registered_members").doc(requestedMemberId).get();
+      if (!memberSnap.exists || memberSnap.data()?.status !== "ACTIVE") return NextResponse.json({ message: "No active member found for that ID." }, { status: 404 });
+      return NextResponse.json({ member: { memberId: requestedMemberId, name: String(memberSnap.data()?.name || "") } });
+    }
     const snap = await db.collection("events").where("status", "==", "PUBLISHED").limit(100).get();
     const events = snap.docs.map(doc => {
       const data = doc.data();
