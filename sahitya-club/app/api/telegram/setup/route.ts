@@ -31,7 +31,7 @@ function authorized(request: Request) {
   if (!expected) return false;
 
   const bearer = request.headers.get("authorization") || "";
-  const match = bearer.match(/^Bearer\\s+(.+)$/i);
+  const match = bearer.match(/^Bearer\s+(.+)$/i);
   const supplied = match?.[1]?.trim() || "";
   if (!supplied) return false;
 
