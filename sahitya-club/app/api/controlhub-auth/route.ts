@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { enforceRateLimit, rateLimitResponse } from "@/lib/api-rate-limit";
 import {
   createMemberAdminSession,
   isMemberAdminSecret,
@@ -10,6 +11,9 @@ export const dynamic = "force-dynamic";
 
 export async function POST(request: Request) {
   try {
+    const limit = await enforceRateLimit({ request, namespace: "legacy-controlhub-login", limit: 5, windowMs: 15 * 60 * 1000 });
+    if (!limit.allowed) return rateLimitResponse(limit.retryAfterSeconds);
+
     const contentLength = Number(request.headers.get("content-length") || 0);
     if (contentLength > 4096) {
       return NextResponse.json({ success: false, message: "Request too large." }, { status: 413 });
@@ -28,7 +32,7 @@ export async function POST(request: Request) {
 
     const session = createMemberAdminSession();
     const response = NextResponse.json(
-      { success: true, expiresAt: session.expiresAt },
+      { success: true, token: session.value, expiresAt: session.expiresAt },
       { headers: { "Cache-Control": "no-store" } }
     );
     response.cookies.set({
