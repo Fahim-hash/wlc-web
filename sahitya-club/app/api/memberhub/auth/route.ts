@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { NextResponse } from "next/server";\nimport { enforceRateLimit, rateLimitResponse } from "@/lib/api-rate-limit";
 import {
   createMemberAdminSession,
   isMemberAdminSecret,
@@ -15,6 +15,12 @@ export async function GET() {
 
 export async function POST(request: Request) {
   try {
+    const limit = await enforceRateLimit({ request, namespace: "memberhub-admin-login", limit: 5, windowMs: 15 * 60 * 1000 });
+    if (!limit.allowed) return rateLimitResponse(limit.retryAfterSeconds);
+
+    const contentLength = Number(request.headers.get("content-length") || 0);
+    if (contentLength > 4096) return NextResponse.json({ success: false, message: "Request too large." }, { status: 413 });
+
     const body = await request.json();
     const gatewayKey = typeof body?.gatewayKey === "string" ? body.gatewayKey.trim() : "";
 
