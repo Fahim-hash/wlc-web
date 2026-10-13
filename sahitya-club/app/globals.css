@@ -71,3 +71,9 @@ body:has(.nobinboron-page) > main {
     animation: none;
   }
 }
+
+/* Keep Telegram Mini App focused on its standalone attendance interface. */
+body.telegram-mini-app > header,
+body.telegram-mini-app > footer {
+  display: none !important;
+}
