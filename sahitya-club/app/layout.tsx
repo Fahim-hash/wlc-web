@@ -259,7 +259,7 @@ export default function RootLayout({
                   📞 +8801974-745442
                 </a>
                 <a href="mailto:wlfsc.sahittoclub@gmail.com" className="hover:text-rose-900 transition-colors flex items-center justify-center md:justify-start gap-1.5">
-                  ✉️ wlfsc.sahittoclub.com@gmail.com
+                  ✉️ wlfsc.sahittoclub@gmail.com
                 </a>
               </div>
 
