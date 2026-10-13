@@ -80,6 +80,8 @@ export async function POST(request: Request) {
       if (!title || title.length>180) return error("Title is required (max 180 characters).");
       const now=Date.now();
       const data:Record<string,unknown> = {title, status:body?.publish===true?"PUBLISHED":"DRAFT",updatedAt:now,updatedBy:"telegram:"+admin.id,createdAt:now};
+      const imageUrl = typeof body?.imageUrl === "string" ? body.imageUrl.trim() : "";
+      if (imageUrl && /^https:\/\//i.test(imageUrl) && imageUrl.length <= 2048) data.imageUrl = imageUrl;
       for (const key of ["description","date","time","venue","message","link","name","role","batch","bio","author","category","body","answer","source"]) {
         if (typeof body?.[key] === "string" && body[key].length <= 12000) data[key]=body[key].trim();
       }
