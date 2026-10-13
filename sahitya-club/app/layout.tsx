@@ -5,6 +5,7 @@ import Link from "next/link";
 import "./globals.css";
 import Image from "next/image";
 import GlobalPushPrompt from "@/components/GlobalPushPrompt";
+import RouteChromeController from "@/components/RouteChromeController";
 
 // ১. নেভিগেশন লিংকের জন্য টাইপস্ক্রিপ্ট ইন্টারফেস
 interface NavLink {
@@ -129,6 +130,7 @@ export default function RootLayout({
         />
       </head>
       <body className={`${hindSiliguri.className} bg-stone-50 text-stone-900 min-h-screen flex flex-col selection:bg-rose-100 selection:text-rose-900 antialiased overflow-x-hidden`}>
+        <RouteChromeController />
 
         {/* ================= GLOBAL HEADER / NAVBAR ================= */}
         <header className="sticky top-0 z-50 w-full bg-white/80 backdrop-blur-md border-b border-stone-200/60">
