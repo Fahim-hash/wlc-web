@@ -1,4 +1,5 @@
-import { NextResponse } from "next/server";\nimport { enforceRateLimit, rateLimitResponse } from "@/lib/api-rate-limit";
+import { NextResponse } from "next/server";
+import { enforceRateLimit, rateLimitResponse } from "@/lib/api-rate-limit";
 import {
   createMemberAdminSession,
   isMemberAdminSecret,
