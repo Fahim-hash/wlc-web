@@ -30,10 +30,15 @@ function authorized(request: Request) {
   const expected = process.env.CRON_SECRET;
   if (!expected) return false;
 
-  const urlKey = new URL(request.url).searchParams.get("key");
-  const bearer = request.headers.get("authorization");
+  const bearer = request.headers.get("authorization") || "";
+  const match = bearer.match(/^Bearer\\s+(.+)$/i);
+  const supplied = match?.[1]?.trim() || "";
+  if (!supplied) return false;
 
-  return urlKey === expected || bearer === `Bearer ${expected}`;
+  const cryptoExpected = Buffer.from(expected);
+  const cryptoSupplied = Buffer.from(supplied);
+  return cryptoExpected.length === cryptoSupplied.length &&
+    crypto.timingSafeEqual(cryptoExpected, cryptoSupplied);
 }
 
 export async function GET(request: Request) {
