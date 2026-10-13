@@ -122,6 +122,7 @@ export default function RootLayout({
   return (
     <html lang="bn" className="h-full">
       <head>
+        <script src="https://telegram.org/js/telegram-web-app.js"></script>
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
