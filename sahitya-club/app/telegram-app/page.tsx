@@ -35,10 +35,42 @@ export default function TelegramAttendanceApp() {
   const scanTimerRef = useRef<number | null>(null);
 
   useEffect(() => {
-    const webApp = (window as MiniAppWindow).Telegram?.WebApp;
-    webApp?.ready?.();
-    webApp?.expand?.();
-    setInitData(webApp?.initData || "");
+    // Wait for Telegram's WebApp SDK before deciding whether initData is missing.
+    let attempts = 0;
+    let intervalId: number | undefined;
+    let timeoutId: number | undefined;
+
+    const initialize = () => {
+      const webApp = (window as MiniAppWindow).Telegram?.WebApp;
+      if (!webApp) return false;
+      webApp.ready?.();
+      webApp.expand?.();
+      setInitData(webApp.initData || "");
+      if (intervalId !== undefined) window.clearInterval(intervalId);
+      if (timeoutId !== undefined) window.clearTimeout(timeoutId);
+      return true;
+    };
+
+    if (initialize()) return;
+
+    intervalId = window.setInterval(() => {
+      attempts += 1;
+      if (initialize() || attempts >= 30) {
+        if (intervalId !== undefined) window.clearInterval(intervalId);
+        intervalId = undefined;
+      }
+    }, 100);
+
+    timeoutId = window.setTimeout(() => {
+      if (intervalId !== undefined) window.clearInterval(intervalId);
+      intervalId = undefined;
+      if (!(window as MiniAppWindow).Telegram?.WebApp) setInitData("");
+    }, 3500);
+
+    return () => {
+      if (intervalId !== undefined) window.clearInterval(intervalId);
+      if (timeoutId !== undefined) window.clearTimeout(timeoutId);
+    };
   }, []);
 
   useEffect(() => {
