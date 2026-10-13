@@ -173,7 +173,6 @@ export default function TelegramAttendanceApp() {
       setMessage("✓ " + data.member.name + " (" + data.member.memberId + ") — " + data.event + ": " + data.status + " saved.");
       setMemberId("");
       setMemberName("");
-      lastScannedRef.current = "";
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Network error. Try again.");
     } finally {
@@ -205,7 +204,7 @@ export default function TelegramAttendanceApp() {
             <div><h2 className="font-bold">Scan member QR</h2><p className="mt-1 text-sm text-stone-500">Camera starts automatically and keeps scanning while this app is open.</p></div>
             <span className="rounded-2xl bg-rose-50 p-3 text-xl">▦</span>
           </div>
-          {<div className="mt-4 overflow-hidden rounded-2xl bg-black"><video ref={videoRef} playsInline muted className="max-h-72 w-full object-cover" /><div className="bg-stone-900 px-3 py-2 text-center text-xs font-semibold text-white">{scanning ? "● CAMERA LIVE · CONTINUOUS SCANNING" : "Camera not active"}</div><button type="button" onClick={stopCamera} className="w-full bg-stone-800 p-3 text-sm font-semibold text-white">Stop camera</button></div>}
+          {<div className="mt-4 overflow-hidden rounded-2xl bg-black"><video ref={videoRef} playsInline muted className="max-h-72 w-full object-cover" /><div className="bg-stone-900 px-3 py-2 text-center text-xs font-semibold text-white">{scanning ? "● CAMERA LIVE · CONTINUOUS SCANNING" : "Camera not active"}</div><div className="bg-stone-800 p-3 text-center text-xs font-semibold text-white">Camera stays active until you close the Mini App</div></div>}
           {!scanning && <button type="button" onClick={() => void startCamera()} className="mt-4 w-full rounded-xl border border-[#5b1725] px-4 py-3.5 font-semibold text-[#5b1725]">Start camera</button>}
           {cameraError && <p className="mt-3 rounded-xl bg-amber-50 p-3 text-sm leading-5 text-amber-900">{cameraError}</p>}
           {memberId && <div className="mt-4 rounded-2xl border border-emerald-200 bg-emerald-50 p-4"><p className="text-xs font-bold uppercase tracking-wide text-emerald-800">Scanned member</p><p className="mt-2 text-lg font-bold text-stone-900">{memberLookupBusy ? "Looking up name…" : memberName || "Member name unavailable"}</p><p className="mt-1 font-mono text-sm text-stone-700">{memberId}</p><button type="button" onClick={() => { setMemberId(""); setMemberName(""); setMessage(""); lastScannedRef.current = ""; }} className="mt-3 text-sm font-semibold text-[#5b1725]">Clear / scan next member</button></div>}
