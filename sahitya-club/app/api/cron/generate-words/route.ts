@@ -1,5 +1,6 @@
 // app/api/cron/generate-words/route.ts
-import { NextResponse } from "next/server";\nimport { isAuthorizedCronRequest } from "@/lib/cron-auth";
+import { NextResponse } from "next/server";
+import { isAuthorizedCronRequest } from "@/lib/cron-auth";
 import { db } from "@/lib/firebase";
 import {
   collection,
