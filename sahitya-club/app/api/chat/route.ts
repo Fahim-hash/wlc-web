@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import Groq from "groq-sdk";
 import fs from "fs";
 import path from "path";
-import { getAdminDb } from "@/lib/firebase-admin";
+import { getAdminDb } from "@/lib/firebase-admin";\nimport { enforceRateLimit, rateLimitResponse } from "@/lib/api-rate-limit";
 
 type ChatMessage = {
   role: "user" | "assistant";
@@ -239,10 +239,32 @@ async function searchWeb(query: string): Promise<WebResult[]> {
 
 export async function POST(req: Request) {
   try {
+    const contentLength = Number(req.headers.get("content-length") || 0);
+    if (contentLength > 32 * 1024) {
+      return NextResponse.json({ error: "Request too large." }, { status: 413 });
+    }
+
+    const limit = await enforceRateLimit({ request: req, namespace: "kothasokhi-chat", limit: 20, windowMs: 60 * 1000 });
+    if (!limit.allowed) return rateLimitResponse(limit.retryAfterSeconds);
+
     const body = await req.json();
-    const messages = Array.isArray(body?.messages)
-      ? (body.messages as ChatMessage[])
-      : [];
+    if (!Array.isArray(body?.messages) || body.messages.length === 0 || body.messages.length > 12) {
+      return NextResponse.json({ error: "Send between 1 and 12 chat messages." }, { status: 400 });
+    }
+
+    const messages = body.messages as ChatMessage[];
+    let totalCharacters = 0;
+    for (const message of messages) {
+      if (!message || !["user", "assistant"].includes(message.role) ||
+          typeof message.content !== "string" || message.content.trim().length === 0 ||
+          message.content.length > 2000) {
+        return NextResponse.json({ error: "Invalid chat message." }, { status: 400 });
+      }
+      totalCharacters += message.content.length;
+    }
+    if (totalCharacters > 8000) {
+      return NextResponse.json({ error: "Chat context is too large." }, { status: 413 });
+    }
 
     const apiKey = process.env.GROQ_API_KEY;
     if (!apiKey) {
