@@ -21,6 +21,9 @@ export type RegisteredMember = {
   createdAt: number;
   updatedAt: number;
   createdBy: string;
+  spreadsheetSyncStatus?: "PENDING" | "SYNCED";
+  spreadsheetSyncUpdatedAt?: number;
+  spreadsheetSyncError?: string | null;
 };
 
 function getAdminSecret() {
@@ -128,43 +131,33 @@ export function buildMemberEmail(member: Pick<RegisteredMember, "memberId" | "na
     <div style="width:100%;background:#f7f3ef;padding:32px 12px;">
       <div style="max-width:620px;margin:0 auto;">
         <div style="background:#ffffff;border:1px solid #e7e5e4;border-radius:24px;overflow:hidden;box-shadow:0 8px 30px rgba(41,37,36,.08);">
-          
           <div style="background:#fff;border-bottom:1px solid #eee7e1;padding:28px 28px 22px;text-align:center;">
             <img src="${logoUrl}" width="76" height="76" alt="Willes Literary Club logo" style="display:block;width:76px;height:76px;object-fit:contain;margin:0 auto 14px;border-radius:18px;" />
             <div style="font-size:12px;letter-spacing:.18em;text-transform:uppercase;color:#a8a29e;font-weight:700;">Willes Literary Club</div>
             <div style="font-size:13px;color:#78716c;margin-top:5px;">উইল্‌স সাহিত্য ক্লাব</div>
           </div>
-
           <div style="height:5px;background:linear-gradient(90deg,#7f1d1d,#be123c,#991b1b);"></div>
-
           <div style="padding:34px 30px 30px;">
             <div style="display:inline-block;padding:7px 12px;border-radius:999px;background:#fef2f2;color:#991b1b;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;">Membership Confirmation</div>
             <h1 style="margin:16px 0 10px;font-size:30px;line-height:1.2;color:#1c1917;">Welcome ${safeName},</h1>
             <p style="margin:0;color:#57534e;font-size:15px;line-height:1.8;">Congratulations! Your Willes Literary Club membership registration has been recorded successfully.</p>
-
             <div style="margin:26px 0;padding:22px;border:1px solid #eadfd8;border-radius:18px;background:#faf8f6;">
               <div style="font-size:11px;text-transform:uppercase;letter-spacing:.16em;color:#a8a29e;font-weight:700;">Your Member ID</div>
               <div style="margin-top:9px;font-size:30px;line-height:1.2;font-weight:800;letter-spacing:.06em;color:#7f1d1d;">${safeMemberId}</div>
             </div>
-
             <p style="margin:0;color:#57534e;font-size:14px;line-height:1.8;">Please keep this Member ID safe. Event-specific portal credentials and instructions will be shared separately before relevant events.</p>
-
             <div style="margin-top:30px;padding-top:22px;border-top:1px solid #eee7e1;">
               <p style="margin:0;color:#44403c;font-size:14px;line-height:1.7;">With literary regards,<br /><strong style="color:#7f1d1d;">Willes Literary Club</strong></p>
               <p style="margin:7px 0 0;color:#a8a29e;font-size:12px;">“সাহিত্যের বন্ধনে, প্রতিভার সন্ধানে”</p>
             </div>
           </div>
-
           <div style="background:#1c1917;padding:22px 28px;text-align:center;">
             <div style="font-size:12px;color:#d6d3d1;font-weight:700;">Willes Literary Club</div>
             <div style="font-size:11px;color:#a8a29e;margin-top:5px;">Willes Little Flower School & College, Dhaka</div>
             <a href="https://wlc.pro.bd" style="display:inline-block;margin-top:12px;color:#fca5a5;text-decoration:none;font-size:11px;font-weight:700;">wlc.pro.bd</a>
           </div>
         </div>
-
-        <div style="text-align:center;padding:18px 8px 4px;color:#a8a29e;font-size:10px;line-height:1.6;">
-          This is an automated membership confirmation from Willes Literary Club.
-        </div>
+        <div style="text-align:center;padding:18px 8px 4px;color:#a8a29e;font-size:10px;line-height:1.6;">This is an automated membership confirmation from Willes Literary Club.</div>
       </div>
     </div>
   </body>
@@ -180,9 +173,7 @@ export async function sendMemberEmail(member: RegisteredMember) {
   const fromName = process.env.RESEND_FROM_NAME?.trim() || "Willes Literary Club";
 
   if (!apiKey || !fromEmail) {
-    throw new Error(
-      "Email service is not configured. Add RESEND_API_KEY and RESEND_FROM_EMAIL in Vercel."
-    );
+    throw new Error("Email service is not configured. Add RESEND_API_KEY and RESEND_FROM_EMAIL in Vercel.");
   }
 
   const email = buildMemberEmail(member);
@@ -295,15 +286,13 @@ export async function createRegisteredMember(input: {
       createdAt: now,
       updatedAt: now,
       createdBy: input.actor,
+      spreadsheetSyncStatus: "PENDING",
+      spreadsheetSyncUpdatedAt: now,
+      spreadsheetSyncError: null,
     };
 
-    transaction.set(
-      counterRef,
-      { nextNumber: current + 1, updatedAt: now },
-      { merge: true }
-    );
+    transaction.set(counterRef, { nextNumber: current + 1, updatedAt: now }, { merge: true });
     transaction.set(memberRef, record);
-
     return record;
   });
 
