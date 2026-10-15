@@ -136,7 +136,7 @@ export default function MemberPortalPage() {
             <h1 className="text-3xl font-semibold tracking-tight">Member Portal</h1>
             <p className="text-sm leading-6 text-stone-600">Sign in with the UID and password you created when activating your membership.</p>
             <label className="block text-sm font-medium">Member UID
-              <input value={uid} onChange={event => setUid(event.target.value)} required maxLength={20} autoComplete="username" placeholder="e.g. fahim_01" className="mt-1.5 w-full rounded-xl border border-stone-300 p-3 outline-none focus:border-rose-800 focus:ring-2 focus:ring-rose-100" />
+              <input value={uid} onChange={event => setUid(event.target.value)} required maxLength={20} autoComplete="username" placeholder="e.g. wlc_gen_3" className="mt-1.5 w-full rounded-xl border border-stone-300 p-3 outline-none focus:border-rose-800 focus:ring-2 focus:ring-rose-100" />
             </label>
             <label className="block text-sm font-medium">Password
               <input type="password" value={password} onChange={event => setPassword(event.target.value)} required autoComplete="current-password" className="mt-1.5 w-full rounded-xl border border-stone-300 p-3 outline-none focus:border-rose-800 focus:ring-2 focus:ring-rose-100" />
