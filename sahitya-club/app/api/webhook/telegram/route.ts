@@ -4,9 +4,10 @@ import { getAdminDb } from "@/lib/firebase-admin";
 import { handleTelegramCmsCommand, handleTelegramCmsCallback, handleTelegramCmsMessage } from "@/lib/telegram-cms";
 import { handleTelegramAdminAi } from "@/lib/telegram-ai-admin";
 import { sendGlobalPushNotification, getPushSubscriberCount } from "@/lib/push";
+import { handleTelegramCertificateCallback, handleTelegramCertificateCommand, handleTelegramCertificateMessage } from "@/lib/telegram-certificates";
 
 type TelegramUser = { id: number };
-type TelegramMessage = { message_id: number; text?: string; from?: TelegramUser; chat?: { id?: number | string }; photo?: TelegramPhoto[]; document?: { file_id: string; mime_type?: string } };
+type TelegramMessage = { message_id: number; text?: string; from?: TelegramUser; chat?: { id?: number | string }; photo?: TelegramPhoto[]; document?: { file_id: string; file_unique_id?: string; file_name?: string; mime_type?: string; file_size?: number } };
 type TelegramCallbackQuery = { id: string; data?: string; from: TelegramUser; message?: { chat?: { id?: number | string }; text?: string } };
 type TelegramPhoto = { file_id: string; file_unique_id?: string; width?: number; height?: number };
 type TelegramPost = {
@@ -291,6 +292,7 @@ async function sendControlMenu(chatId: number | string) {
       ],
       [
         { text: "📝 CMS & Publishing", callback_data: "wlc:cms:menu" },
+        { text: "📜 Certificate Templates", callback_data: "wlc:cert:menu" },
       ],
       [
         { text: "🤖 AI Admin Assistant · Beta", callback_data: "wlc:aiadmin:help" },
@@ -455,6 +457,18 @@ async function handleCallback(callback: TelegramCallbackQuery) {
   }
 
   const action = callback.data || "";
+
+  try {
+    if (action.startsWith("wlc:cert:")) {
+      await answerCallback(callback.id);
+      await handleTelegramCertificateCallback(userId, chatId, action);
+      return;
+    }
+  } catch (error) {
+    console.error("Telegram certificate callback failed:", error);
+    await sendText(chatId, "⚠️ Certificate template action failed. আবার চেষ্টা করুন।");
+    return;
+  }
 
   try {
     if (action.startsWith("wlc:cms:")) {
@@ -697,6 +711,13 @@ async function handleMessage(message: TelegramMessage) {
 
   if (text === "/kothasokhi_setup") {
     await setupKothasokhiBot(chatId);
+    return;
+  }
+
+  if (await handleTelegramCertificateMessage(userId, chatId, message)) return;
+
+  if (text === "/certificates") {
+    await handleTelegramCertificateCommand(chatId);
     return;
   }
 
