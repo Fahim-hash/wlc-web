@@ -18,7 +18,8 @@ async function sendText(chatId: number | string, text: string, keyboard?: unknow
 function menuKeyboard() { return [[{ text: "🛡️ Panel Member", callback_data: "wlc:cert:upload:panel" }, { text: "👤 Membership", callback_data: "wlc:cert:upload:membership" }], [{ text: "🎟️ Event Certificate", callback_data: "wlc:cert:upload:event" }], [{ text: "📋 Current Templates", callback_data: "wlc:cert:list" }]]; }
 
 export async function handleTelegramCertificateCallback(userId: number, chatId: number | string, action: string) {
-  if (action === "wlc:cert:menu") { await sendText(chatId, "📜 WLC Certificate Templates\n\nযে blank PDF template upload বা replace করতে চান, সেটি বেছে নিন।", menuKeyboard()); return true; }
+  if (action === "wlc:cert:menu") {
+    await getAdminDb().collection("telegram_certificate_sessions").doc(String(userId)).delete().catch(() => undefined); await sendText(chatId, "📜 WLC Certificate Templates\n\nযে blank PDF template upload বা replace করতে চান, সেটি বেছে নিন।", menuKeyboard()); return true; }
   if (action === "wlc:cert:list") {
     const snap = await getAdminDb().collection("certificate_templates").get();
     const byKind = new Map(snap.docs.filter((doc) => doc.data().active === true).map((doc) => [String(doc.data().kind), doc.data()]));
