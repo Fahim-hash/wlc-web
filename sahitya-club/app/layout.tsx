@@ -77,8 +77,6 @@ export default function RootLayout({
     { name: "আমাদের কথা", path: "/about", emoji: "ℹ️" },
     { name: "আর্কাইভ ও প্যানেল", path: "/panel", emoji: "🧑" },
     { name: "শিক্ষক মডারেটর", path: "/panel/moderator", emoji: "🧑‍🏫" },
-    { name: "চলমান প্যানেল", path: "/panel/running", emoji: "👥" },
-    { name: "অস্থায়ী প্যানেল", path: "/panel/temporary", emoji: "📋" },
     { name: "মুক্ত লেখনী ডেস্ক", path: "/writing", emoji: "✍️" },
     { name: "কথাসখী", path: "/kothasokhi", emoji: "💬" },
     { name: "সদস্য নিবন্ধন", path: "/register", emoji: "📝" },
@@ -199,7 +197,7 @@ export default function RootLayout({
             >
               <span aria-hidden="true">👤</span>
               <span className="hidden sm:inline">মেম্বার পোর্টাল</span>
-              <span className="sm:hidden">Portal</span>
+              <span className="sm:hidden">পোর্টাল</span>
             </Link>
 
             {/* ================= FIXED PURE CSS HAMBURGER & DROPDOWN SYSTEM (MOBILE) ================= */}
