@@ -191,6 +191,17 @@ export default function RootLayout({
               </div>
             </nav>
 
+            {/* Global Member Portal shortcut — visible on every route */}
+            <Link
+              href="/member-portal"
+              className="inline-flex shrink-0 items-center justify-center gap-1.5 rounded-xl bg-rose-900 px-2.5 sm:px-3.5 py-2 text-[11px] sm:text-xs font-bold text-white shadow-sm transition-colors hover:bg-rose-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-700 focus-visible:ring-offset-2"
+              aria-label="মেম্বার পোর্টালে প্রবেশ করুন"
+            >
+              <span aria-hidden="true">👤</span>
+              <span className="hidden sm:inline">মেম্বার পোর্টাল</span>
+              <span className="sm:hidden">Portal</span>
+            </Link>
+
             {/* ================= FIXED PURE CSS HAMBURGER & DROPDOWN SYSTEM (MOBILE) ================= */}
             <input type="checkbox" id="menu-toggle" className="peer sr-only" />
 
