@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -28,14 +28,14 @@ export default function EventPopup() {
     }
   }, [pathname]);
 
-  const handleClose = () => {
+  const handleClose = useCallback(() => {
     try {
       window.localStorage.setItem(NOTICE_KEY, 'dismissed');
     } catch {
       // Closing the dialog should still work when storage is unavailable.
     }
     setIsOpen(false);
-  };
+  }, []);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -50,7 +50,7 @@ export default function EventPopup() {
       document.body.style.overflow = previousOverflow;
       window.removeEventListener('keydown', handleKeyDown);
     };
-  }, [isOpen]);
+  }, [isOpen, handleClose]);
 
   if (!isOpen || pathname !== '/') return null;
 
