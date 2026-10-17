@@ -8,8 +8,8 @@ import Link from "next/link";
 // এফএকিউ (FAQ) ডেটা স্ট্রাকচার
 const faqs = [
   { q: "উইল্‌স সাহিত্য ক্লাবের সদস্য কীভাবে হবো?", a: "আমাদের ওয়েবসাইটের 'নিবন্ধন' সেকশন থেকে সরাসরি ফর্ম পূরণ করে ক্লাবের অফিশিয়াল সদস্য হওয়া যাবে।" },
-  { q: "লেখা জমা দেওয়ার জন্য কি কোনো ফি দিতে হয়?", a: "না, লেখা জমা দেওয়া বা সাহিত্য চর্চার জন্য কোনো প্রকার ফি-র প্রয়োজন নেই। এটি সম্পূর্ণ উন্মুক্ত প্রাঙ্গণ।" },
-  { q: "আমি কি গল্প বা কবিতা ছাড়া অন্য কিছু সাবমিট করতে পারি?", a: "অবশ্যই! প্রবন্ধ, অনুবাদ সাহিত্য, অনুভূতির ডায়েরি, বুক রিভিউ কিংবা যেকোনো সৃজনশীল লেখনী সাবমিট করা যাবে।" }
+  { q: "ওয়েবসাইট থেকে কি এখন লেখা জমা দেওয়া যাবে?", a: "না, ওয়েবসাইটের উন্মুক্ত লেখা জমা দেওয়ার পোর্টালটি আপাতত বন্ধ রাখা হয়েছে। পুনরায় চালু হলে এখানে জানানো হবে।" },
+  { q: "লেখা জমা দেওয়ার পোর্টাল আবার কবে চালু হবে?", a: "পোর্টাল পুনরায় চালুর তারিখ এখনো নির্ধারিত হয়নি। আপডেটের জন্য ক্লাবের অফিসিয়াল ঘোষণা দেখুন।" }
 ];
 
 export default function WillesSahityaClub() {
@@ -132,9 +132,9 @@ export default function WillesSahityaClub() {
               তোমার ভেতরের সৃজনশীল সত্ত্বাকে ডানা মেলতে দাও। গল্প, কবিতা কিংবা অনুভূতির ক্যানভাসে যা কিছু আছে, সরাসরি পাঠিয়ে দাও আমাদের প্রকাশনা প্যানেলে।
             </p>
           </div>
-          <Link href="/writing/submit" className="inline-flex items-center justify-center gap-2 px-5 py-3 bg-stone-950 hover:bg-stone-900 text-white text-xs font-bold rounded-xl shadow-sm transition-all">
-            লেখা জমা দিন ➔
-          </Link>
+          <span className="inline-flex items-center justify-center gap-2 px-5 py-3 bg-stone-100 text-stone-500 text-xs font-bold rounded-xl border border-stone-200 cursor-not-allowed" aria-label="লেখা জমা আপাতত বন্ধ">
+            লেখা জমা আপাতত বন্ধ
+          </span>
         </div>
 
         {/* শব্দ (অজানা শব্দের ভাণ্ডার) */}
@@ -181,20 +181,11 @@ export default function WillesSahityaClub() {
           <div className="w-12 h-1 bg-rose-900/30 mx-auto rounded-full" />
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {[
-            { tag: "সাহিত্য উৎসব", title: "আন্তঃকলেজ দেয়ালিকা প্রতিযোগিতা", detail: "ঢাকা শহরের শীর্ষস্থানীয় collegeগুলোর মাঝে সেরা কন্টেন্ট ও ডিজাইনের স্বীকৃতি।" },
-            { tag: "কুইজ চ্যাম্পিয়নশিপ", title: "জাতীয় সাহিত্য কুইজ রানার্স-আপ", detail: "বাংলা ভাষা ও সাহিত্যের গভীর জ্ঞান ও মেধার প্রমাণ রেখে গৌরবময় অর্জন।" },
-            { tag: "স্বীকৃতি", title: "সেরা উদীয়মান ক্লাব সম্মাননা", detail: "শিক্ষা প্রতিষ্ঠানে সাহিত্য চর্চা ও কন্ট্রিবিউশনে অনন্য অবদানের জন্য বিশেষ স্মারক।" }
-          ].map((item, index) => (
-            <div key={index} className="bg-white border border-stone-200/60 p-6 rounded-2xl shadow-sm space-y-3">
-              <span className="inline-block text-[10px] font-bold text-rose-950 bg-rose-100/60 px-2 py-0.5 rounded">
-                {item.tag}
-              </span>
-              <h4 className="text-base font-bold text-stone-950">{item.title}</h4>
-              <p className="text-stone-500 text-xs leading-relaxed">{item.detail}</p>
-            </div>
-          ))}
+        <div className="rounded-3xl border border-stone-200 bg-white p-8 md:p-10 text-center shadow-sm">
+          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-rose-50 text-4xl" aria-hidden="true">🏆</div>
+          <span className="inline-flex rounded-full border border-rose-100 bg-rose-50 px-3 py-1 text-xs font-bold text-rose-700">Coming soon</span>
+          <h4 className="mt-4 text-xl font-bold text-stone-950">নতুন অর্জনের অপেক্ষায়</h4>
+          <p className="mt-2 text-sm leading-relaxed text-stone-500">যাচাইকৃত অর্জন প্রকাশিত হলে এখানে এবং অর্জনের আলাদা পেজে একই তথ্য দেখা যাবে।</p>
         </div>
 
         <div className="text-center">
