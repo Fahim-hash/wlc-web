@@ -1,65 +1,10 @@
-// app/api/writing/submit/route.ts
 import { NextResponse } from "next/server";
-import { z } from "zod";
-import { db } from "@/lib/firebase"; // 👈 সেন্ট্রাল ফায়ারবেস কানেকশন
-import { collection, addDoc } from "firebase/firestore/lite"; // 👈 ফায়ারস্টোর লাইট মডিউল (lib/firebase এর সাথে সিঙ্ক করা)
 
-// ১. Zod দিয়ে কঠোর ডেটা ভ্যালিডেশন স্কিমা (XSS Injection ডিফেন্স)
-const submitSchema = z.object({
-  title: z.string().min(2, "শিরোনাম খুব ছোট").max(100, "শিরোনাম ১০০ ক্যারেক্টারের বেশি হতে পারবে না").trim(),
-  category: z.enum(["poetry", "story", "essay"]),
-  content: z.string().min(10, "লেখা খুব ছোট").max(5000, "লেখা ৫০০০ ক্যারেক্টারের বেশি হতে পারবে না").trim(),
-  penName: z.string().max(50, "ছদ্মনাম ৫০ ক্যারেক্টারের বেশি হতে পারবে না").trim().default("অজ্ঞাতনামা"),
-});
-
-export async function POST(request: Request) {
-  try {
-    // সিকিউরিটি চেক ২: কনটেন্ট টাইপ চেক
-    const contentType = request.headers.get("content-type");
-    if (!contentType || !contentType.includes("application/json")) {
-      return NextResponse.json({ message: "Invalid Content Type" }, { status: 400 });
-    }
-
-    const body = await request.json();
-
-    // সিকিউরিটি চেক ৩: ডাটা স্যানিটাইজেশন এবং স্কিমা ম্যাচিং
-    const validation = submitSchema.safeParse(body);
-    if (!validation.success) {
-      return NextResponse.json(
-        { message: "সিকিউরিটি ভায়োলেশন! ভুল বা ক্ষতিকারক ডাটা ডিটেক্ট হয়েছে।", errors: validation.error.format() },
-        { status: 422 }
-      );
-    }
-
-    const cleanedData = validation.data;
-
-    // 🇧🇩 পিওর বাংলাদেশ টাইমজোন ডেট (YYYY-MM-DD)
-    const today = new Date().toLocaleDateString("en-CA", { timeZone: "Asia/Dhaka" });
-
-    // 🔥 ফায়ারবেস ফায়ারস্টোর অপারেশন
-    const docRef = await addDoc(collection(db, "writings"), {
-      title: cleanedData.title,
-      category: cleanedData.category,
-      content: cleanedData.content,
-      penName: cleanedData.penName,
-      status: "pending", 
-      date: today,
-      createdAt: new Date(),
-      userIp: request.headers.get("x-forwarded-for") || "unknown"
-    });
-
-    console.log("Document successfully written with ID to Firebase:", docRef.id);
-
-    return NextResponse.json(
-      { message: "তোমার লেখাটি সফলভাবে জমা হয়েছে ভাই! মডারেটর প্যানেলের অনুমোদনের পর এটি লাইভ করা হবে।" },
-      { status: 200 }
-    );
-
-  } catch (error: any) {
-    console.error("Firebase/Internal Server Error:", error);
-    return NextResponse.json(
-      { message: "সার্ভারে কোনো ইন্টারনাল সিকিউরিটি বা টেকনিক্যাল ইস্যু হয়েছে।", error: error.message },
-      { status: 500 }
-    );
-  }
+// Public writing submissions are temporarily disabled.
+// Keep this endpoint closed as well so direct API calls cannot bypass the UI.
+export async function POST() {
+  return NextResponse.json(
+    { message: "ওয়েবসাইটের উন্মুক্ত লেখা জমা দেওয়ার পোর্টালটি আপাতত বন্ধ।" },
+    { status: 410 }
+  );
 }
