@@ -275,34 +275,65 @@ async function sendKothasokhiStats(chatId: number | string) {
 }
 
 async function sendControlMenu(chatId: number | string) {
+  const origin = (process.env.NEXT_PUBLIC_SITE_URL || "https://wlc.pro.bd").replace(/\/$/, "");
   return sendText(
     chatId,
-    "✦ WILLES LITERARY CLUB\n━━━━━━━━━━━━━━━━━━\n🛡️ ADMIN CONTROL CENTER\n\nস্বাগতম, Admin. আপনার ক্লাবের ডিজিটাল অপারেশন এক জায়গায় পরিচালনা করুন।\n\n◈ Attendance & Members\n◈ Website notifications\n◈ Content, media & AI tools\n\nনিচের একটি সার্ভিস বেছে নিন।",
+    "✦ WILLES LITERARY CLUB\n━━━━━━━━━━━━━━━━━━\n🛡️ ADMIN CONTROL CENTER\n\nস্বাগতম, Admin. প্রতিটি কাজ এখন আলাদা বিভাগে সাজানো হয়েছে।\n\n📍 Attendance & Members\n📢 Notifications\n🗂️ Content & Media\n🤖 AI & Diagnostics\n\nকোন বিভাগে যেতে চান?",
     [
+      [{ text: "📲 Open Admin Dashboard", web_app: { url: origin + "/telegram-app" } }],
       [
-        { text: "📲 Open Admin Dashboard", web_app: { url: (process.env.NEXT_PUBLIC_SITE_URL || "https://wlc.pro.bd").replace(/\/$/, "") + "/telegram-app" } },
+        { text: "👥 Members & Attendance", callback_data: "wlc:nav:members" },
+        { text: "📢 Notifications", callback_data: "wlc:nav:notifications" },
       ],
       [
-        { text: "📢 Send Notification", callback_data: "wlc:push" },
-        { text: "🧪 Test Push", callback_data: "wlc:test" },
+        { text: "🗂️ Content & Media", callback_data: "wlc:nav:content" },
+        { text: "🤖 AI & Diagnostics", callback_data: "wlc:nav:ai" },
       ],
-      [
-        { text: "📊 Subscriber Stats", callback_data: "wlc:stats" },
-        { text: "🖼️ Media Album", callback_data: "wlc:album_list" },
-      ],
-      [
-        { text: "📝 CMS & Publishing", callback_data: "wlc:cms:menu" },
-        { text: "📜 Certificate Templates", callback_data: "wlc:cert:menu" },
-      ],
-      [
-        { text: "🤖 AI Admin Assistant · Beta", callback_data: "wlc:aiadmin:help" },
-        { text: "🌸 Kothasokhi AI", callback_data: "wlc:kothasokhi:menu" },
-      ],
-      [
-        { text: "↻ Refresh Control Center", callback_data: "wlc:cancel" },
-      ],
+      [{ text: "↻ Refresh Control Center", callback_data: "wlc:nav:home" }],
     ]
   );
+}
+
+async function sendMembersMenu(chatId: number | string) {
+  const origin = (process.env.NEXT_PUBLIC_SITE_URL || "https://wlc.pro.bd").replace(/\/$/, "");
+  return sendText(chatId, "👥 MEMBERS & ATTENDANCE\n\nMember search, reports এবং event attendance পরিচালনা করুন। QR scanning ও check-in-এর জন্য Admin Dashboard খুলুন।", [
+    [{ text: "📷 Open Attendance & Member Hub", web_app: { url: origin + "/telegram-app" } }],
+    [{ text: "🔎 Member tools", callback_data: "wlc:nav:dashboard_members" }],
+    [{ text: "⬅️ Main Control Center", callback_data: "wlc:nav:home" }],
+  ]);
+}
+
+async function sendNotificationsMenu(chatId: number | string) {
+  return sendText(chatId, "📢 NOTIFICATIONS\n\nWebsite subscribers-দের notification পাঠানো, test করা এবং subscriber count দেখা যাবে। Send করার আগে message preview করে নেবেন।", [
+    [{ text: "✍️ Compose notification", callback_data: "wlc:push" }],
+    [
+      { text: "🧪 Test notification", callback_data: "wlc:test" },
+      { text: "📊 Subscriber stats", callback_data: "wlc:stats" },
+    ],
+    [{ text: "⬅️ Main Control Center", callback_data: "wlc:nav:home" }],
+  ]);
+}
+
+async function sendContentMenu(chatId: number | string) {
+  return sendText(chatId, "🗂️ CONTENT & MEDIA\n\nWebsite content, certificate templates এবং Telegram album tools এক জায়গায়।", [
+    [
+      { text: "📝 CMS & Publishing", callback_data: "wlc:cms:menu" },
+      { text: "📜 Certificate Templates", callback_data: "wlc:cert:menu" },
+    ],
+    [{ text: "🖼️ Media Album", callback_data: "wlc:album_list" }],
+    [{ text: "⬅️ Main Control Center", callback_data: "wlc:nav:home" }],
+  ]);
+}
+
+async function sendAiMenu(chatId: number | string) {
+  return sendText(chatId, "🤖 AI & DIAGNOSTICS\n\nWLC AI Admin Assistant এবং আলাদা Kothasokhi AI bot-এর controls এখানে থাকবে। Kothasokhi setup শুধু AI bot-কে পরিবর্তন করে; WLC Control Hub webhook/token নয়।", [
+    [{ text: "🤖 AI Admin Assistant · Beta", callback_data: "wlc:aiadmin:help" }],
+    [
+      { text: "🌸 Kothasokhi AI", callback_data: "wlc:kothasokhi:menu" },
+      { text: "📡 Check AI webhook", callback_data: "wlc:kothasokhi:status" },
+    ],
+    [{ text: "⬅️ Main Control Center", callback_data: "wlc:nav:home" }],
+  ]);
 }
 
 function parseNotificationDraft(text: string) {
@@ -457,6 +488,41 @@ async function handleCallback(callback: TelegramCallbackQuery) {
   }
 
   const action = callback.data || "";
+
+  if (action === "wlc:nav:home") {
+    await answerCallback(callback.id);
+    await sendControlMenu(chatId);
+    return;
+  }
+  if (action === "wlc:nav:members") {
+    await answerCallback(callback.id);
+    await sendMembersMenu(chatId);
+    return;
+  }
+  if (action === "wlc:nav:notifications") {
+    await answerCallback(callback.id);
+    await sendNotificationsMenu(chatId);
+    return;
+  }
+  if (action === "wlc:nav:content") {
+    await answerCallback(callback.id);
+    await sendContentMenu(chatId);
+    return;
+  }
+  if (action === "wlc:nav:ai") {
+    await answerCallback(callback.id);
+    await sendAiMenu(chatId);
+    return;
+  }
+  if (action === "wlc:nav:dashboard_members") {
+    await answerCallback(callback.id);
+    const origin = (process.env.NEXT_PUBLIC_SITE_URL || "https://wlc.pro.bd").replace(/\/$/, "");
+    await sendText(chatId, "🔎 Member search & reports-এর জন্য Admin Dashboard খুলুন।", [
+      [{ text: "📲 Open Member Hub", web_app: { url: origin + "/telegram-app" } }],
+      [{ text: "⬅️ Back to Members & Attendance", callback_data: "wlc:nav:members" }],
+    ]);
+    return;
+  }
 
   try {
     if (action.startsWith("wlc:cert:")) {
@@ -660,6 +726,17 @@ async function handleMessage(message: TelegramMessage) {
   const text = message.text?.trim();
 
   if (!userId || !chatId) return;
+
+  if (text === "/help") {
+    if (!isAdmin(userId)) {
+      await sendText(chatId, "WLC Control Hub-এর admin tools ব্যবহারের অনুমতি নেই।");
+      return;
+    }
+    await sendText(chatId, "WLC Control Hub Help\n\n/start বা /control — Main menu\n/notify — Notification flow\n/album — Media album\n/certificates — Certificate templates\n/kothasokhi — Kothasokhi AI tools\n/cancel — চলমান কাজ বাতিল", [
+      [{ text: "Open Control Center", callback_data: "wlc:nav:home" }],
+    ]);
+    return;
+  }
 
   if (text && (text === "/start" || text === "/id")) {
     if (!isAdmin(userId)) {
