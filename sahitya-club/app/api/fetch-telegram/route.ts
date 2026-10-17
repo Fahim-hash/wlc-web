@@ -60,9 +60,22 @@ async function ensureTelegramWebhook(_request?: Request) {
       body: JSON.stringify({
         commands: [
           { command: "start", description: "Open WLC Control Hub" },
-          { command: "control", description: "Open WLC Control Hub" },
+          { command: "cms", description: "Open WLC Telegram CMS" },
+          { command: "event", description: "Create an event" },
+          { command: "member", description: "Create a member" },
+          { command: "achievement", description: "Create an achievement" },
+          { command: "announcement", description: "Create an announcement" },
+          { command: "writing", description: "Create a writing record" },
+          { command: "knowledge", description: "Add Kothasokhi knowledge" },
+          { command: "cmslist", description: "List CMS records" },
+          { command: "archive", description: "Archive a CMS record" },
+          { command: "album", description: "Open Album Control Hub" },
           { command: "notify", description: "Send a global push notification" },
           { command: "cancel", description: "Cancel the current action" },
+          { command: "help", description: "Show available bot tools" },
+          { command: "control", description: "Open WLC Control Center" },
+          { command: "certificates", description: "Manage certificate templates" },
+          { command: "kothasokhi", description: "Open Kothasokhi AI tools" },
           { command: "id", description: "Show your Telegram ID" }
         ]
       }),
