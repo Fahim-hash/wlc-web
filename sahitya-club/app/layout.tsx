@@ -6,6 +6,8 @@ import "./globals.css";
 import Image from "next/image";
 import GlobalPushPrompt from "@/components/GlobalPushPrompt";
 import RouteChromeController from "@/components/RouteChromeController";
+import GoogleAnalytics from "@/components/GoogleAnalytics";
+import Breadcrumbs from "@/components/Breadcrumbs";
 
 // ১. নেভিগেশন লিংকের জন্য টাইপস্ক্রিপ্ট ইন্টারফেস
 interface NavLink {
@@ -22,6 +24,9 @@ const hindSiliguri = Hind_Siliguri({
 // 🚀 SEO & Metadata Setup
 export const metadata: Metadata = {
   metadataBase: new URL("https://wlc.pro.bd"),
+  verification: process.env.GOOGLE_SITE_VERIFICATION
+    ? { google: process.env.GOOGLE_SITE_VERIFICATION }
+    : undefined,
   title: { default: "উইল্‌স সাহিত্য ক্লাব | Willes Literary Club", template: "%s" },
   description: "উইল্‌স লিটল ফ্লাওয়ার স্কুল অ্যান্ড কলেজের অফিসিয়াল সাহিত্য ক্লাব। বাংলা সাহিত্য, সৃজনশীল লেখালেখি, ইভেন্ট, অর্জন, সদস্যপদ ও উইলিয়ানদের সাহিত্যচর্চার খবর জানুন।",
   keywords: [
@@ -49,10 +54,10 @@ export const metadata: Metadata = {
     type: "website",
     images: [
       {
-        url: "/logo.png",
-        width: 512,
-        height: 512,
-        alt: "উইল্‌স সাহিত্য ক্লাব লোগো প্রিভিউ",
+        url: "/opengraph-image",
+        width: 1200,
+        height: 630,
+        alt: "উইল্‌স সাহিত্য ক্লাব — Willes Literary Club",
       },
     ],
   },
@@ -60,7 +65,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "উইল্‌স সাহিত্য ক্লাব | Willes Literary Club",
     description: "বাংলা সাহিত্য, সৃজনশীল লেখালেখি, ক্লাবের ইভেন্ট ও সদস্যদের অর্জন—উইল্‌স সাহিত্য ক্লাবের অফিসিয়াল ওয়েবসাইট।",
-    images: ["/logo.png"],
+    images: ["/opengraph-image"],
   },
 };
 
@@ -127,6 +132,7 @@ export default function RootLayout({
       </head>
       <body className={`${hindSiliguri.className} bg-stone-50 text-stone-900 min-h-screen flex flex-col selection:bg-rose-100 selection:text-rose-900 antialiased overflow-x-hidden`}>
         <RouteChromeController />
+        <GoogleAnalytics />
 
         {/* ================= GLOBAL HEADER / NAVBAR ================= */}
         <header className="sticky top-0 z-50 w-full bg-white/80 backdrop-blur-md border-b border-stone-200/60">
@@ -238,6 +244,7 @@ export default function RootLayout({
 
         {/* ================= MAIN CONTENT AREA ================= */}
         <main className="flex-grow w-full min-w-0 block relative z-10 overflow-x-hidden">
+          <Breadcrumbs />
           {children}
         </main>
 
@@ -256,6 +263,9 @@ export default function RootLayout({
               <p className="text-[11px] italic text-stone-400 mt-2 max-w-xs mx-auto md:mx-0">
                 "সাহিত্যের বন্ধনে, প্রতিভার সন্ধানে..."
               </p>
+              <Link href="/privacy" className="mt-2 text-xs text-stone-500 underline underline-offset-4 hover:text-rose-900">
+                গোপনীয়তা নীতি
+              </Link>
             </div>
 
             {/* কন্টাক্ট এবং ডেভেলপার বাটন */}
