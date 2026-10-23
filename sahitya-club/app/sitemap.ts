@@ -1,25 +1,34 @@
-// app/sitemap.ts
-import { MetadataRoute } from 'next';
+import type { MetadataRoute } from "next";
+
+const BASE_URL = "https://wlc.pro.bd";
+
+// Only canonical, public pages belong in the sitemap. Private portals, APIs,
+// temporary utility pages and submission flows are intentionally excluded.
+const PUBLIC_ROUTES = [
+  "/",
+  "/about",
+  "/achievements",
+  "/album",
+  "/contact",
+  "/contributor",
+  "/events",
+  "/faq",
+  "/kothasokhi",
+  "/nobinboron",
+  "/panel",
+  "/panel/moderator",
+  "/panel/GEN-1",
+  "/panel/GEN-3",
+  "/panel/running",
+  "/panel/temporary",
+  "/register",
+  "/shobdo",
+  "/writing",
+  "/privacy",
+] as const;
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const baseUrl = 'https://wlc.pro.bd';
-
-  // আপনার সাইটের সব সচল রাউটের লিস্ট
-  const routes = [
-    '', 
-    '/about',  
-    '/register', 
-    '/nobinboron', 
-    '/panel', 
-    '/panel/moderator', 
-    '/panel/GEN-1', 
-    '/panel/running'
-  ];
-
-  return routes.map((route) => ({
-    url: `${baseUrl}${route}`,
-    lastModified: new Date(), // Next.js এটি অটোমেটিক ISO ফরমেটে কনভার্ট করবে
-    changeFrequency: route === '' ? 'daily' : 'weekly', // হোমপেজ বেশি আপডেট হয় বলে daily দিতে পারেন
-    priority: route === '' ? 1.0 : (route.startsWith('/panel') ? 0.8 : 0.6), // প্যানেল পেজগুলো গুরুত্বপূর্ণ বলে ০.৮
+  return PUBLIC_ROUTES.map((route) => ({
+    url: new URL(route, BASE_URL).toString(),
   }));
 }
