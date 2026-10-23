@@ -6,6 +6,7 @@ export const metadata: Metadata = {
   description: "উইল্‌স সাহিত্য ক্লাবের GEN-3 প্যানেলের নির্বাচন শুরু হয়েছে। নতুন প্যানেলের সদস্য তালিকা ও বিস্তারিত শিগগির প্রকাশিত হবে।",
   alternates: { canonical: "/panel/GEN-3" },
   openGraph: {
+    images: [{ url: "/opengraph-image", width: 1200, height: 630, alt: "Willes Literary Club" }],
     title: "GEN-3 — Coming Soon | Willes Literary Club",
     description: "নতুন প্রজন্মের প্যানেল নির্বাচনের আপডেট ও আসন্ন GEN-3 প্যানেলের তথ্য।",
     url: "https://wlc.pro.bd/panel/GEN-3",

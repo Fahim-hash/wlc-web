@@ -9,6 +9,7 @@ export const metadata: Metadata = {
   description: "উইল্‌স সাহিত্য ক্লাবের বর্তমান ও সাবেক নেতৃত্ব, কার্যনির্বাহী সদস্য, শিক্ষক-মডারেটর এবং ক্লাব প্যানেলের আর্কাইভ দেখুন।",
   alternates: { canonical: "/panel" },
   openGraph: {
+    images: [{ url: "/opengraph-image", width: 1200, height: 630, alt: "Willes Literary Club" }],
     title: "ক্লাব প্যানেল ও আর্কাইভ | Willes Literary Club",
     description: "Willes Literary Club-এর নেতৃত্ব, সদস্য ও প্যানেল আর্কাইভ এক জায়গায় দেখুন।",
     url: "https://wlc.pro.bd/panel",

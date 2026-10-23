@@ -1,10 +1,12 @@
-// app/panelpage/layout.tsx
-export default function PanelLayout({ children }: { children: React.ReactNode }) {
-  return (
-    <html lang="en">
-      <body className="bg-black text-white"> {/* আপনার প্যানেলের নিজস্ব থিম */}
-        {children}
-      </body>
-    </html>
-  );
+import type { Metadata } from "next";
+import type { ReactNode } from "react";
+
+export const metadata: Metadata = {
+  title: "Internal Panel Sign-in | Willes Literary Club",
+  description: "Legacy internal sign-in route. Use the protected MemberHub portal.",
+  robots: { index: false, follow: false },
+};
+
+export default function LegacyPanelLayout({ children }: { children: ReactNode }) {
+  return children;
 }
