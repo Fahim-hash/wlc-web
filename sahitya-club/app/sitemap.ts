@@ -11,6 +11,7 @@ const PUBLIC_ROUTES = [
   "/album",
   "/contact",
   "/contributor",
+  "/developer",
   "/events",
   "/faq",
   "/kothasokhi",
