@@ -66,10 +66,8 @@ export const metadata: Metadata = {
 
 export default function RootLayout({
   children,
-  popup, // 👈 ২. এখানে প্যারালাল রুট স্লট প্রপ্স হিসেবে রিসিভ করা হলো
 }: {
   children: React.ReactNode;
-  popup: React.ReactNode; // 👈 ৩. টাইপ ডিফাইন করা হলো
 }) {
   // 🌐 একটি master navigation list — desktop ও mobile দুই জায়গাতেই একই থাকবে
   const navigationLinks: NavLink[] = [
@@ -330,8 +328,6 @@ export default function RootLayout({
           </div>
         </footer>
 
-        {/* 👈 ৪. এখানে পপ-আপ রেন্ডার করা হলো (যা শুধু হোম পেজে দেখাবে) */}
-        {popup}
         <GlobalPushPrompt />
 
       </body>
