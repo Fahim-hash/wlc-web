@@ -120,7 +120,7 @@ const sections = [
 
 export default function PrivacyPolicyPage() {
   return (
-    <main className="min-h-screen overflow-x-hidden bg-stone-50 text-stone-900 selection:bg-rose-100 selection:text-rose-900">
+    <div className="w-full overflow-x-hidden bg-stone-50 text-stone-900 selection:bg-rose-100 selection:text-rose-900">
       <section className="relative overflow-hidden border-b border-stone-200/60 bg-white px-4 py-16 text-center shadow-sm sm:py-20">
         <div
           aria-hidden="true"
@@ -230,13 +230,7 @@ export default function PrivacyPolicyPage() {
           </div>
         </section>
 
-        <footer className="flex flex-col gap-3 border-t border-stone-200 pt-6 text-sm text-stone-500 sm:flex-row sm:items-center sm:justify-between">
-          <p>© {new Date().getFullYear()} Willes Literary Club</p>
-          <Link href="/" className="font-semibold text-stone-700 underline decoration-stone-300 underline-offset-4 transition-colors hover:text-rose-900">
-            ← মূল ওয়েবসাইটে ফিরে যান
-          </Link>
-        </footer>
       </section>
-    </main>
+    </div>
   );
 }
