@@ -97,7 +97,7 @@ export default function ContactPage() {
 
           {/* ২. ইমেইল */}
           <a 
-            href="mailto:contact@wlc.pro.bd"
+            href="mailto:wlfsc.sahittoclub.com@gmail.com"
             className="block bg-white border border-gray-200 p-6 rounded-2xl shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-300 group"
           >
             <div className="flex items-center gap-4">
@@ -106,7 +106,7 @@ export default function ContactPage() {
               </div>
               <div>
                 <h3 className="font-bold text-gray-900 font-serif">অফিশিয়াল ইমেইল</h3>
-                <p className="text-xs text-gray-400 mt-0.5">contact@wlc.pro.bd</p>
+                <p className="text-xs text-gray-400 mt-0.5">wlfsc.sahittoclub.com@gmail.com</p>
               </div>
             </div>
           </a>
