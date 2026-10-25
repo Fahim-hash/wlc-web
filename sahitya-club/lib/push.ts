@@ -14,7 +14,7 @@ export type PushSubscriptionJSON = {
 function getVapidConfig() {
   const publicKey = process.env.VAPID_PUBLIC_KEY;
   const privateKey = process.env.VAPID_PRIVATE_KEY;
-  const subject = process.env.VAPID_SUBJECT || "mailto:wlfsc.sahittoclub@gmail.com";
+  const subject = process.env.VAPID_SUBJECT || "mailto:wlfsc.sahittoclub.com@gmail.com";
 
   if (!publicKey || !privateKey) {
     throw new Error("VAPID_PUBLIC_KEY and VAPID_PRIVATE_KEY are required");
