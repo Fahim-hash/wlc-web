@@ -275,8 +275,8 @@ export default function RootLayout({
                 <a href="tel:+8801974745442" className="hover:text-rose-900 transition-colors flex items-center justify-center md:justify-start gap-1.5">
                   📞 +8801974-745442
                 </a>
-                <a href="mailto:wlfsc.sahittoclub@gmail.com" className="hover:text-rose-900 transition-colors flex items-center justify-center md:justify-start gap-1.5">
-                  ✉️ wlfsc.sahittoclub@gmail.com
+                <a href="mailto:wlfsc.sahittoclub.com@gmail.com" className="hover:text-rose-900 transition-colors flex items-center justify-center md:justify-start gap-1.5">
+                  ✉️ wlfsc.sahittoclub.com@gmail.com
                 </a>
               </div>
 
