@@ -7,7 +7,6 @@ import Image from "next/image";
 import GlobalPushPrompt from "@/components/GlobalPushPrompt";
 import RouteChromeController from "@/components/RouteChromeController";
 import GoogleAnalytics from "@/components/GoogleAnalytics";
-import Breadcrumbs from "@/components/Breadcrumbs";
 
 // ১. নেভিগেশন লিংকের জন্য টাইপস্ক্রিপ্ট ইন্টারফেস
 interface NavLink {
@@ -244,7 +243,6 @@ export default function RootLayout({
 
         {/* ================= MAIN CONTENT AREA ================= */}
         <main className="flex-grow w-full min-w-0 block relative z-10 overflow-x-hidden">
-          <Breadcrumbs />
           {children}
         </main>
 
