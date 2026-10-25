@@ -127,13 +127,6 @@ export default function PrivacyPolicyPage() {
           className="pointer-events-none absolute inset-0 opacity-[0.06] bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-rose-900 via-stone-100 to-white"
         />
         <div className="relative z-10 mx-auto max-w-3xl space-y-5">
-          <nav aria-label="Breadcrumb" className="text-sm text-stone-500">
-            <Link href="/" className="transition-colors hover:text-rose-900">
-              হোম
-            </Link>
-            <span aria-hidden="true" className="mx-2 text-stone-300">/</span>
-            <span className="text-stone-700">গোপনীয়তা নীতি</span>
-          </nav>
           <span className="inline-block rounded-full border border-rose-100 bg-rose-50 px-3 py-1 text-xs font-bold uppercase tracking-widest text-rose-900">
             Privacy & Transparency
           </span>
