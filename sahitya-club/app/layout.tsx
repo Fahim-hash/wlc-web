@@ -23,9 +23,17 @@ const hindSiliguri = Hind_Siliguri({
 // 🚀 SEO & Metadata Setup
 export const metadata: Metadata = {
   metadataBase: new URL("https://wlc.pro.bd"),
-  verification: process.env.GOOGLE_SITE_VERIFICATION
-    ? { google: process.env.GOOGLE_SITE_VERIFICATION }
-    : undefined,
+  verification: {
+    ...(process.env.GOOGLE_SITE_VERIFICATION
+      ? { google: process.env.GOOGLE_SITE_VERIFICATION }
+      : {}),
+    ...(process.env.YANDEX_SITE_VERIFICATION
+      ? { yandex: process.env.YANDEX_SITE_VERIFICATION }
+      : {}),
+    ...(process.env.BING_SITE_VERIFICATION
+      ? { other: { "msvalidate.01": process.env.BING_SITE_VERIFICATION } }
+      : {}),
+  },
   title: { default: "উইল্‌স সাহিত্য ক্লাব | Willes Literary Club", template: "%s" },
   description: "উইল্‌স লিটল ফ্লাওয়ার স্কুল অ্যান্ড কলেজের অফিসিয়াল সাহিত্য ক্লাব। বাংলা সাহিত্য, সৃজনশীল লেখালেখি, ইভেন্ট, অর্জন, সদস্যপদ ও উইলিয়ানদের সাহিত্যচর্চার খবর জানুন।",
   keywords: [
