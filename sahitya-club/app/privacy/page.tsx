@@ -216,10 +216,10 @@ export default function PrivacyPolicyPage() {
           </p>
           <div className="mt-6 flex flex-col justify-center gap-3 sm:flex-row">
             <a
-              href="mailto:contact@wlc.pro.bd"
+              href="mailto:wlfsc.sahittoclub.com@gmail.com"
               className="inline-flex items-center justify-center gap-2 rounded-xl bg-white px-5 py-3 text-sm font-bold text-stone-950 transition-colors hover:bg-stone-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-300"
             >
-              contact@wlc.pro.bd <span aria-hidden="true">↗</span>
+              wlfsc.sahittoclub.com@gmail.com <span aria-hidden="true">↗</span>
             </a>
             <Link
               href="/contact"
