@@ -13,8 +13,8 @@ const EVENT = {
 
 const chapters = [
   { n: "০১", title: "পরিচয়ের প্রথম পাতা", text: "নতুন মানুষ, নতুন কণ্ঠ—একটি পরিচয় থেকেই কত গল্পের শুরু হয়।", image: "https://images.unsplash.com/photo-1519682337058-a94d519337bc?auto=format&fit=crop&w=1200&q=85", alt: "খোলা বইয়ের পাতায় পড়ছে নরম আলো" },
-  { n: "০২", title: "শব্দের সঙ্গে যাত্রা", text: "সাহিত্য, সৃজনশীলতা আর ছোট ছোট চমকের ভেতর দিয়ে এগিয়ে চলা।", image: "https://images.unsplash.com/photo-1455390582262-044c 한?auto=format&fit=crop&w=1200&q=85", alt: "লেখার টেবিলে খাতা ও কলম" },
-  { n: "০৩", title: "স্মৃতি হয়ে থাকা", text: "অনুষ্ঠান শেষ হলেও কিছু মুহূর্ত থেকে যায় নিজের গল্প হয়ে।", image: "https://images.unsplash.com/photo-1517457373958-b7 қи?auto=format&fit=crop&w=1200&q=85", alt: "একসঙ্গে সময় কাটানোর স্মৃতি" },
+  { n: "০২", title: "শব্দের সঙ্গে যাত্রা", text: "সাহিত্য, সৃজনশীলতা আর ছোট ছোট চমকের ভেতর দিয়ে এগিয়ে চলা।", image: "https://images.unsplash.com/photo-1455390582262-044c508f4a2d?auto=format&fit=crop&w=1200&q=85", alt: "লেখার টেবিলে খাতা ও কলম" },
+  { n: "০৩", title: "স্মৃতি হয়ে থাকা", text: "অনুষ্ঠান শেষ হলেও কিছু মুহূর্ত থেকে যায় নিজের গল্প হয়ে।", image: "https://images.unsplash.com/photo-1529156069898-49953e39b3ac?auto=format&fit=crop&w=1200&q=85", alt: "একসঙ্গে সময় কাটানোর স্মৃতি" },
 ];
 
 const questions = [
