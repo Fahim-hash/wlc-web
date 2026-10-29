@@ -531,6 +531,16 @@ export default function MemberHubPage() {
                                 WhatsApp
                               </a>
                             )}
+                            {member.whatsappText && (
+                              <button
+                                type="button"
+                                onClick={() => copyText(member.whatsappText!, "WhatsApp message copied.")}
+                                className="inline-flex items-center gap-1.5 rounded-xl bg-white px-2.5 py-2 text-xs text-stone-700 hover:bg-stone-100"
+                              >
+                                <Copy size={14} />
+                                Copy message
+                              </button>
+                            )}
                           </div>
                         </td>
                       </tr>
