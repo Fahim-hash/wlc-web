@@ -175,45 +175,97 @@ export function buildMemberEmail(member: Pick<RegisteredMember, "memberId" | "na
 export async function sendMemberEmail(member: RegisteredMember) {
   if (!member.email) throw new Error("This member does not have an email address.");
 
-  const apiKey = process.env.RESEND_API_KEY?.trim();
-  const fromEmail = process.env.RESEND_FROM_EMAIL?.trim();
-  const fromName = process.env.RESEND_FROM_NAME?.trim() || "Willes Literary Club";
-
-  if (!apiKey || !fromEmail) {
-    throw new Error(
-      "Email service is not configured. Add RESEND_API_KEY and RESEND_FROM_EMAIL in Vercel."
-    );
-  }
-
   const email = buildMemberEmail(member);
-  const response = await fetch("https://api.resend.com/emails", {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      from: `${fromName} <${fromEmail}>`,
-      to: [member.email],
-      subject: email.subject,
-      html: email.html,
-      text: email.text,
-    }),
-    cache: "no-store",
-  });
+  const resendKey = process.env.RESEND_API_KEY?.trim();
+  const resendFromEmail = process.env.RESEND_FROM_EMAIL?.trim();
+  const resendFromName = process.env.RESEND_FROM_NAME?.trim() || "Willes Literary Club";
+  const mailerSendToken = process.env.MAILERSEND_API_TOKEN?.trim();
+  const mailerSendFromEmail = process.env.MAILERSEND_FROM_EMAIL?.trim();
+  const mailerSendFromName = process.env.MAILERSEND_FROM_NAME?.trim() || "Willes Literary Club";
 
-  const body = await response.json().catch(() => ({}));
-  if (!response.ok) {
-    const reason =
-      typeof body?.message === "string"
-        ? body.message
-        : typeof body?.name === "string"
-          ? body.name
-          : `Resend returned HTTP ${response.status}`;
-    throw new Error(reason);
+  const providers: Array<{
+    name: string;
+    send: () => Promise<string>;
+  }> = [];
+
+  if (resendKey && resendFromEmail) {
+    providers.push({
+      name: "Resend",
+      send: async () => {
+        const response = await fetch("https://api.resend.com/emails", {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${resendKey}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            from: `${resendFromName} <${resendFromEmail}>`,
+            to: [member.email!],
+            subject: email.subject,
+            html: email.html,
+            text: email.text,
+          }),
+          cache: "no-store",
+        });
+        const body = await response.json().catch(() => ({}));
+        if (!response.ok) {
+          const reason = typeof body?.message === "string" ? body.message
+            : typeof body?.name === "string" ? body.name
+            : `HTTP ${response.status}`;
+          throw new Error(reason);
+        }
+        return typeof body?.id === "string" ? body.id : "";
+      },
+    });
   }
 
-  return typeof body?.id === "string" ? body.id : "";
+  if (mailerSendToken && mailerSendFromEmail) {
+    providers.push({
+      name: "MailerSend",
+      send: async () => {
+        const response = await fetch("https://api.mailersend.com/v1/email", {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${mailerSendToken}`,
+            "Content-Type": "application/json",
+            Accept: "application/json",
+          },
+          body: JSON.stringify({
+            from: { email: mailerSendFromEmail, name: mailerSendFromName },
+            to: [{ email: member.email! }],
+            subject: email.subject,
+            html: email.html,
+            text: email.text,
+          }),
+          cache: "no-store",
+        });
+        const body = await response.json().catch(() => ({}));
+        if (!response.ok) {
+          const reason = typeof body?.message === "string" ? body.message
+            : typeof body?.errors?.[0]?.message === "string" ? body.errors[0].message
+            : `HTTP ${response.status}`;
+          throw new Error(reason);
+        }
+        const messageId = response.headers.get("x-message-id");
+        return messageId || (typeof body?.message_id === "string" ? body.message_id : "");
+      },
+    });
+  }
+
+  if (!providers.length) {
+    throw new Error("Email service is not configured. Set RESEND_API_KEY + RESEND_FROM_EMAIL and/or MAILERSEND_API_TOKEN + MAILERSEND_FROM_EMAIL in Vercel.");
+  }
+
+  const errors: string[] = [];
+  for (const provider of providers) {
+    try {
+      return await provider.send();
+    } catch (error) {
+      errors.push(`${provider.name}: ${error instanceof Error ? error.message : "delivery failed"}`);
+    }
+  }
+
+  throw new Error(`Email delivery failed. ${errors.join(" | ")}`);
 }
 
 export async function updateEmailStatus(
