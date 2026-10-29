@@ -95,7 +95,7 @@ export function buildMemberMessage(member: Pick<RegisteredMember, "memberId" | "
     "Regards,",
     "Willes Literary Club",
     "https://wlc.pro.bd",
-  ].join("\\n");
+  ].join("\n");
 }
 
 export function buildWhatsAppUrl(phone: string, message: string) {
