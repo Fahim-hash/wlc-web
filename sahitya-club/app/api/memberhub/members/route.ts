@@ -7,7 +7,7 @@ export const dynamic = "force-dynamic";
 export async function GET() {
  if (!(await isMemberAdminAuthenticated())) return NextResponse.json({message:"Unauthorized."},{status:401});
  const snapshot=await getAdminDb().collection("registered_members").orderBy("createdAt","desc").limit(500).get();
- return NextResponse.json({members:snapshot.docs.map(doc=>{const data=doc.data() as RegisteredMember;return {...data,id:doc.id,portalStatus:(data as any).portalStatus||"NOT_SETUP",username:(data as any).username||null,whatsappUrl:data.phone?buildWhatsAppUrl(data.phone,buildMemberMessage(data)):null};})});
+ return NextResponse.json({members:snapshot.docs.map(doc=>{const data=doc.data() as RegisteredMember;return {...data,id:doc.id,portalStatus:(data as any).portalStatus||"NOT_SETUP",username:(data as any).username||null,whatsappUrl:data.phone?buildWhatsAppUrl(data.phone,buildMemberMessage(data)):null,whatsappText:data.phone?buildMemberMessage(data):null};})});
 }
 export async function POST(request:Request) {
  if (!(await isMemberAdminAuthenticated())) return NextResponse.json({message:"Unauthorized."},{status:401});
