@@ -80,18 +80,21 @@ export function normalizePhoneForWhatsApp(phone: string) {
 
 export function buildMemberMessage(member: Pick<RegisteredMember, "memberId" | "name">) {
   return [
+    "Willes Literary Club | Membership Confirmation",
+    "",
+    `Hello ${member.name},`,
+    "",
+    "Your membership registration with Willes Literary Club has been recorded successfully.",
+    "",
+    `Your official Member ID: ${member.memberId}`,
+    "",
+    "Please save this ID for future club communication and membership verification. If you need help, contact the club administration.",
+    "",
+    "Please note: this message confirms your registration; it is not an event pass.",
+    "",
+    "Regards,",
     "Willes Literary Club",
-    "",
-    "Membership Confirmation",
-    `Dear ${member.name},`,
-    "",
-    "Congratulations! Your Willes Literary Club membership registration has been recorded successfully.",
-    "",
-    `Member ID: ${member.memberId}`,
-    "",
-    "Please keep this Member ID safe. Event-specific portal credentials and instructions will be shared separately before relevant events.",
-    "",
-    "— Willes Literary Club",
+    "https://wlc.pro.bd",
   ].join("\n");
 }
 
