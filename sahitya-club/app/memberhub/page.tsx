@@ -52,6 +52,7 @@ export default function MemberHubPage() {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [emailing, setEmailing] = useState<string | null>(null);
+  const [whatsapping, setWhatsapping] = useState<string | null>(null);
   const [notice, setNotice] = useState("");
   const [created, setCreated] = useState<Member | null>(null);
 
@@ -182,6 +183,37 @@ export default function MemberHubPage() {
       setNotice(`Portal activation email sent for ${memberId}.`);
     } finally {
       setEmailing(null);
+    }
+  }
+
+  async function sendWhatsAppActivation(member: Member) {
+    const popup = window.open("about:blank", "_blank");
+    setWhatsapping(member.memberId);
+    setNotice("");
+    try {
+      const response = await fetch(
+        `/api/memberhub/members/${encodeURIComponent(member.memberId)}/whatsapp`,
+        { method: "POST" }
+      );
+      const data = await response.json();
+      if (!response.ok) {
+        popup?.close();
+        setNotice(data.message || "Unable to prepare WhatsApp activation message.");
+        return;
+      }
+      if (popup) popup.location.href = data.whatsappUrl;
+      else window.location.href = data.whatsappUrl;
+      setMembers((current) =>
+        current.map((item) =>
+          item.memberId === member.memberId ? { ...item, portalStatus: "PENDING" } : item
+        )
+      );
+      setNotice(`Portal activation message prepared for ${member.memberId}. The link expires in 48 hours.`);
+    } catch {
+      popup?.close();
+      setNotice("Unable to prepare WhatsApp activation message. Please try again.");
+    } finally {
+      setWhatsapping(null);
     }
   }
 
@@ -520,25 +552,15 @@ export default function MemberHubPage() {
                               <UserRoundX size={14} />
                               {member.status === "ACTIVE" ? "Remove" : "Restore"}
                             </button>
-                            {member.whatsappUrl && (
-                              <a
-                                href={member.whatsappUrl}
-                                target="_blank"
-                                rel="noreferrer"
-                                className="inline-flex items-center gap-1.5 rounded-xl bg-emerald-50 px-2.5 py-2 text-xs text-emerald-800"
-                              >
-                                <MessageCircle size={14} />
-                                WhatsApp
-                              </a>
-                            )}
-                            {member.whatsappText && (
+                            {member.phone && (
                               <button
                                 type="button"
-                                onClick={() => copyText(member.whatsappText!, "WhatsApp message copied.")}
-                                className="inline-flex items-center gap-1.5 rounded-xl bg-white px-2.5 py-2 text-xs text-stone-700 hover:bg-stone-100"
+                                onClick={() => sendWhatsAppActivation(member)}
+                                disabled={whatsapping === member.memberId || member.status !== "ACTIVE" || member.portalStatus === "ACTIVE"}
+                                className="inline-flex items-center gap-1.5 rounded-xl bg-emerald-50 px-2.5 py-2 text-xs text-emerald-800 disabled:cursor-not-allowed disabled:opacity-50"
                               >
-                                <Copy size={14} />
-                                Copy message
+                                <MessageCircle size={14} />
+                                {whatsapping === member.memberId ? "Preparing…" : member.portalStatus === "ACTIVE" ? "Portal Active" : "WhatsApp Activation"}
                               </button>
                             )}
                           </div>
