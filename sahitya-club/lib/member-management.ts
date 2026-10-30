@@ -78,23 +78,30 @@ export function normalizePhoneForWhatsApp(phone: string) {
   return digits;
 }
 
-export function buildMemberMessage(member: Pick<RegisteredMember, "memberId" | "name">) {
+export function buildMemberMessage(
+  member: Pick<RegisteredMember, "memberId" | "name">,
+  activationUrl?: string | null
+) {
   return [
-    "Willes Literary Club | Member Portal Access",
+    "*Willes Literary Club | Member Portal Access*",
     "",
-    `Hello ${member.name},`,
+    `Hello ${member.name}!`,
     "",
-    "Your membership registration has been recorded successfully.",
-    `Your official Member ID is: ${member.memberId}`,
+    "Your official Willes Literary Club membership has been confirmed.",
+    `*Your Member ID:* ${member.memberId}`,
     "",
-    "To receive access to the WLC Member Portal, please reply to this message with your active email address.",
-    "We will use that email address to send your secure Member Portal activation link and access instructions.",
+    ...(activationUrl
+      ? [
+          "Please activate your Member Portal account within *48 hours* using the link below:",
+          "",
+          `*Portal Activation Link:* ${activationUrl}`,
+        ]
+      : [
+          "To activate your Member Portal, please contact the club admin with your active email address to receive a secure activation link.",
+        ]),
     "",
-    "Please keep your Member ID safe. Do not share passwords or one-time activation links with anyone.",
-    "",
-    "Regards,",
-    "Willes Literary Club",
-    "https://wlc.pro.bd",
+    "*Willes Literary Club*",
+    "*সাহিত্যের বন্ধনে, প্রতিভার সন্ধানে*",
   ].join("\n");
 }
 
