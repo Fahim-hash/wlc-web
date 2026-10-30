@@ -16,20 +16,43 @@ export async function POST(request:Request) {
   const notification:MemberNotification=["email","whatsapp","both"].includes(body?.notification)?body.notification:"none";
   const member=await createRegisteredMember({name:body?.name,email:body?.email,phone:body?.phone,batch:body?.batch,notes:body?.notes,actor:"memberhub"});
   let email:{status:"not_requested"|"sent"|"failed";message?:string}={status:"not_requested"};
-  let activationIssued = false;
-  if ((notification==="email"||notification==="both")&&member.email) {
+  let activationUrl:string|null=null;
+  let activationError:string|null=null;
+  const needsActivation=notification==="email"||notification==="whatsapp"||notification==="both";
+
+  if (needsActivation && member.email) {
    try {
     const activation=await createActivationLink(member.memberId);
-    activationIssued = true;
-    const messageId=await sendActivationEmail({name:member.name,email:member.email,memberId:member.memberId},activation.url);
-    await updateEmailStatus(member.memberId,"SENT",{emailSentAt:Date.now(),emailMessageId:messageId||null,lastEmailError:null});
-    email={status:"sent"};
+    activationUrl=activation.url;
+    if (notification==="email"||notification==="both") {
+     const messageId=await sendActivationEmail({name:member.name,email:member.email,memberId:member.memberId},activation.url);
+     await updateEmailStatus(member.memberId,"SENT",{emailSentAt:Date.now(),emailMessageId:messageId||null,lastEmailError:null});
+     email={status:"sent"};
+    }
    } catch(error) {
-    const message=error instanceof Error?error.message:"Activation email failed.";
-    await updateEmailStatus(member.memberId,"FAILED",{lastEmailError:message});
-    email={status:"failed",message};
+    activationError=error instanceof Error?error.message:"Activation link creation failed.";
+    if (notification==="email"||notification==="both") {
+     await updateEmailStatus(member.memberId,"FAILED",{lastEmailError:activationError});
+     email={status:"failed",message:activationError};
+    }
    }
+  } else if ((notification==="email"||notification==="both")&&!member.email) {
+   email={status:"failed",message:"An email address is required to create a secure portal activation link."};
+  } else if (notification==="whatsapp"&&!member.email) {
+   activationError="An email address is required before a portal activation link can be issued.";
   }
-  return NextResponse.json({success:true,member:{...member,portalStatus:activationIssued?"PENDING":"NOT_SETUP",whatsappUrl:member.phone?buildWhatsAppUrl(member.phone,buildMemberMessage(member)):null,whatsappText:member.phone?buildMemberMessage(member):null},email},{status:201});
+
+  const whatsappText=member.phone?buildMemberMessage(member,activationUrl):null;
+  return NextResponse.json({
+   success:true,
+   member:{
+    ...member,
+    portalStatus:activationUrl?"PENDING":"NOT_SETUP",
+    whatsappUrl:member.phone&&whatsappText?buildWhatsAppUrl(member.phone,whatsappText):null,
+    whatsappText,
+    activationError,
+   },
+   email
+  },{status:201});
  } catch(error) { return NextResponse.json({success:false,message:error instanceof Error?error.message:"Unable to add member."},{status:400}); }
 }
