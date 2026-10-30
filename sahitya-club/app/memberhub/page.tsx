@@ -130,14 +130,14 @@ export default function MemberHubPage() {
       setForm(emptyForm);
 
       if (data.email?.status === "sent") {
-        setNotice(`Member ${data.member.memberId} added and portal activation email sent. The WhatsApp message also contains the 48-hour activation link.`);
+        setNotice(data.member.whatsappUrl ? `Member ${data.member.memberId} added. Activation email sent and WhatsApp message prepared with the 48-hour link.` : `Member ${data.member.memberId} added and portal activation email sent.`);
       } else if (data.email?.status === "failed") {
         setNotice(
           `Member ${data.member.memberId} added, but email failed: ${data.email.message}`
         );
       } else if (data.member.activationError) {
         setNotice(`Member ${data.member.memberId} added, but the portal activation link could not be created: ${data.member.activationError}`);
-      } else if (form.notification === "whatsapp" || form.notification === "both") {
+      } else if (data.member.whatsappUrl && data.member.portalStatus === "PENDING") {
         setNotice(`Member ${data.member.memberId} added. WhatsApp message prepared with the 48-hour portal activation link.`);
       } else {
         setNotice(`Member ${data.member.memberId} added successfully.`);
