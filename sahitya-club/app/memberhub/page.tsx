@@ -40,7 +40,7 @@ const emptyForm = {
   phone: "",
   batch: "",
   notes: "",
-  notification: "email" as "none" | "email" | "whatsapp" | "both",
+  notification: "none" as "none" | "email" | "whatsapp" | "both",
 };
 
 export default function MemberHubPage() {
@@ -360,6 +360,9 @@ export default function MemberHubPage() {
                   className="mt-2 w-full rounded-2xl border border-gray-200 bg-stone-50 px-4 py-3 text-sm text-stone-900 outline-none focus:ring-2 focus:ring-rose-800/30"
                 >
                   <option value="" className="bg-slate-900">Select class / year</option>
+                  <option value="Class 2" className="bg-slate-900">Std 1</option>
+                  <option value="Class 2" className="bg-slate-900">Std 2</option>
+                  <option value="Class 2" className="bg-slate-900">Class 1</option>
                   <option value="Class 2" className="bg-slate-900">Class 2</option>
                   <option value="Class 3" className="bg-slate-900">Class 3</option>
                   <option value="Class 4" className="bg-slate-900">Class 4</option>
