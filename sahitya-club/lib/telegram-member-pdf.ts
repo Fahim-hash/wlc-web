@@ -41,7 +41,7 @@ function maskedPhone(value: unknown) {
 }
 
 function wrapText(text: string, font: PDFFont, size: number, maxWidth: number) {
-  const words = text.split(/\\s+/).filter(Boolean);
+  const words = text.split(/\s+/).filter(Boolean);
   if (!words.length) return [""];
   const lines: string[] = [];
   let line = "";
