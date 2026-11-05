@@ -1,5 +1,6 @@
 import "regenerator-runtime/runtime.js";
 import fontkit from "@pdf-lib/fontkit";
+import { initWasm, Resvg } from "@resvg/resvg-wasm";
 import { PDFDocument, rgb, type PDFFont, type PDFPage, type PDFImage } from "pdf-lib";
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
@@ -26,6 +27,33 @@ const COLS = [
 ] as const;
 const LINE_HEIGHT = 12.4;
 const FONT_SIZE = 9.4;
+const NAME_RENDER_SCALE = 4;
+let resvgInit: Promise<void> | undefined;
+
+async function ensureResvgReady() {
+  if (!resvgInit) {
+    resvgInit = readFile(join(process.cwd(), "node_modules/@resvg/resvg-wasm/index_bg.wasm")).then((wasm) => initWasm(wasm));
+  }
+  await resvgInit;
+}
+
+function escapeXml(value: string) {
+  return value.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/\\"/g, "&quot;").replace(/\x27/g, "&apos;");
+}
+
+function renderBengaliNameLine(text: string, width: number, fontBytes: Uint8Array, boldFontBytes: Uint8Array) {
+  const scale = NAME_RENDER_SCALE;
+  const pixelWidth = Math.ceil(width * scale);
+  const pixelHeight = Math.ceil(LINE_HEIGHT * scale);
+  const fontSize = FONT_SIZE * scale;
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${pixelWidth}" height="${pixelHeight}" viewBox="0 0 ${pixelWidth} ${pixelHeight}"><text x="0" y="${fontSize * 0.88}" font-family="Noto Sans Bengali" font-size="${fontSize}" font-weight="700" fill="#292121">${escapeXml(text)}</text></svg>`;
+  const renderer = new Resvg(svg, { font: { fontBuffers: [fontBytes, boldFontBytes], defaultFontFamily: "Noto Sans Bengali" } });
+  try {
+    return renderer.render().asPng();
+  } finally {
+    renderer.free();
+  }
+}
 
 function clean(value: unknown) {
   return value === null || value === undefined ? "" : String(value).trim();
@@ -137,6 +165,8 @@ export async function generateMemberDirectoryPdf(records: MemberPdfRecord[]) {
     readFile(join(process.cwd(), "node_modules/@fontsource/noto-sans-bengali/files/noto-sans-bengali-bengali-400-normal.woff2")),
   ]);
 
+  await ensureResvgReady();
+
   const pdf = await PDFDocument.create();
   pdf.registerFontkit(fontkit);
   const bengaliBoldBytes = await readFile(join(process.cwd(), "node_modules/@fontsource/noto-sans-bengali/files/noto-sans-bengali-bengali-700-normal.woff2"));
@@ -208,7 +238,18 @@ export async function generateMemberDirectoryPdf(records: MemberPdfRecord[]) {
       const usedHeight = lines.length * LINE_HEIGHT;
       let top = rowTop + Math.max(5, (rowHeight - usedHeight) / 2);
       for (const line of lines) {
-        drawTopText(page, line, x + 8, top, fonts, FONT_SIZE, undefined, colIndex === 0);
+        if (colIndex === 0 && /[\\u0980-\\u09FF]/.test(line)) {
+          const png = renderBengaliNameLine(line, col.width - 16, regularBytes, bengaliBoldBytes);
+          const nameImage = await pdf.embedPng(png);
+          page.drawImage(nameImage, {
+            x: x + 8,
+            y: PAGE_HEIGHT - top - LINE_HEIGHT,
+            width: col.width - 16,
+            height: LINE_HEIGHT,
+          });
+        } else {
+          drawTopText(page, line, x + 8, top, fonts, FONT_SIZE, undefined, colIndex === 0);
+        }
         top += LINE_HEIGHT;
       }
       x += col.width;
