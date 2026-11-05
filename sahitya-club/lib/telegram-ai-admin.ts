@@ -197,8 +197,8 @@ function matches(member: MemberRow, intent: AdminIntent) {
 }
 
 function matchesMemberIntent(text: string) {
-  return /^\\/(ai|aihelp)(?:\\s|$)/i.test(text) ||
-    /\\b(excel|spreadsheet|csv|pdf|print|member|members|phone|class|database|report)\\b/i.test(text) ||
+  return /^\/(ai|aihelp)(?:\s|$)/i.test(text) ||
+    /\b(excel|spreadsheet|csv|pdf|print|member|members|phone|class|database|report)\b/i.test(text) ||
     /সদস্য|মেম্বার|মেম্বারদের|ক্লাস|শ্রেণি|ফোন|নাম্বার|ডাটাবেস|ডেটাবেস|এক্সেল|শিট|পিডিএফ|প্রিন্ট|রিপোর্ট|কতজন|তালিকা|খুঁজে|খোঁজ/i.test(text);
 }
 
