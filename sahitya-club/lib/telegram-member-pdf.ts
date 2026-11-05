@@ -40,35 +40,58 @@ function maskedPhone(value: unknown) {
   return raw.slice(0, 2) + "x".repeat(raw.length - 5) + raw.slice(-3);
 }
 
-function wrapText(text: string, font: PDFFont, size: number, maxWidth: number) {
-  const words = text.split(/\s+/).filter(Boolean);
+type FontSet = { latin: PDFFont; bengali: PDFFont; boldLatin: PDFFont; boldBengali: PDFFont };
+
+function isBengali(char: string) {
+  return /[\\u0980-\\u09FF]/.test(char);
+}
+
+function textRuns(text: string, fonts: FontSet, bold = false) {
+  const runs: Array<{ text: string; font: PDFFont }> = [];
+  for (const char of Array.from(text)) {
+    const useBengali = isBengali(char);
+    const font = useBengali ? (bold ? fonts.boldBengali : fonts.bengali) : (bold ? fonts.boldLatin : fonts.latin);
+    const previous = runs[runs.length - 1];
+    if (previous && previous.font === font) previous.text += char;
+    else runs.push({ text: char, font });
+  }
+  return runs;
+}
+
+function measureText(text: string, fonts: FontSet, size: number) {
+  return textRuns(text, fonts).reduce((total, run) => total + run.font.widthOfTextAtSize(run.text, size), 0);
+}
+
+function wrapText(text: string, fonts: FontSet, size: number, maxWidth: number) {
+  const words = text.split(/\\s+/).filter(Boolean);
   if (!words.length) return [""];
   const lines: string[] = [];
   let line = "";
   for (const word of words) {
     const candidate = line ? line + " " + word : word;
-    if (font.widthOfTextAtSize(candidate, size) <= maxWidth || !line) {
+    if (measureText(candidate, fonts, size) <= maxWidth) {
       line = candidate;
-      if (font.widthOfTextAtSize(line, size) > maxWidth) {
-        const chars = Array.from(line);
-        let part = "";
-        for (const char of chars) {
-          if (part && font.widthOfTextAtSize(part + char, size) > maxWidth) { lines.push(part); part = char; }
-          else part += char;
-        }
-        line = part;
-      }
       continue;
     }
-    lines.push(line);
-    line = word;
+    if (line) lines.push(line);
+    line = "";
+    for (const char of Array.from(word)) {
+      if (line && measureText(line + char, fonts, size) > maxWidth) {
+        lines.push(line);
+        line = char;
+      } else line += char;
+    }
   }
   if (line) lines.push(line);
   return lines;
 }
 
-function drawTopText(page: PDFPage, text: string, x: number, top: number, font: PDFFont, size: number, color = rgb(0.16, 0.13, 0.13)) {
-  page.drawText(text, { x, y: PAGE_HEIGHT - top - size, font, size, color });
+function drawTopText(page: PDFPage, text: string, x: number, top: number, fonts: FontSet, size: number, color = rgb(0.16, 0.13, 0.13), bold = false) {
+  let cursorX = x;
+  for (const run of textRuns(text, fonts, bold)) {
+    page.drawText(run.text, { x: cursorX, y: PAGE_HEIGHT - top - size, font: run.font, size, color });
+    cursorX += run.font.widthOfTextAtSize(run.text, size);
+  }
 }
 
 function drawPageFrame(page: PDFPage, header: Awaited<ReturnType<PDFDocument["embedPng"]>>, footer: Awaited<ReturnType<PDFDocument["embedPng"]>>) {
@@ -93,9 +116,15 @@ export async function generateMemberDirectoryPdf(records: MemberPdfRecord[]) {
 
   const pdf = await PDFDocument.create();
   pdf.registerFontkit(fontkit);
-  const regular = await pdf.embedFont(regularBytes, { subset: true });
-  const boldBytes = await readFile(join(process.cwd(), "node_modules/@fontsource/noto-sans-bengali/files/noto-sans-bengali-bengali-700-normal.woff2"));
-  const bold = await pdf.embedFont(boldBytes, { subset: true });
+  const bengaliBoldBytes = await readFile(join(process.cwd(), "node_modules/@fontsource/noto-sans-bengali/files/noto-sans-bengali-bengali-700-normal.woff2"));
+  const latinRegularBytes = await readFile(join(process.cwd(), "node_modules/@fontsource/noto-sans-bengali/files/noto-sans-bengali-latin-400-normal.woff2"));
+  const latinBoldBytes = await readFile(join(process.cwd(), "node_modules/@fontsource/noto-sans-bengali/files/noto-sans-bengali-latin-700-normal.woff2"));
+  const fonts: FontSet = {
+    bengali: await pdf.embedFont(regularBytes, { subset: true }),
+    boldBengali: await pdf.embedFont(bengaliBoldBytes, { subset: true }),
+    latin: await pdf.embedFont(latinRegularBytes, { subset: true }),
+    boldLatin: await pdf.embedFont(latinBoldBytes, { subset: true }),
+  };
   const header = await pdf.embedPng(headerBytes);
   const footer = await pdf.embedPng(footerBytes);
 
@@ -117,7 +146,7 @@ export async function generateMemberDirectoryPdf(records: MemberPdfRecord[]) {
     });
     let x = LEFT;
     for (const col of COLS) {
-      drawTopText(page, col.label, x + 8, cursorTop + 8, bold, 9, rgb(1, 1, 1));
+      drawTopText(page, col.label, x + 8, cursorTop + 8, fonts, 9, rgb(1, 1, 1), true);
       x += col.width;
     }
     cursorTop += tableHeaderHeight;
@@ -129,9 +158,9 @@ export async function generateMemberDirectoryPdf(records: MemberPdfRecord[]) {
     const name = clean(record.name) || "Name not provided";
     const className = clean(record.batch) || "—";
     const phone = maskedPhone(record.phone);
-    const nameLines = wrapText(name, regular, FONT_SIZE, COLS[1].width - 16);
-    const classLines = wrapText(className, regular, FONT_SIZE, COLS[2].width - 16);
-    const phoneLines = wrapText(phone, regular, FONT_SIZE, COLS[3].width - 16);
+    const nameLines = wrapText(name, fonts, FONT_SIZE, COLS[1].width - 16);
+    const classLines = wrapText(className, fonts, FONT_SIZE, COLS[2].width - 16);
+    const phoneLines = wrapText(phone, fonts, FONT_SIZE, COLS[3].width - 16);
     const lineCount = Math.max(1, nameLines.length, classLines.length, phoneLines.length);
     const rowHeight = Math.max(29, lineCount * LINE_HEIGHT + 12);
 
@@ -152,7 +181,7 @@ export async function generateMemberDirectoryPdf(records: MemberPdfRecord[]) {
       const usedHeight = lines.length * LINE_HEIGHT;
       let top = rowTop + Math.max(5, (rowHeight - usedHeight) / 2);
       for (const line of lines) {
-        drawTopText(page, line, x + 8, top, colIndex === 0 ? bold : regular, FONT_SIZE);
+        drawTopText(page, line, x + 8, top, fonts, FONT_SIZE, undefined, colIndex === 0);
         top += LINE_HEIGHT;
       }
       x += col.width;
@@ -162,11 +191,11 @@ export async function generateMemberDirectoryPdf(records: MemberPdfRecord[]) {
 
   pages.forEach((currentPage, index) => {
     const label = "Page " + (index + 1) + " of " + pages.length;
-    const width = regular.widthOfTextAtSize(label, 8);
+    const width = measureText(label, fonts, 8);
     currentPage.drawText(label, {
       x: PAGE_WIDTH - RIGHT - width,
       y: FOOTER_HEIGHT + 8,
-      font: regular,
+      font: fonts.latin,
       size: 8,
       color: rgb(0.35, 0.31, 0.29),
     });
