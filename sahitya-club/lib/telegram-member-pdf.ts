@@ -49,7 +49,12 @@ function renderBengaliNameLine(text: string, width: number, fontBytes: Uint8Arra
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${pixelWidth}" height="${pixelHeight}" viewBox="0 0 ${pixelWidth} ${pixelHeight}"><text x="0" y="${fontSize * 0.88}" font-family="Noto Sans Bengali" font-size="${fontSize}" font-weight="700" fill="#292121">${escapeXml(text)}</text></svg>`;
   const renderer = new Resvg(svg, { font: { fontBuffers: [fontBytes, boldFontBytes], defaultFontFamily: "Noto Sans Bengali" } });
   try {
-    return renderer.render().asPng();
+    const rendered = renderer.render();
+    try {
+      return rendered.asPng();
+    } finally {
+      rendered.free();
+    }
   } finally {
     renderer.free();
   }
