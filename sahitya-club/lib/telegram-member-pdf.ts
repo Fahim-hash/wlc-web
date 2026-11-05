@@ -1,6 +1,5 @@
 import "regenerator-runtime/runtime.js";
 import fontkit from "@pdf-lib/fontkit";
-import { initWasm, Resvg } from "@resvg/resvg-wasm";
 import { PDFDocument, rgb, type PDFFont, type PDFPage, type PDFImage } from "pdf-lib";
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
@@ -170,8 +169,6 @@ export async function generateMemberDirectoryPdf(records: MemberPdfRecord[]) {
     readFile(join(process.cwd(), "node_modules/@fontsource/noto-sans-bengali/files/noto-sans-bengali-bengali-400-normal.woff2")),
   ]);
 
-  await ensureResvgReady();
-
   const pdf = await PDFDocument.create();
   pdf.registerFontkit(fontkit);
   const bengaliBoldBytes = await readFile(join(process.cwd(), "node_modules/@fontsource/noto-sans-bengali/files/noto-sans-bengali-bengali-700-normal.woff2"));
@@ -243,18 +240,7 @@ export async function generateMemberDirectoryPdf(records: MemberPdfRecord[]) {
       const usedHeight = lines.length * LINE_HEIGHT;
       let top = rowTop + Math.max(5, (rowHeight - usedHeight) / 2);
       for (const line of lines) {
-        if (colIndex === 0 && /[\\u0980-\\u09FF]/.test(line)) {
-          const png = renderBengaliNameLine(line, col.width - 16, regularBytes, bengaliBoldBytes);
-          const nameImage = await pdf.embedPng(png);
-          page.drawImage(nameImage, {
-            x: x + 8,
-            y: PAGE_HEIGHT - top - LINE_HEIGHT,
-            width: col.width - 16,
-            height: LINE_HEIGHT,
-          });
-        } else {
-          drawTopText(page, line, x + 8, top, fonts, FONT_SIZE, undefined, colIndex === 0);
-        }
+        drawTopText(page, line, x + 8, top, fonts, FONT_SIZE, undefined, colIndex === 0);
         top += LINE_HEIGHT;
       }
       x += col.width;
