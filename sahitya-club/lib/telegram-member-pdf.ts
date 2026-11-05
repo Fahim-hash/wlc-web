@@ -30,7 +30,7 @@ function clean(value: unknown) {
 }
 
 function onlyDigits(value: unknown) {
-  return clean(value).replace(/\\D/g, "");
+  return clean(value).replace(/\D/g, "");
 }
 
 function maskedPhone(value: unknown) {
@@ -68,7 +68,7 @@ function drawPageFrame(page: PDFPage, header: Awaited<ReturnType<PDFDocument["em
 }
 
 export async function generateMemberDirectoryPdf(records: MemberPdfRecord[]) {
-  const origin = (process.env.NEXT_PUBLIC_SITE_URL || (process.env.VERCEL_URL ? "https://" + process.env.VERCEL_URL : "https://wlc.pro.bd")).replace(/\\/$/, "");
+  const origin = (process.env.NEXT_PUBLIC_SITE_URL || (process.env.VERCEL_URL ? "https://" + process.env.VERCEL_URL : "https://wlc.pro.bd")).replace(/\/$/, "");
   const [headerResponse, footerResponse] = await Promise.all([
     fetch(origin + "/Header@500x.png", { cache: "no-store" }),
     fetch(origin + "/Footer@500x.png", { cache: "no-store" }),
@@ -93,13 +93,13 @@ export async function generateMemberDirectoryPdf(records: MemberPdfRecord[]) {
   const contentTop = HEADER_HEIGHT + 19;
   const contentBottom = FOOTER_HEIGHT + 31;
   const tableHeaderHeight = 27;
-  let page: PDFPage;
+  let page: PDFPage = pdf.addPage([PAGE_WIDTH, PAGE_HEIGHT]);
   let cursorTop = 0;
   let pageNumber = 0;
   const pages: PDFPage[] = [];
 
-  const addPage = () => {
-    page = pdf.addPage([PAGE_WIDTH, PAGE_HEIGHT]);
+  const addPage = (first = false) => {
+    if (!first) page = pdf.addPage([PAGE_WIDTH, PAGE_HEIGHT]);
     pages.push(page);
     pageNumber += 1;
     drawPageFrame(page, header, footer);
@@ -116,7 +116,7 @@ export async function generateMemberDirectoryPdf(records: MemberPdfRecord[]) {
     cursorTop += tableHeaderHeight;
   };
 
-  addPage();
+  addPage(true);
   for (let index = 0; index < records.length; index += 1) {
     const record = records[index];
     const name = clean(record.name) || "Name not provided";
@@ -137,11 +137,11 @@ export async function generateMemberDirectoryPdf(records: MemberPdfRecord[]) {
       borderColor: rgb(0.88, 0.85, 0.82), borderWidth: 0.45,
     });
     const serial = "WLC-03-" + String(index + 1).padStart(3, "0");
-    const allCells = [serial, nameLines.join("\\n"), classLines.join("\\n"), phoneLines.join("\\n")];
+    const allCells = [serial, nameLines.join("\n"), classLines.join("\n"), phoneLines.join("\n")];
     let x = LEFT;
     for (let colIndex = 0; colIndex < COLS.length; colIndex += 1) {
       const col = COLS[colIndex];
-      const lines = allCells[colIndex].split("\\n");
+      const lines = allCells[colIndex].split("\n");
       const usedHeight = lines.length * LINE_HEIGHT;
       let top = rowTop + Math.max(5, (rowHeight - usedHeight) / 2);
       for (const line of lines) {
