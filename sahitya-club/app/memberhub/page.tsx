@@ -359,21 +359,22 @@ export default function MemberHubPage() {
                   }
                   className="mt-2 w-full rounded-2xl border border-gray-200 bg-stone-50 px-4 py-3 text-sm text-stone-900 outline-none focus:ring-2 focus:ring-rose-800/30"
                 >
-                  <option value="" className="bg-slate-900">Select class / year</option>
-                  <option value="Class 2" className="bg-slate-900">Std 1</option>
-                  <option value="Class 2" className="bg-slate-900">Std 2</option>
-                  <option value="Class 2" className="bg-slate-900">Class 1</option>
-                  <option value="Class 2" className="bg-slate-900">Class 2</option>
-                  <option value="Class 3" className="bg-slate-900">Class 3</option>
-                  <option value="Class 4" className="bg-slate-900">Class 4</option>
-                  <option value="Class 5" className="bg-slate-900">Class 5</option>
-                  <option value="Class 6" className="bg-slate-900">Class 6</option>
-                  <option value="Class 7" className="bg-slate-900">Class 7</option>
-                  <option value="Class 8" className="bg-slate-900">Class 8</option>
-                  <option value="Class 9" className="bg-slate-900">Class 9</option>
-                  <option value="Class 10" className="bg-slate-900">Class 10</option>
-                  <option value="1st Year (College)" className="bg-slate-900">1st Year (College)</option>
-                  <option value="2nd Year (College)" className="bg-slate-900">2nd Year (College)</option>
+                  <option value="">Select class / year</option>
+                  <option value="KG">KG</option>
+                  <option value="Std 1">Std 1</option>
+                  <option value="Std 2">Std 2</option>
+                  <option value="Class 1">Class 1</option>
+                  <option value="Class 2">Class 2</option>
+                  <option value="Class 3">Class 3</option>
+                  <option value="Class 4">Class 4</option>
+                  <option value="Class 5">Class 5</option>
+                  <option value="Class 6">Class 6</option>
+                  <option value="Class 7">Class 7</option>
+                  <option value="Class 8">Class 8</option>
+                  <option value="Class 9">Class 9</option>
+                  <option value="Class 10">Class 10</option>
+                  <option value="1st Year (College)">1st Year (College)</option>
+                  <option value="2nd Year (College)">2nd Year (College)</option>
                 </select>
               </label>
               <label className="block">
