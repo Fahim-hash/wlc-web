@@ -160,7 +160,8 @@ export async function generateMemberDirectoryPdf(records: MemberPdfRecord[]) {
     const name = clean(record.name) || "Name not provided";
     const className = clean(record.batch) || "—";
     const phone = maskedPhone(record.phone);
-    const storedMemberId = clean(record.memberId);\n    const memberId = !storedMemberId || /^WLC-03-000$/i.test(storedMemberId) ? "WLC-03-" + String(index + 1).padStart(3, "0") : storedMemberId;
+    const storedMemberId = clean(record.memberId);
+    const memberId = !storedMemberId || /^WLC-03-000$/i.test(storedMemberId) ? "WLC-03-" + String(index + 1).padStart(3, "0") : storedMemberId;
     const nameLines = wrapText(name, fonts, FONT_SIZE, COLS[0].width - 16);
     const classLines = wrapText(className, fonts, FONT_SIZE, COLS[1].width - 16);
     const memberIdLines = wrapText(memberId, fonts, FONT_SIZE, COLS[2].width - 16);
