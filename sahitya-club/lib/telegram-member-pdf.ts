@@ -65,7 +65,7 @@ function measureText(text: string, fonts: FontSet, size: number) {
 }
 
 function wrapText(text: string, fonts: FontSet, size: number, maxWidth: number) {
-  const words = text.split(/\\s+/).filter(Boolean);
+  const words = text.split(/\s+/).filter(Boolean);
   if (!words.length) return [""];
   const lines: string[] = [];
   let line = "";
