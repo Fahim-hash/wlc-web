@@ -1,5 +1,6 @@
 import Groq from "groq-sdk";
 import { getAdminDb } from "@/lib/firebase-admin";
+import { generateMemberDirectoryPdf } from "@/lib/telegram-member-pdf";
 
 type AdminIntent = {
   action: "help" | "member_export" | "member_count" | "member_search" | "cms_stats" | "unsupported";
@@ -106,7 +107,7 @@ async function parseIntent(input: string): Promise<AdminIntent> {
       {
         role: "system",
         content: `You are an intent parser for a read-only beta admin assistant for Willes Literary Club. Return ONLY a JSON object with keys: action, classFilter, phoneSuffix, nameQuery, memberId, fields. action must be one of help, member_export, member_count, member_search, cms_stats, unsupported. Understand Bangla, Banglish, and English.
-- Export/list/download/create Excel or spreadsheet of members => member_export.
+- Export/list/download/create Excel, spreadsheet, PDF, printable member directory or member list => member_export.
 - Count how many members => member_count.
 - Find/search a member by name or member ID => member_search.
 - Ask for website CMS content totals => cms_stats.
@@ -151,12 +152,19 @@ User request: ${input}`
 }
 
 async function loadMembers() {
-  const snapshot = await getAdminDb()
-    .collection("registered_members")
-    .orderBy("createdAt", "desc")
-    .limit(500)
-    .get();
-  return snapshot.docs.map((doc) => ({ ...doc.data(), memberId: safeString(doc.data().memberId) || doc.id }) as MemberRow);
+  const collection = getAdminDb().collection("registered_members");
+  const members: MemberRow[] = [];
+  let cursor: any;
+  while (true) {
+    let query = collection.orderBy("__name__").limit(500);
+    if (cursor) query = query.startAfter(cursor);
+    const snapshot = await query.get();
+    if (snapshot.empty) break;
+    members.push(...snapshot.docs.map((doc) => ({ ...doc.data(), memberId: safeString(doc.data().memberId) || doc.id }) as MemberRow));
+    cursor = snapshot.docs[snapshot.docs.length - 1];
+    if (snapshot.size < 500) break;
+  }
+  return members;
 }
 
 function maskPhone(value: unknown) {
@@ -189,9 +197,9 @@ function matches(member: MemberRow, intent: AdminIntent) {
 }
 
 function matchesMemberIntent(text: string) {
-  return /^\/(ai|aihelp)(?:\s|$)/i.test(text) ||
-    /\b(excel|spreadsheet|csv|member|members|phone|class|database|report)\b/i.test(text) ||
-    /সদস্য|মেম্বার|মেম্বারদের|ক্লাস|শ্রেণি|ফোন|নাম্বার|ডাটাবেস|ডেটাবেস|এক্সেল|শিট|রিপোর্ট|কতজন|তালিকা|খুঁজে|খোঁজ/i.test(text);
+  return /^\\/(ai|aihelp)(?:\\s|$)/i.test(text) ||
+    /\\b(excel|spreadsheet|csv|pdf|print|member|members|phone|class|database|report)\\b/i.test(text) ||
+    /সদস্য|মেম্বার|মেম্বারদের|ক্লাস|শ্রেণি|ফোন|নাম্বার|ডাটাবেস|ডেটাবেস|এক্সেল|শিট|পিডিএফ|প্রিন্ট|রিপোর্ট|কতজন|তালিকা|খুঁজে|খোঁজ/i.test(text);
 }
 
 export async function handleTelegramAdminAi(userId: number, chatId: number | string, rawText: string) {
@@ -252,13 +260,28 @@ export async function handleTelegramAdminAi(userId: number, chatId: number | str
     const suffix = intent.phoneSuffix ? `_ending_${intent.phoneSuffix}` : "";
     const className = intent.classFilter ? `_${intent.classFilter.replace(/[^a-z0-9_-]/gi, "_").slice(0, 20)}` : "";
     const filename = `WLC_Members${className}${suffix}.xls`;
-    await sendExcel(chatId, xml, filename, `📊 Excel report ready\nRecords: ${filtered.length}${members.length === 500 ? "\nNote: only the latest 500 records were checked." : ""}`);
+    await sendExcel(chatId, xml, filename, `📊 Excel report ready\\nRecords: ${filtered.length}`);
+    const pdfBytes = await generateMemberDirectoryPdf(filtered.map((member) => ({
+      name: member.name,
+      batch: member.batch,
+      phone: member.phone,
+    })));
+    const pdfForm = new FormData();
+    pdfForm.set("chat_id", String(chatId));
+    pdfForm.set("caption", `📄 WLC Member Directory PDF\\nRecords: ${filtered.length}\\nSerial: WLC-03-001 → WLC-03-${String(filtered.length).padStart(3, "0")}`);
+    pdfForm.set("document", new Blob([new Uint8Array(pdfBytes)], { type: "application/pdf" }), `WLC_Member_Directory${className}${suffix}.pdf`);
+    const token = process.env.TELEGRAM_BOT_TOKEN?.trim();
+    if (!token) throw new Error("TELEGRAM_BOT_TOKEN is not configured");
+    const pdfResponse = await fetch(`https://api.telegram.org/bot${token}/sendDocument`, { method: "POST", body: pdfForm, cache: "no-store" });
+    const pdfResult = await pdfResponse.json();
+    if (!pdfResponse.ok || !pdfResult.ok) throw new Error(pdfResult.description || "Telegram PDF upload failed.");
     await getAdminDb().collection("audit_logs").add({
       action: "EXPORT",
       collection: "registered_members",
       actor: `telegram:${userId}`,
       recordCount: filtered.length,
       fields: chosenFields,
+      formats: ["xls", "pdf"],
       filters: { classFilter: intent.classFilter, phoneSuffix: intent.phoneSuffix, nameQuery: intent.nameQuery },
       createdAt: Date.now(),
     });
