@@ -1,6 +1,6 @@
 import "regenerator-runtime/runtime.js";
 import fontkit from "@pdf-lib/fontkit";
-import { PDFDocument, rgb, type PDFFont, type PDFPage } from "pdf-lib";
+import { PDFDocument, rgb, type PDFFont, type PDFPage, type PDFImage } from "pdf-lib";
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 
@@ -13,8 +13,8 @@ export type MemberPdfRecord = {
 
 const PAGE_WIDTH = 595.28;
 const PAGE_HEIGHT = 841.89;
-const HEADER_HEIGHT = 180.59 * 0.75;
-const FOOTER_HEIGHT = 30.13 * 0.75;
+const HEADER_MAX_HEIGHT = 180.59 * 0.75;
+const FOOTER_MAX_HEIGHT = 30.13 * 0.75;
 const LEFT = 30;
 const RIGHT = 30;
 const TABLE_WIDTH = PAGE_WIDTH - LEFT - RIGHT;
@@ -96,9 +96,30 @@ function drawTopText(page: PDFPage, text: string, x: number, top: number, fonts:
   }
 }
 
-function drawPageFrame(page: PDFPage, header: Awaited<ReturnType<PDFDocument["embedPng"]>>, footer: Awaited<ReturnType<PDFDocument["embedPng"]>>) {
-  page.drawImage(header, { x: 0, y: PAGE_HEIGHT - HEADER_HEIGHT, width: PAGE_WIDTH, height: HEADER_HEIGHT });
-  page.drawImage(footer, { x: 0, y: 0, width: PAGE_WIDTH, height: FOOTER_HEIGHT });
+function fitImage(image: PDFImage, maxWidth: number, maxHeight: number) {
+  const scale = Math.min(maxWidth / image.width, maxHeight / image.height);
+  const width = image.width * scale;
+  const height = image.height * scale;
+  return { width, height, x: (PAGE_WIDTH - width) / 2 };
+}
+
+function drawPageFrame(page: PDFPage, header: PDFImage, footer: PDFImage) {
+  // Fit images inside their reserved areas without stretching or cropping them.
+  const headerFit = fitImage(header, PAGE_WIDTH, HEADER_MAX_HEIGHT);
+  page.drawImage(header, {
+    x: headerFit.x,
+    y: PAGE_HEIGHT - headerFit.height,
+    width: headerFit.width,
+    height: headerFit.height,
+  });
+
+  const footerFit = fitImage(footer, PAGE_WIDTH, FOOTER_MAX_HEIGHT);
+  page.drawImage(footer, {
+    x: footerFit.x,
+    y: 0,
+    width: footerFit.width,
+    height: footerFit.height,
+  });
 }
 
 export async function generateMemberDirectoryPdf(records: MemberPdfRecord[]) {
@@ -122,8 +143,7 @@ export async function generateMemberDirectoryPdf(records: MemberPdfRecord[]) {
   const latinRegularBytes = await readFile(join(process.cwd(), "node_modules/@fontsource/noto-sans-bengali/files/noto-sans-bengali-latin-400-normal.woff2"));
   const latinBoldBytes = await readFile(join(process.cwd(), "node_modules/@fontsource/noto-sans-bengali/files/noto-sans-bengali-latin-700-normal.woff2"));
 
-  // Keep the full font programs embedded. fontkit's subset writer can overflow
-  // its 16-bit glyph index when processing this Bengali WOFF2 font in production.
+  // Embed full font programs to avoid the previous production subset glyph overflow.
   const fonts: FontSet = {
     bengali: await pdf.embedFont(regularBytes, { subset: false }),
     boldBengali: await pdf.embedFont(bengaliBoldBytes, { subset: false }),
@@ -133,8 +153,8 @@ export async function generateMemberDirectoryPdf(records: MemberPdfRecord[]) {
   const header = await pdf.embedPng(headerBytes);
   const footer = await pdf.embedPng(footerBytes);
 
-  const contentTop = HEADER_HEIGHT + 19;
-  const contentBottom = FOOTER_HEIGHT + 31;
+  const contentTop = HEADER_MAX_HEIGHT + 19;
+  const contentBottom = FOOTER_MAX_HEIGHT + 31;
   const tableHeaderHeight = 27;
   let page: PDFPage = pdf.addPage([PAGE_WIDTH, PAGE_HEIGHT]);
   let cursorTop = 0;
@@ -201,7 +221,7 @@ export async function generateMemberDirectoryPdf(records: MemberPdfRecord[]) {
     const width = measureText(label, fonts, 8);
     currentPage.drawText(label, {
       x: PAGE_WIDTH - RIGHT - width,
-      y: FOOTER_HEIGHT + 8,
+      y: FOOTER_MAX_HEIGHT + 8,
       font: fonts.latin,
       size: 8,
       color: rgb(0.35, 0.31, 0.29),
