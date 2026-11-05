@@ -26,39 +26,6 @@ const COLS = [
 ] as const;
 const LINE_HEIGHT = 12.4;
 const FONT_SIZE = 9.4;
-const NAME_RENDER_SCALE = 4;
-let resvgInit: Promise<void> | undefined;
-
-async function ensureResvgReady() {
-  if (!resvgInit) {
-    resvgInit = readFile(join(process.cwd(), "node_modules/@resvg/resvg-wasm/index_bg.wasm")).then((wasm) => initWasm(wasm));
-  }
-  await resvgInit;
-}
-
-function escapeXml(value: string) {
-  return value.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/\x27/g, "&apos;");
-}
-
-function renderBengaliNameLine(text: string, width: number, fontBytes: Uint8Array, boldFontBytes: Uint8Array) {
-  const scale = NAME_RENDER_SCALE;
-  const pixelWidth = Math.ceil(width * scale);
-  const pixelHeight = Math.ceil(LINE_HEIGHT * scale);
-  const fontSize = FONT_SIZE * scale;
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${pixelWidth}" height="${pixelHeight}" viewBox="0 0 ${pixelWidth} ${pixelHeight}"><text x="0" y="${fontSize * 0.88}" font-family="Noto Sans Bengali" font-size="${fontSize}" font-weight="700" fill="#292121">${escapeXml(text)}</text></svg>`;
-  const renderer = new Resvg(svg, { font: { fontBuffers: [fontBytes, boldFontBytes], defaultFontFamily: "Noto Sans Bengali" } });
-  try {
-    const rendered = renderer.render();
-    try {
-      return rendered.asPng();
-    } finally {
-      rendered.free();
-    }
-  } finally {
-    renderer.free();
-  }
-}
-
 function clean(value: unknown) {
   return value === null || value === undefined ? "" : String(value).trim();
 }
