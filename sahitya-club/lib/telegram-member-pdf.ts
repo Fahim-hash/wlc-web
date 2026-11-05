@@ -1,9 +1,11 @@
+import "regenerator-runtime/runtime";
 import fontkit from "@pdf-lib/fontkit";
 import { PDFDocument, rgb, type PDFFont, type PDFPage } from "pdf-lib";
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 
 export type MemberPdfRecord = {
+  memberId?: unknown;
   name?: unknown;
   batch?: unknown;
   phone?: unknown;
@@ -17,10 +19,10 @@ const LEFT = 30;
 const RIGHT = 30;
 const TABLE_WIDTH = PAGE_WIDTH - LEFT - RIGHT;
 const COLS = [
-  { key: "serial", label: "Serial", width: 91 },
-  { key: "name", label: "Name", width: 235 },
-  { key: "class", label: "Class", width: 89 },
-  { key: "phone", label: "Masked Number", width: TABLE_WIDTH - 91 - 235 - 89 },
+  { key: "name", label: "Name", width: 205 },
+  { key: "class", label: "Class", width: 78 },
+  { key: "memberId", label: "Member ID", width: 112 },
+  { key: "phone", label: "Masked Number", width: TABLE_WIDTH - 205 - 78 - 112 },
 ] as const;
 const LINE_HEIGHT = 12.4;
 const FONT_SIZE = 9.4;
@@ -43,7 +45,7 @@ function maskedPhone(value: unknown) {
 type FontSet = { latin: PDFFont; bengali: PDFFont; boldLatin: PDFFont; boldBengali: PDFFont };
 
 function isBengali(char: string) {
-  return /[\\u0980-\\u09FF]/.test(char);
+  return /[\u0980-\u09FF]/.test(char);
 }
 
 function textRuns(text: string, fonts: FontSet, bold = false) {
@@ -158,10 +160,12 @@ export async function generateMemberDirectoryPdf(records: MemberPdfRecord[]) {
     const name = clean(record.name) || "Name not provided";
     const className = clean(record.batch) || "—";
     const phone = maskedPhone(record.phone);
-    const nameLines = wrapText(name, fonts, FONT_SIZE, COLS[1].width - 16);
-    const classLines = wrapText(className, fonts, FONT_SIZE, COLS[2].width - 16);
+    const memberId = clean(record.memberId) || "WLC-03-" + String(index + 1).padStart(3, "0");
+    const nameLines = wrapText(name, fonts, FONT_SIZE, COLS[0].width - 16);
+    const classLines = wrapText(className, fonts, FONT_SIZE, COLS[1].width - 16);
+    const memberIdLines = wrapText(memberId, fonts, FONT_SIZE, COLS[2].width - 16);
     const phoneLines = wrapText(phone, fonts, FONT_SIZE, COLS[3].width - 16);
-    const lineCount = Math.max(1, nameLines.length, classLines.length, phoneLines.length);
+    const lineCount = Math.max(1, nameLines.length, classLines.length, memberIdLines.length, phoneLines.length);
     const rowHeight = Math.max(29, lineCount * LINE_HEIGHT + 12);
 
     if (cursorTop + rowHeight > PAGE_HEIGHT - contentBottom) addPage();
@@ -172,8 +176,7 @@ export async function generateMemberDirectoryPdf(records: MemberPdfRecord[]) {
       color: index % 2 === 0 ? rgb(0.985, 0.976, 0.965) : rgb(1, 1, 1),
       borderColor: rgb(0.88, 0.85, 0.82), borderWidth: 0.45,
     });
-    const serial = "WLC-03-" + String(index + 1).padStart(3, "0");
-    const allCells = [serial, nameLines.join("\n"), classLines.join("\n"), phoneLines.join("\n")];
+    const allCells = [nameLines.join("\n"), classLines.join("\n"), memberIdLines.join("\n"), phoneLines.join("\n")];
     let x = LEFT;
     for (let colIndex = 0; colIndex < COLS.length; colIndex += 1) {
       const col = COLS[colIndex];
