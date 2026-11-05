@@ -209,7 +209,7 @@ export async function handleTelegramAdminAi(userId: number, chatId: number | str
   const query = text.replace(/^\/ai(?:help)?\s*/i, "").trim();
   if (/^\/aihelp$/i.test(text) || !query) {
     await sendText(chatId,
-      "🤖 WLC AI Admin Assistant — Beta\n\nএখন read-only beta mode-এ আছে। উদাহরণ:\n• সব মেম্বারের নাম, ক্লাস, ID ও ফোন নম্বর দিয়ে Excel বানাও\n• যাদের ফোন 177 দিয়ে শেষ, তাদের তালিকা Excel-এ দাও\n• Class 10-এর মেম্বার কয়জন?\n• Fahim নামে মেম্বার খুঁজে দাও\n• CMS-এর মোট রেকর্ডের হিসাব দাও\n\nনিরাপত্তা: এখনো কোনো ডেটা add/edit/delete বা notification পাঠায় না।"
+      "🤖 WLC AI Admin Assistant — Beta\n\nএখন read-only beta mode-এ আছে। উদাহরণ:\n• সব মেম্বারের Excel ও branded PDF list বানাও\n• Name-Class-Masked Number দিয়ে PDF বানাও\n• যাদের ফোন 177 দিয়ে শেষ, তাদের তালিকা Excel-এ দাও\n• Class 10-এর মেম্বার কয়জন?\n• Fahim নামে মেম্বার খুঁজে দাও\n• CMS-এর মোট রেকর্ডের হিসাব দাও\n\nনিরাপত্তা: এখনো কোনো ডেটা add/edit/delete বা notification পাঠায় না।"
     );
     return true;
   }
@@ -260,7 +260,7 @@ export async function handleTelegramAdminAi(userId: number, chatId: number | str
     const suffix = intent.phoneSuffix ? `_ending_${intent.phoneSuffix}` : "";
     const className = intent.classFilter ? `_${intent.classFilter.replace(/[^a-z0-9_-]/gi, "_").slice(0, 20)}` : "";
     const filename = `WLC_Members${className}${suffix}.xls`;
-    await sendExcel(chatId, xml, filename, `📊 Excel report ready\\nRecords: ${filtered.length}`);
+    await sendExcel(chatId, xml, filename, `📊 Excel report ready\nRecords: ${filtered.length}`);
     const pdfBytes = await generateMemberDirectoryPdf(filtered.map((member) => ({
       name: member.name,
       batch: member.batch,
@@ -268,7 +268,7 @@ export async function handleTelegramAdminAi(userId: number, chatId: number | str
     })));
     const pdfForm = new FormData();
     pdfForm.set("chat_id", String(chatId));
-    pdfForm.set("caption", `📄 WLC Member Directory PDF\\nRecords: ${filtered.length}\\nSerial: ${filtered.length ? "WLC-03-001 → WLC-03-" + String(filtered.length).padStart(3, "0") : "No serials — no matching members"}`);
+    pdfForm.set("caption", `📄 WLC Member Directory PDF\nRecords: ${filtered.length}\nSerial: ${filtered.length ? "WLC-03-001 → WLC-03-" + String(filtered.length).padStart(3, "0") : "No serials — no matching members"}`);
     pdfForm.set("document", new Blob([new Uint8Array(pdfBytes)], { type: "application/pdf" }), `WLC_Member_Directory${className}${suffix}.pdf`);
     const token = process.env.TELEGRAM_BOT_TOKEN?.trim();
     if (!token) throw new Error("TELEGRAM_BOT_TOKEN is not configured");
