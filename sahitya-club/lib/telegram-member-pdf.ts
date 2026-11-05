@@ -38,7 +38,7 @@ async function ensureResvgReady() {
 }
 
 function escapeXml(value: string) {
-  return value.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/\\"/g, "&quot;").replace(/\x27/g, "&apos;");
+  return value.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/\x27/g, "&apos;");
 }
 
 function renderBengaliNameLine(text: string, width: number, fontBytes: Uint8Array, boldFontBytes: Uint8Array) {
