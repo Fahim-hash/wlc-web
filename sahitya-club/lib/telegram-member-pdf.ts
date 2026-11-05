@@ -49,6 +49,15 @@ function wrapText(text: string, font: PDFFont, size: number, maxWidth: number) {
     const candidate = line ? line + " " + word : word;
     if (font.widthOfTextAtSize(candidate, size) <= maxWidth || !line) {
       line = candidate;
+      if (font.widthOfTextAtSize(line, size) > maxWidth) {
+        const chars = Array.from(line);
+        let part = "";
+        for (const char of chars) {
+          if (part && font.widthOfTextAtSize(part + char, size) > maxWidth) { lines.push(part); part = char; }
+          else part += char;
+        }
+        line = part;
+      }
       continue;
     }
     lines.push(line);
@@ -79,13 +88,13 @@ export async function generateMemberDirectoryPdf(records: MemberPdfRecord[]) {
   const [headerBytes, footerBytes, regularBytes] = await Promise.all([
     headerResponse.arrayBuffer(),
     footerResponse.arrayBuffer(),
-    readFile(join(process.cwd(), "node_modules/@fontsource/noto-sans-bengali/files/noto-sans-bengali-bengali-400-normal.woff")),
+    readFile(join(process.cwd(), "node_modules/@fontsource/noto-sans-bengali/files/noto-sans-bengali-bengali-400-normal.woff2")),
   ]);
 
   const pdf = await PDFDocument.create();
   pdf.registerFontkit(fontkit);
   const regular = await pdf.embedFont(regularBytes, { subset: true });
-  const boldBytes = await readFile(join(process.cwd(), "node_modules/@fontsource/noto-sans-bengali/files/noto-sans-bengali-bengali-700-normal.woff"));
+  const boldBytes = await readFile(join(process.cwd(), "node_modules/@fontsource/noto-sans-bengali/files/noto-sans-bengali-bengali-700-normal.woff2"));
   const bold = await pdf.embedFont(boldBytes, { subset: true });
   const header = await pdf.embedPng(headerBytes);
   const footer = await pdf.embedPng(footerBytes);
@@ -95,13 +104,11 @@ export async function generateMemberDirectoryPdf(records: MemberPdfRecord[]) {
   const tableHeaderHeight = 27;
   let page: PDFPage = pdf.addPage([PAGE_WIDTH, PAGE_HEIGHT]);
   let cursorTop = 0;
-  let pageNumber = 0;
   const pages: PDFPage[] = [];
 
   const addPage = (first = false) => {
     if (!first) page = pdf.addPage([PAGE_WIDTH, PAGE_HEIGHT]);
     pages.push(page);
-    pageNumber += 1;
     drawPageFrame(page, header, footer);
     cursorTop = contentTop;
     page.drawRectangle({
