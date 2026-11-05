@@ -121,11 +121,14 @@ export async function generateMemberDirectoryPdf(records: MemberPdfRecord[]) {
   const bengaliBoldBytes = await readFile(join(process.cwd(), "node_modules/@fontsource/noto-sans-bengali/files/noto-sans-bengali-bengali-700-normal.woff2"));
   const latinRegularBytes = await readFile(join(process.cwd(), "node_modules/@fontsource/noto-sans-bengali/files/noto-sans-bengali-latin-400-normal.woff2"));
   const latinBoldBytes = await readFile(join(process.cwd(), "node_modules/@fontsource/noto-sans-bengali/files/noto-sans-bengali-latin-700-normal.woff2"));
+
+  // Keep the full font programs embedded. fontkit's subset writer can overflow
+  // its 16-bit glyph index when processing this Bengali WOFF2 font in production.
   const fonts: FontSet = {
-    bengali: await pdf.embedFont(regularBytes, { subset: true }),
-    boldBengali: await pdf.embedFont(bengaliBoldBytes, { subset: true }),
-    latin: await pdf.embedFont(latinRegularBytes, { subset: true }),
-    boldLatin: await pdf.embedFont(latinBoldBytes, { subset: true }),
+    bengali: await pdf.embedFont(regularBytes, { subset: false }),
+    boldBengali: await pdf.embedFont(bengaliBoldBytes, { subset: false }),
+    latin: await pdf.embedFont(latinRegularBytes, { subset: false }),
+    boldLatin: await pdf.embedFont(latinBoldBytes, { subset: false }),
   };
   const header = await pdf.embedPng(headerBytes);
   const footer = await pdf.embedPng(footerBytes);
