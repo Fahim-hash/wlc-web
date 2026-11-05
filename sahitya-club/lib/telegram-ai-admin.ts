@@ -268,7 +268,7 @@ export async function handleTelegramAdminAi(userId: number, chatId: number | str
     })));
     const pdfForm = new FormData();
     pdfForm.set("chat_id", String(chatId));
-    pdfForm.set("caption", `📄 WLC Member Directory PDF\\nRecords: ${filtered.length}\\nSerial: WLC-03-001 → WLC-03-${String(filtered.length).padStart(3, "0")}`);
+    pdfForm.set("caption", `📄 WLC Member Directory PDF\\nRecords: ${filtered.length}\\nSerial: ${filtered.length ? "WLC-03-001 → WLC-03-" + String(filtered.length).padStart(3, "0") : "No serials — no matching members"}`);
     pdfForm.set("document", new Blob([new Uint8Array(pdfBytes)], { type: "application/pdf" }), `WLC_Member_Directory${className}${suffix}.pdf`);
     const token = process.env.TELEGRAM_BOT_TOKEN?.trim();
     if (!token) throw new Error("TELEGRAM_BOT_TOKEN is not configured");
