@@ -262,6 +262,7 @@ export async function handleTelegramAdminAi(userId: number, chatId: number | str
     const filename = `WLC_Members${className}${suffix}.xls`;
     await sendExcel(chatId, xml, filename, `📊 Excel report ready\nRecords: ${filtered.length}`);
     const pdfBytes = await generateMemberDirectoryPdf(filtered.map((member) => ({
+      memberId: member.memberId,
       name: member.name,
       batch: member.batch,
       phone: member.phone,
