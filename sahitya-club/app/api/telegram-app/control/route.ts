@@ -63,6 +63,30 @@ export async function POST(request: Request) {
       return NextResponse.json({ok:true,result});
     }
 
+    if (action === "attendance_report") {
+      const snap = await db.collection("member_attendance").orderBy("checkedInAt", "desc").limit(30).get()
+        .catch(() => db.collection("member_attendance").limit(30).get());
+      const records = snap.docs.map(doc => {
+        const data = doc.data();
+        return {
+          id: doc.id,
+          memberId: String(data.memberId || ""),
+          memberName: String(data.memberName || ""),
+          eventTitle: String(data.eventTitle || "WLC event"),
+          eventDate: String(data.eventDate || ""),
+          status: String(data.status || "PRESENT").toUpperCase(),
+          checkedInAt: typeof data.checkedInAt === "number" ? data.checkedInAt : null,
+        };
+      }).sort((a, b) => (b.checkedInAt || 0) - (a.checkedInAt || 0));
+      const todayStart = new Date();
+      todayStart.setHours(0, 0, 0, 0);
+      const todayCount = records.filter(item => item.checkedInAt !== null && item.checkedInAt >= todayStart.getTime()).length;
+      const present = records.filter(item => item.status === "PRESENT").length;
+      const late = records.filter(item => item.status === "LATE").length;
+      await db.collection("audit_logs").add({ action: "VIEW_ATTENDANCE_REPORT", actor: "telegram:" + admin.id, resultCount: records.length, createdAt: Date.now() });
+      return NextResponse.json({ ok: true, summary: { recent: records.length, today: todayCount, present, late }, records });
+    }
+
     if (action === "cms_stats") {
       const counts = await Promise.all(CMS.map(async name=>({name,count:(await db.collection(name).count().get()).data().count})));
       return NextResponse.json({ok:true,counts});
