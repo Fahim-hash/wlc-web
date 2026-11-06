@@ -114,6 +114,25 @@ async function sendExcel(chatId: number | string, content: string, filename: str
   if (!response.ok || !result.ok) throw new Error(result.description || "Telegram sendDocument failed");
 }
 
+async function sendCsv(chatId: number | string, content: string, filename: string, caption: string) {
+  const token = process.env.TELEGRAM_BOT_TOKEN?.trim();
+  if (!token) throw new Error("TELEGRAM_BOT_TOKEN is not configured");
+  const form = new FormData();
+  form.set("chat_id", String(chatId));
+  form.set("caption", caption);
+  form.set("document", new Blob(["\\uFEFF", content], { type: "text/csv;charset=utf-8" }), filename);
+  const response = await fetch(`https://api.telegram.org/bot${token}/sendDocument`, { method: "POST", body: form, cache: "no-store" });
+  const result = await response.json();
+  if (!response.ok || !result.ok) throw new Error(result.description || "Telegram CSV upload failed");
+}
+
+function makeCsv(rows: Array<Record<string, string>>, fields: string[]) {
+  const quote = (value: string) => `"${String(value ?? "").replace(/"/g, '""')}"`;
+  const headers = fields.map((field) => FIELD_LABELS[field] || field);
+  return [headers, ...rows.map((row) => fields.map((field) => row[field] || ""))]
+    .map((line) => line.map(quote).join(",")).join("\\r\\n");
+}
+
 async function parseIntent(input: string): Promise<AdminIntent> {
   const apiKey = process.env.GROQ_API_KEY?.trim();
   if (!apiKey) throw new Error("GROQ_API_KEY সেট করা নেই। Vercel Production environment-এ key যোগ করে redeploy করুন।");
@@ -302,10 +321,12 @@ export async function handleTelegramAdminAi(userId: number, chatId: number | str
     const chosenFields = fields.length ? fields : ["name", "class", "memberId", "phone"];
     const rows = filtered.map((member) => Object.fromEntries(chosenFields.map((field) => [field, rowValue(member, field)])));
     const xml = makeExcelXml(rows, chosenFields);
+    const csv = makeCsv(rows, chosenFields);
     const suffix = intent.phoneSuffix ? `_ending_${intent.phoneSuffix}` : "";
     const className = intent.classFilter ? `_${intent.classFilter.replace(/[^a-z0-9_-]/gi, "_").slice(0, 20)}` : "";
     const filename = `WLC_Members${className}${suffix}.xls`;
     await sendExcel(chatId, xml, filename, `📊 Excel report ready\nRecords: ${filtered.length}`);
+    await sendCsv(chatId, csv, `WLC_Members${className}${suffix}.csv`, `📄 CSV export • ${filtered.length} records • Fields: ${chosenFields.join(", ")}`);
     const pdfBytes = await generateMemberDirectoryPdf(filtered.map((member) => ({
       memberId: member.memberId,
       name: member.name,
@@ -327,10 +348,11 @@ export async function handleTelegramAdminAi(userId: number, chatId: number | str
       actor: `telegram:${userId}`,
       recordCount: filtered.length,
       fields: chosenFields,
-      formats: ["xls", "pdf"],
+      formats: ["xls", "csv", "pdf"],
       filters: { classFilter: intent.classFilter, phoneSuffix: intent.phoneSuffix, nameQuery: intent.nameQuery },
       createdAt: Date.now(),
     });
+    await sendText(chatId, `✅ Export complete\\n\\n👥 Records: ${filtered.length}\\n📑 Fields: ${chosenFields.map((field) => FIELD_LABELS[field] || field).join(", ")}\\n📦 Files sent: Excel, CSV, PDF\\n\\nআরও export বা single member lookup করতে request পাঠান।\\nSession বন্ধ করতে /cancel লিখুন।`);
     return true;
   } catch (error) {
     console.error("Telegram AI Admin Assistant error:", error);
