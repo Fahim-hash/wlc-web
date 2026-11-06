@@ -80,9 +80,14 @@ export async function POST(request: Request) {
       }).sort((a, b) => (b.checkedInAt || 0) - (a.checkedInAt || 0));
       const todayStart = new Date();
       todayStart.setHours(0, 0, 0, 0);
-      const todayCount = records.filter(item => item.checkedInAt !== null && item.checkedInAt >= todayStart.getTime()).length;
-      const present = records.filter(item => item.status === "PRESENT").length;
-      const late = records.filter(item => item.status === "LATE").length;
+      const [todaySnap, presentSnap, lateSnap] = await Promise.all([
+        db.collection("member_attendance").where("checkedInAt", ">=", todayStart.getTime()).count().get(),
+        db.collection("member_attendance").where("status", "==", "PRESENT").count().get(),
+        db.collection("member_attendance").where("status", "==", "LATE").count().get(),
+      ]);
+      const todayCount = todaySnap.data().count;
+      const present = presentSnap.data().count;
+      const late = lateSnap.data().count;
       await db.collection("audit_logs").add({ action: "VIEW_ATTENDANCE_REPORT", actor: "telegram:" + admin.id, resultCount: records.length, createdAt: Date.now() });
       return NextResponse.json({ ok: true, summary: { recent: records.length, today: todayCount, present, late }, records });
     }
