@@ -176,36 +176,58 @@ export default function MemberPortalPage() {
               </form>
               <p className="mt-2 text-xs text-stone-500">UIDs are unique and can contain English letters, numbers and underscores only.</p>
             </section>
-            <section id="member-card" className="mt-5 rounded-2xl border border-stone-200 bg-white p-5 print-card-section">
+            <section id="member-card" className="mt-5 rounded-2xl border border-stone-200 bg-white p-6 print-card-section">
               <div className="flex flex-wrap items-center justify-between gap-3 print:hidden">
-                <div><h2 className="text-lg font-semibold text-stone-900">Digital membership card</h2><p className="mt-1 text-sm text-stone-500">Your official WLC member card.</p></div>
-                <button type="button" onClick={() => window.print()} className="rounded-lg bg-rose-900 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-rose-800">Print card</button>
+                <h2 className="font-semibold">Digital membership card</h2>
+                <button type="button" onClick={() => window.print()} className="rounded-xl bg-rose-900 px-4 py-2.5 text-sm font-semibold text-white hover:bg-rose-800">Print member card</button>
               </div>
               <div className="mt-4 flex justify-center">
-                <div id="wlc-member-card" className="relative flex min-h-[210px] w-full max-w-[720px] flex-col justify-between gap-4 overflow-hidden rounded-xl border border-rose-900/20 bg-gradient-to-br from-white to-rose-50 p-5 text-stone-900 shadow-sm sm:flex-row sm:items-center print-card">
-                  <div className="min-w-0 flex-1">
+                <div id="wlc-member-card" className="flex h-[204px] w-full max-w-[540px] items-center justify-between gap-4 overflow-hidden rounded-xl border-2 border-rose-900/20 bg-gradient-to-br from-white via-stone-50 to-rose-50 p-4 text-stone-900 shadow-sm print-card">
+                  <div className="flex min-w-0 flex-1 flex-col self-stretch">
                     <div className="flex items-center gap-2">
-                      <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-rose-900 text-lg font-serif font-bold text-white">W</span>
-                      <div><p className="text-xs font-bold uppercase tracking-[0.16em] text-rose-900">Willes Literary Club</p><p className="text-[9px] uppercase tracking-[0.14em] text-stone-500">Official Member Card</p></div>
+                      <img src="/logo.png" alt="Willes Literary Club logo" width="38" height="38" className="h-9 w-9 shrink-0 object-contain" />
+                      <div className="min-w-0">
+                        <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-rose-900">Willes Literary Club</p>
+                        <p className="text-[8px] font-medium uppercase tracking-[0.18em] text-stone-500">Official Member Card</p>
+                      </div>
                     </div>
-                    <p className="mt-5 text-xl font-semibold">{member.name}</p>
-                    <p className="mt-1 font-mono text-sm font-semibold text-rose-900">{member.memberId}</p>
-                    <div className="mt-3 flex flex-wrap gap-x-5 gap-y-1 text-xs text-stone-600">
-                      {member.batch && <span>Class / Year: {member.batch}</span>}
-                      <span>Status: {member.status === "ACTIVE" ? "Active" : member.status}</span>
+                    <div className="mt-auto min-w-0">
+                      <p className="truncate text-lg font-bold leading-tight">{member.name}</p>
+                      <p className="mt-1 break-all font-mono text-sm font-semibold text-rose-900">{member.memberId}</p>
+                      <p className="mt-2 text-[10px] font-medium text-stone-600">{member.batch ? "Class / Year: " + member.batch : "Willes Literary Club Member"}</p>
+                      <p className="mt-0.5 text-[10px] text-stone-600">Status: {member.status === "ACTIVE" ? "Active" : member.status}</p>
                     </div>
                   </div>
-                  <div className="flex shrink-0 flex-col items-center self-center rounded-lg border border-stone-200 bg-white p-2">
-                    <img alt="QR code for official member verification" width="132" height="132" loading="lazy" className="h-[112px] w-[112px]" src={"https://api.qrserver.com/v1/create-qr-code/?size=132x132&margin=6&data=" + encodeURIComponent("https://wlc.pro.bd/member-portal/verify?id=" + member.memberId)} />
-                    <span className="mt-1 text-[9px] font-semibold text-stone-600">SCAN TO VERIFY</span>
+                  <div className="flex h-full w-[112px] shrink-0 flex-col items-center justify-center rounded-lg border border-stone-200 bg-white p-2">
+                    <img alt="QR code for official member verification" width="104" height="104" className="h-[92px] w-[92px]" src={"https://api.qrserver.com/v1/create-qr-code/?size=104x104&margin=4&data=" + encodeURIComponent("https://wlc.pro.bd/member-portal/verify?id=" + member.memberId)} />
+                    <span className="mt-1 text-[8px] font-semibold text-stone-700">SCAN TO VERIFY</span>
                   </div>
                 </div>
               </div>
-              <div className="mt-3 flex flex-wrap items-center justify-between gap-2 print:hidden">
-                <p className="text-xs text-stone-500">QR code contains your membership verification link only.</p>
-                <a href={"/member-portal/verify?id=" + encodeURIComponent(member.memberId)} className="text-sm font-semibold text-rose-900 underline underline-offset-4">Verify membership ↗</a>
-              </div>
-              <style jsx global>{`@media print { @page { size: auto; margin: 8mm; } body * { visibility: hidden !important; } #wlc-member-card, #wlc-member-card * { visibility: visible !important; } #wlc-member-card { position: absolute !important; left: 0 !important; top: 0 !important; width: 85.6mm !important; height: 54mm !important; min-height: 54mm !important; aspect-ratio: auto !important; box-sizing: border-box !important; margin: 0 !important; padding: 5mm !important; border: 1px solid #b89a62 !important; border-radius: 3mm !important; box-shadow: none !important; print-color-adjust: exact !important; -webkit-print-color-adjust: exact !important; } #wlc-member-card img { width: 28mm !important; height: 28mm !important; } .print-card-section { border: 0 !important; padding: 0 !important; } }`}</style>
+              <p className="mt-3 text-xs leading-5 text-stone-500 print:hidden">Scan this QR to verify membership. The QR contains no contact details.</p>
+              <style jsx global>{`@media print {
+                @page { size: auto; margin: 8mm; }
+                html, body { background: #fff !important; }
+                body * { visibility: hidden !important; }
+                #wlc-member-card, #wlc-member-card * { visibility: visible !important; }
+                #wlc-member-card {
+                  position: absolute !important; left: 0 !important; top: 0 !important;
+                  display: flex !important; flex-direction: row !important; align-items: center !important; justify-content: space-between !important;
+                  width: 85.6mm !important; height: 54mm !important; min-height: 54mm !important; max-width: none !important;
+                  box-sizing: border-box !important; margin: 0 !important; padding: 3.5mm !important; gap: 3mm !important;
+                  overflow: hidden !important; border: 1px solid #881337 !important; border-radius: 3mm !important;
+                  background: linear-gradient(135deg,#fff 0%,#faf8f7 58%,#fff1f2 100%) !important; color: #171717 !important;
+                  box-shadow: none !important; print-color-adjust: exact !important; -webkit-print-color-adjust: exact !important;
+                }
+                #wlc-member-card > div:first-child { display:flex !important; flex:1 1 auto !important; min-width:0 !important; height:100% !important; }
+                #wlc-member-card > div:last-child { display:flex !important; flex:0 0 29mm !important; width:29mm !important; height:39mm !important; padding:1.5mm !important; }
+                #wlc-member-card img { print-color-adjust:exact !important; -webkit-print-color-adjust:exact !important; }
+                #wlc-member-card > div:first-child img { width:9mm !important; height:9mm !important; }
+                #wlc-member-card > div:last-child img { width:25mm !important; height:25mm !important; }
+                #wlc-member-card p, #wlc-member-card span { color:#171717 !important; }
+                #wlc-member-card p.text-rose-900 { color:#881337 !important; }
+                .print-card-section { border:0 !important; padding:0 !important; }
+              }`}</style>
             </section>
             <section className="mt-5 grid gap-4 sm:grid-cols-2">
               <article id="events" className="rounded-2xl border border-stone-200 bg-white p-6"><div className="flex items-center justify-between"><h2 className="font-semibold">Upcoming / published events</h2><span className="rounded-full bg-stone-100 px-2.5 py-1 text-xs">{activity.events.length}</span></div>{activity.events.length ? <div className="mt-4 space-y-4">{activity.events.map(event => <div key={String(event.id)} className="border-t border-stone-100 pt-3"><p className="font-medium">{event.title || "WLC event"}</p><p className="mt-1 text-xs text-stone-500">{[event.date,event.time,event.venue].filter(Boolean).join(" · ")}</p>{event.description && <p className="mt-2 whitespace-pre-line text-sm leading-6 text-stone-600">{event.description}</p>}{event.link && (String(event.link).startsWith("/") || /^https?:\/\//i.test(String(event.link))) && <a href={String(event.link)} className="mt-2 inline-block text-sm font-semibold text-rose-900 underline">Event details ↗</a>}</div>)}</div> : <p className="mt-3 text-sm text-stone-500">No published events right now.</p>}</article>
