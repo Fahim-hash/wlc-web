@@ -70,8 +70,10 @@ async function sendText(chatId: number | string, text: string) {
   const db = getAdminDb();
   const sessionRef = db.collection("telegram_ai_admin_sessions").doc(String(chatId));
   const session = await sessionRef.get();
-  const uiMessageId = session.data()?.uiMessageId as number | undefined;
-  const method = uiMessageId && session.data()?.active ? "editMessageText" : "sendMessage";
+  const controlUiRef = db.collection("telegram_control_ui").doc(String(chatId));
+  const controlUi = await controlUiRef.get();
+  const uiMessageId = (session.data()?.uiMessageId as number | undefined) || (controlUi.data()?.messageId as number | undefined);
+  const method = uiMessageId && session.data()?.active ? "editMessageText" : (uiMessageId ? "editMessageText" : "sendMessage");
   const payload: Record<string, unknown> = {
     chat_id: chatId, text, disable_web_page_preview: true,
     ...(method === "editMessageText" ? { message_id: uiMessageId } : {}),
@@ -94,7 +96,10 @@ async function sendText(chatId: number | string, text: string) {
   }
   if (!response.ok || !result.ok) throw new Error(result.description || "Telegram message update failed");
   if (result.result?.message_id) {
-    await sessionRef.set({ chatId: String(chatId), uiMessageId: result.result.message_id, updatedAt: Date.now() }, { merge: true });
+    await Promise.all([
+      sessionRef.set({ chatId: String(chatId), uiMessageId: result.result.message_id, updatedAt: Date.now() }, { merge: true }),
+      controlUiRef.set({ chatId: String(chatId), messageId: result.result.message_id, updatedAt: Date.now() }, { merge: true }),
+    ]);
   }
 }
 
