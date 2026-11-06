@@ -260,12 +260,13 @@ export async function cancelTelegramAdminAi(userId: number, chatId: number | str
 
 export async function handleTelegramAdminAi(userId: number, chatId: number | string, rawText: string) {
   const text = rawText.trim();
-  if (!text || !matchesMemberIntent(text)) return false;
+  const sessionRef = getAdminDb().collection("telegram_ai_admin_sessions").doc(String(chatId));
+  const sessionSnap = await sessionRef.get();
+  const active = sessionSnap.data()?.active === true;
+  if (!text || (!active && !matchesMemberIntent(text))) return false;
 
   const query = text.replace(/^\/ai(?:help)?\s*/i, "").trim();
-  if (active || matchesMemberIntent(text)) {
-    await sessionRef.set({ active: true, userId: String(userId), chatId: String(chatId), updatedAt: Date.now() }, { merge: true });
-  }
+  await sessionRef.set({ active: true, userId: String(userId), chatId: String(chatId), updatedAt: Date.now() }, { merge: true });
   if (/^\/aihelp$/i.test(text) || !query) {
     await sendText(chatId,
       "🤖 WLC AI Admin Assistant — Beta\n\nএখন read-only beta mode-এ আছে। উদাহরণ:\n• সব মেম্বারের Excel ও branded PDF list বানাও\n• Name-Class-Masked Number দিয়ে PDF বানাও\n• যাদের ফোন 177 দিয়ে শেষ, তাদের তালিকা Excel-এ দাও\n• Class 10-এর মেম্বার কয়জন?\n• Fahim নামে মেম্বার খুঁজে দাও\n• CMS-এর মোট রেকর্ডের হিসাব দাও\n\nনিরাপত্তা: এখনো কোনো ডেটা add/edit/delete বা notification পাঠায় না।"
