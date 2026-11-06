@@ -67,14 +67,35 @@ function makeExcelXml(rows: Array<Record<string, string>>, fields: string[]) {
 async function sendText(chatId: number | string, text: string) {
   const token = process.env.TELEGRAM_BOT_TOKEN?.trim();
   if (!token) throw new Error("TELEGRAM_BOT_TOKEN is not configured");
-  const response = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ chat_id: chatId, text, disable_web_page_preview: true }),
-    cache: "no-store",
+  const db = getAdminDb();
+  const sessionRef = db.collection("telegram_ai_admin_sessions").doc(String(chatId));
+  const session = await sessionRef.get();
+  const uiMessageId = session.data()?.uiMessageId as number | undefined;
+  const method = uiMessageId && session.data()?.active ? "editMessageText" : "sendMessage";
+  const payload: Record<string, unknown> = {
+    chat_id: chatId, text, disable_web_page_preview: true,
+    ...(method === "editMessageText" ? { message_id: uiMessageId } : {}),
+  };
+  let response = await fetch(`https://api.telegram.org/bot${token}/${method}`, {
+    method: "POST", headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload), cache: "no-store",
   });
-  const result = await response.json();
-  if (!response.ok || !result.ok) throw new Error(result.description || "Telegram sendMessage failed");
+  let result = await response.json();
+  // Telegram rejects edits when the new text is identical. Keep the current screen.
+  if (!response.ok || !result.ok) {
+    if (method === "editMessageText" && /message is not modified/i.test(String(result.description || ""))) return;
+    if (method === "editMessageText") {
+      response = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ chat_id: chatId, text, disable_web_page_preview: true }), cache: "no-store",
+      });
+      result = await response.json();
+    }
+  }
+  if (!response.ok || !result.ok) throw new Error(result.description || "Telegram message update failed");
+  if (result.result?.message_id) {
+    await sessionRef.set({ chatId: String(chatId), uiMessageId: result.result.message_id, updatedAt: Date.now() }, { merge: true });
+  }
 }
 
 async function sendExcel(chatId: number | string, content: string, filename: string, caption: string) {
@@ -202,6 +223,22 @@ function matchesMemberIntent(text: string) {
     /সদস্য|মেম্বার|মেম্বারদের|ক্লাস|শ্রেণি|ফোন|নাম্বার|ডাটাবেস|ডেটাবেস|এক্সেল|শিট|পিডিএফ|প্রিন্ট|রিপোর্ট|কতজন|তালিকা|খুঁজে|খোঁজ/i.test(text);
 }
 
+export async function cancelTelegramAdminAi(userId: number, chatId: number | string) {
+  const ref = getAdminDb().collection("telegram_ai_admin_sessions").doc(String(chatId));
+  const snap = await ref.get();
+  const messageId = snap.data()?.uiMessageId as number | undefined;
+  const token = process.env.TELEGRAM_BOT_TOKEN?.trim();
+  if (messageId && token) {
+    try {
+      await fetch(`https://api.telegram.org/bot${token}/deleteMessage`, {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ chat_id: chatId, message_id: messageId }), cache: "no-store",
+      });
+    } catch (error) { console.warn("AI admin screen cleanup failed:", error); }
+  }
+  await ref.set({ active: false, cancelledAt: Date.now(), userId: String(userId) }, { merge: true });
+}
+
 export async function handleTelegramAdminAi(userId: number, chatId: number | string, rawText: string) {
   const text = rawText.trim();
   if (!text || !matchesMemberIntent(text)) return false;
@@ -246,8 +283,13 @@ export async function handleTelegramAdminAi(userId: number, chatId: number | str
         await sendText(chatId, "🔎 কোনো মেম্বার পাওয়া যায়নি। নাম বা Member ID আরেকটু নির্দিষ্ট করে চেষ্টা করো।");
         return true;
       }
+      if (filtered.length === 1) {
+        const member = filtered[0];
+        await sendText(chatId, `👤 Member profile\n\nনাম: ${safeString(member.name) || "নাম নেই"}\nMember ID: ${safeString(member.memberId)}\nClass/Year: ${safeString(member.batch) || "তথ্য নেই"}\nPhone: ${safeString(member.phone) || "তথ্য নেই"}\nEmail: ${safeString(member.email) || "তথ্য নেই"}\nStatus: ${safeString(member.status) || "তথ্য নেই"}\nRegistered: ${rowValue(member, "createdAt") || "তথ্য নেই"}\n\nসম্পূর্ণ তথ্য export করতে বলুন: এই Member ID-এর সব তথ্য Excel-এ export করো।`);
+        return true;
+      }
       const lines = filtered.slice(0, 15).map((member) =>
-        `• ${safeString(member.name) || "নাম নেই"} | ${safeString(member.memberId)} | ${safeString(member.batch) || "ক্লাস নেই"} | ${safeString(member.phone) || "ফোন নেই"}`
+        `• ${safeString(member.name) || "নাম নেই"} | ${safeString(member.memberId)} | ${safeString(member.batch) || "ক্লাস নেই"} | ${maskPhone(member.phone)}`
       );
       await sendText(chatId, `🔎 ${filtered.length}টি রেকর্ড পাওয়া গেছে। প্রথম ${Math.min(filtered.length, 15)}টি দেখানো হলো:\n\n${lines.join("\n")}${filtered.length > 15 ? "\n\nবাকি রেকর্ডের জন্য Excel export করতে বলো।" : ""}`);
       return true;
