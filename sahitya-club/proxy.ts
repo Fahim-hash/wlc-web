@@ -47,6 +47,30 @@ function logVisitor(request: NextRequest) {
   )
 }
 
+/**
+ * Operational routes that must remain available while the public site is
+ * under maintenance. The panel subdomain is handled separately below.
+ */
+function isMaintenanceExemptPath(pathname: string) {
+  const exemptPrefixes = [
+    '/maintenance',
+    '/member-portal',
+    '/memberhub',
+    '/telegram-app',
+    '/api',
+    '/_next',
+    '/.well-known',
+  ]
+
+  return (
+    pathname === '/reserve' ||
+    pathname.includes('.') ||
+    exemptPrefixes.some(
+      (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`),
+    )
+  )
+}
+
 export async function proxy(request: NextRequest) {
   const url = request.nextUrl
   const { pathname } = url
@@ -55,44 +79,32 @@ export async function proxy(request: NextRequest) {
   // Visitor location logging; does not change routing behavior.
   logVisitor(request)
 
-  // ==========================================
-  // 🎯 ১. সাবডোমেন (panel.wlc.pro.bd) হ্যান্ডেলিং
-  // ==========================================
+  // The dedicated panel subdomain remains available during maintenance.
   if (hostname.includes('panel.wlc.pro.bd')) {
-    // 💡 প্যানেল সবসময় অন থাকবে, মেইনটেইন্যান্স মোড একে টাচ করতে পারবে না।
     if (pathname === '/') {
       return NextResponse.rewrite(new URL('/panelpage', request.url))
     }
     return NextResponse.rewrite(new URL(`/panelpage${pathname}`, request.url))
   }
 
-  // 🔒 ২. মেইন সাইট (wlc.pro.bd) দিয়ে সরাসরি /panelpage এ ঢোকা ব্লক করা
+  // Block direct access to the panel's internal rewrite target on the main host.
   if (!hostname.includes('panel.wlc.pro.bd') && pathname.startsWith('/panelpage')) {
     return NextResponse.redirect(new URL('/', request.url))
   }
 
-  // Skip flag evaluation for framework assets, APIs, static files, and
-  // system endpoints to avoid unnecessary provider requests.
-  if (
-    pathname === '/reserve' ||
-    pathname.startsWith('/_next/') ||
-    pathname.startsWith('/api/') ||
-    pathname.startsWith('/.well-known/') ||
-    pathname.includes('.')
-  ) {
+  if (isMaintenanceExemptPath(pathname)) {
     return NextResponse.next()
   }
 
-  // Vercel Flags controls maintenance mode; defaultValue=false is fail-safe.
+  // Vercel Flags controls WLC maintenance mode; defaultValue=false is fail-safe.
   const isMaintenanceMode = await maintenanceMode()
   if (isMaintenanceMode) {
-    return NextResponse.redirect(new URL('/reserve', request.url))
+    return NextResponse.redirect(new URL('/maintenance', request.url), 307)
   }
 
   return NextResponse.next()
 }
 
-// সব পেজ এবং রাউটে মিডলওয়্যার চেক করার জন্য
 export const config = {
   matcher: '/:path*',
 }
