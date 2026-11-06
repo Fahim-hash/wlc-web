@@ -1,9 +1,7 @@
 // proxy.ts
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
-
-// যখন মেইনটেইন্যান্স মোড অন করতে চান, এটাকে true করে দেবেন 🚀
-const IS_MAINTENANCE_MODE = false
+import { maintenanceMode } from './flags'
 
 /**
  * Log lightweight page-visit metadata to the Vercel runtime logs.
@@ -17,6 +15,7 @@ function logVisitor(request: NextRequest) {
     request.method !== 'GET' ||
     pathname.startsWith('/api/') ||
     pathname.startsWith('/_next/') ||
+    pathname.startsWith('/.well-known/') ||
     pathname.includes('.') ||
     request.headers.has('next-router-prefetch') ||
     request.headers.get('purpose') === 'prefetch'
@@ -48,7 +47,7 @@ function logVisitor(request: NextRequest) {
   )
 }
 
-export function proxy(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const url = request.nextUrl
   const { pathname } = url
   const hostname = request.headers.get('host') || ''
@@ -72,15 +71,21 @@ export function proxy(request: NextRequest) {
     return NextResponse.redirect(new URL('/', request.url))
   }
 
-  // ==========================================
-  // 🛠️ ৩. মেইন সাইটের জন্য মেইনটেইন্যান্স মোড
-  // ==========================================
+  // Skip flag evaluation for framework assets, APIs, static files, and
+  // system endpoints to avoid unnecessary provider requests.
   if (
-    IS_MAINTENANCE_MODE &&
-    pathname !== '/reserve' &&
-    !pathname.startsWith('/_next') &&
-    !pathname.includes('.')
+    pathname === '/reserve' ||
+    pathname.startsWith('/_next/') ||
+    pathname.startsWith('/api/') ||
+    pathname.startsWith('/.well-known/') ||
+    pathname.includes('.')
   ) {
+    return NextResponse.next()
+  }
+
+  // Vercel Flags controls maintenance mode; defaultValue=false is fail-safe.
+  const isMaintenanceMode = await maintenanceMode()
+  if (isMaintenanceMode) {
     return NextResponse.redirect(new URL('/reserve', request.url))
   }
 

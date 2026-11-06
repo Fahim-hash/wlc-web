@@ -4,9 +4,11 @@ import { Hind_Siliguri } from "next/font/google";
 import Link from "next/link";
 import "./globals.css";
 import Image from "next/image";
+import Script from "next/script";
 import GlobalPushPrompt from "@/components/GlobalPushPrompt";
 import RouteChromeController from "@/components/RouteChromeController";
 import GoogleAnalytics from "@/components/GoogleAnalytics";
+import { VercelToolbar } from "@vercel/toolbar/next";
 
 // ১. নেভিগেশন লিংকের জন্য টাইপস্ক্রিপ্ট ইন্টারফেস
 interface NavLink {
@@ -131,7 +133,7 @@ export default function RootLayout({
   return (
     <html lang="bn" className="h-full">
       <head>
-        <script src="https://telegram.org/js/telegram-web-app.js"></script>
+        <Script src="https://telegram.org/js/telegram-web-app.js" strategy="afterInteractive" />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
@@ -267,7 +269,7 @@ export default function RootLayout({
                 উইল্‌স লিটল ফ্লাওয়ার স্কুল অ্যান্ড কলেজ, ঢাকা।
               </p>
               <p className="text-[11px] italic text-stone-400 mt-2 max-w-xs mx-auto md:mx-0">
-                "সাহিত্যের বন্ধনে, প্রতিভার সন্ধানে..."
+                “সাহিত্যের বন্ধনে, প্রতিভার সন্ধানে...”
               </p>
               <Link href="/privacy" className="mt-2 text-xs text-stone-500 underline underline-offset-4 hover:text-rose-900">
                 গোপনীয়তা নীতি
@@ -345,6 +347,7 @@ export default function RootLayout({
         </footer>
 
         <GlobalPushPrompt />
+        {process.env.NODE_ENV === "development" && <VercelToolbar />}
 
       </body>
     </html>
