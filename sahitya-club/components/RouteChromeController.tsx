@@ -8,8 +8,14 @@ export default function RouteChromeController() {
 
   useEffect(() => {
     const isTelegramApp = pathname === "/telegram-app";
+    const isMaintenancePage = pathname === "/maintenance";
+
     document.body.classList.toggle("telegram-mini-app", isTelegramApp);
-    return () => document.body.classList.remove("telegram-mini-app");
+    document.body.classList.toggle("maintenance-page", isMaintenancePage);
+
+    return () => {
+      document.body.classList.remove("telegram-mini-app", "maintenance-page");
+    };
   }, [pathname]);
 
   return null;
