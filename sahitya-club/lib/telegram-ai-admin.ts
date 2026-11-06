@@ -250,7 +250,9 @@ function matchesMemberIntent(text: string) {
 export async function cancelTelegramAdminAi(userId: number, chatId: number | string) {
   const ref = getAdminDb().collection("telegram_ai_admin_sessions").doc(String(chatId));
   const snap = await ref.get();
-  const messageId = snap.data()?.uiMessageId as number | undefined;
+  const controlUiRef = getAdminDb().collection("telegram_control_ui").doc(String(chatId));
+  const controlUi = await controlUiRef.get();
+  const messageId = (snap.data()?.uiMessageId as number | undefined) || (controlUi.data()?.messageId as number | undefined);
   const token = process.env.TELEGRAM_BOT_TOKEN?.trim();
   if (messageId && token) {
     try {
@@ -260,7 +262,10 @@ export async function cancelTelegramAdminAi(userId: number, chatId: number | str
       });
     } catch (error) { console.warn("AI admin screen cleanup failed:", error); }
   }
-  await ref.set({ active: false, cancelledAt: Date.now(), userId: String(userId) }, { merge: true });
+  await Promise.all([
+    ref.set({ active: false, cancelledAt: Date.now(), userId: String(userId), uiMessageId: null }, { merge: true }),
+    controlUiRef.set({ messageId: null, updatedAt: Date.now() }, { merge: true }),
+  ]);
 }
 
 export async function handleTelegramAdminAi(userId: number, chatId: number | string, rawText: string) {
