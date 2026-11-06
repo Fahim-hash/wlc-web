@@ -2,7 +2,7 @@ import { after, NextResponse } from "next/server";
 import crypto from "crypto";
 import { getAdminDb } from "@/lib/firebase-admin";
 import { handleTelegramCmsCommand, handleTelegramCmsCallback, handleTelegramCmsMessage } from "@/lib/telegram-cms";
-import { handleTelegramAdminAi } from "@/lib/telegram-ai-admin";
+import { handleTelegramAdminAi, cancelTelegramAdminAi } from "@/lib/telegram-ai-admin";
 import { sendGlobalPushNotification, getPushSubscriberCount } from "@/lib/push";
 import { handleTelegramCertificateCallback, handleTelegramCertificateCommand, handleTelegramCertificateMessage } from "@/lib/telegram-certificates";
 
@@ -809,11 +809,10 @@ async function handleMessage(message: TelegramMessage) {
 
   if (text === "/cancel") {
     await clearControlSession(userId);
-    await sendText(chatId, "❌ বাতিলled.", [
-      [
-        { text: "📢 নোটিফিকেশন পাঠান", callback_data: "wlc:push" },
-        { text: "📊 সাবস্ক্রাইবার", callback_data: "wlc:stats" },
-      ],
+    await cancelTelegramAdminAi(userId, chatId);
+    await sendText(chatId, "❌ চলমান AI Admin / control session বন্ধ করা হয়েছে। আবার শুরু করতে /aihelp লিখুন অথবা Control Center খুলুন।", [
+      [{ text: "🤖 AI Admin Assistant", callback_data: "wlc:aiadmin:help" }],
+      [{ text: "🏠 Main Control Center", callback_data: "wlc:nav:home" }],
     ]);
     return;
   }
