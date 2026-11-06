@@ -70,12 +70,34 @@ async function telegramApi(method: string, payload: Record<string, unknown>) {
 }
 
 async function sendText(chatId: number | string, text: string, keyboard?: unknown[][]) {
-  return telegramApi("sendMessage", {
+  const db = getAdminDb();
+  const uiRef = db.collection("telegram_control_ui").doc(String(chatId));
+  const current = keyboard ? await uiRef.get() : null;
+  const previousMessageId = current?.data()?.messageId as number | undefined;
+  if (keyboard && previousMessageId) {
+    try {
+      const edited = await telegramApi("editMessageText", {
+        chat_id: chatId,
+        message_id: previousMessageId,
+        text,
+        disable_web_page_preview: true,
+        reply_markup: { inline_keyboard: keyboard },
+      });
+      return edited;
+    } catch (error) {
+      console.warn("Telegram panel edit failed; sending a replacement message:", error);
+    }
+  }
+  const sent = await telegramApi("sendMessage", {
     chat_id: chatId,
     text,
     disable_web_page_preview: true,
     ...(keyboard ? { reply_markup: { inline_keyboard: keyboard } } : {}),
   });
+  if (keyboard && sent.result?.message_id) {
+    await uiRef.set({ chatId: String(chatId), messageId: sent.result.message_id, updatedAt: Date.now() }, { merge: true });
+  }
+  return sent;
 }
 
 async function answerCallback(callbackId: string, text?: string) {
