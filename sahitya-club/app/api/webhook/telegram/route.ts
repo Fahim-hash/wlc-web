@@ -85,6 +85,7 @@ async function sendText(chatId: number | string, text: string, keyboard?: unknow
       });
       return edited;
     } catch (error) {
+      if (error instanceof Error && /message is not modified/i.test(error.message)) return { ok: true };
       console.warn("Telegram panel edit failed; sending a replacement message:", error);
     }
   }
