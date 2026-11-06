@@ -77,3 +77,19 @@ body.telegram-mini-app > header,
 body.telegram-mini-app > footer {
   display: none !important;
 }
+
+
+/* Dedicated full-screen WLC maintenance view: hide the normal site chrome. */
+body.maintenance-page > header,
+body.maintenance-page > footer {
+  display: none !important;
+}
+
+body.maintenance-page > main {
+  min-height: 100svh;
+  overflow: visible;
+}
+
+body.maintenance-page {
+  min-height: 100svh;
+}
