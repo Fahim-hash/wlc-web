@@ -6,6 +6,7 @@ export const CMS_COLLECTIONS = [
   "events",
   "members",
   "committee",
+  "panel_members",
   "achievements",
   "writing",
   "announcements",
