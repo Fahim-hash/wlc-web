@@ -3,11 +3,12 @@ import { NextResponse } from "next/server";
 import { getAdminDb } from "@/lib/firebase-admin";
 import { getVerifiedTelegramMiniAppAdmin } from "@/lib/telegram-mini-app-auth-v2";
 import { sendGlobalPushNotification, getPushSubscriberCount } from "@/lib/push";
+import { ensureGen3PanelSeed } from "@/lib/panel-defaults";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-const CMS = ["events","members","committee","achievements","writing","announcements","albums","media","shobdo","kothasokhi_knowledge"] as const;
+const CMS = ["events","members","committee","panel_members","achievements","writing","announcements","albums","media","shobdo","kothasokhi_knowledge"] as const;
 type CmsCollection = typeof CMS[number];
 const KOTHASOKHI_URL = () => ((process.env.NEXT_PUBLIC_SITE_URL || "https://wlc.pro.bd").replace(/\/$/,"") + "/api/telegram-ai/webhook");
 
@@ -24,6 +25,7 @@ export async function GET(request: Request) {
   if (!admin) return error("Telegram admin verification failed. Open this app from the WLC Control Hub bot.",401);
   try {
     const db = getAdminDb();
+    await ensureGen3PanelSeed(db);
     const [subscriberCount, memberCount, attendanceCount, cmsCounts, mediaSnap] = await Promise.all([
       getPushSubscriberCount(),
       db.collection("registered_members").count().get(),
@@ -92,6 +94,36 @@ export async function POST(request: Request) {
       return NextResponse.json({ ok: true, summary: { recent: records.length, today: todayCount, present, late }, records });
     }
 
+    if (action === "panel_list") {
+      const snap = await db.collection("panel_members").where("panelId", "==", "GEN-3").get();
+      const records = snap.docs.map(doc => ({ id: doc.id, ...doc.data() })).sort((a:any,b:any) => Number(a.sortOrder||0)-Number(b.sortOrder||0));
+      return NextResponse.json({ ok: true, records });
+    }
+    if (action === "panel_save") {
+      const id = String(body?.id || "").trim();
+      const panelId = String(body?.panelId || "GEN-3").trim().toUpperCase();
+      const group = String(body?.group || "").trim().toLowerCase();
+      const department = String(body?.department || "").trim().slice(0,100);
+      const name = String(body?.name || "").trim();
+      const role = String(body?.role || "").trim();
+      const photoFileId = String(body?.photoFileId || "").trim();
+      const sortOrder = Number(body?.sortOrder || Date.now());
+      if (panelId !== "GEN-3" || !["executive","advisor"].includes(group) || !name || !role || name.length > 120 || role.length > 160 || photoFileId.length > 2048) return error("Valid panel, group, member name and role are required.");
+      if (group === "advisor" && !department) return error("Advisor members need a department.");
+      const now = Date.now();
+      const ref = id ? db.collection("panel_members").doc(id) : db.collection("panel_members").doc();
+      const data = { panelId, panelName: group === "executive" ? "Executive Panel" : "Advisor Panel", group, department: group === "executive" ? "" : department, name, role, photoFileId, sortOrder: Number.isFinite(sortOrder) ? sortOrder : now, status: body?.publish === false ? "DRAFT" : "PUBLISHED", updatedAt: now, updatedBy: "telegram:" + admin.id, ...(id ? {} : { createdAt: now, createdBy: "telegram:" + admin.id }) };
+      await ref.set(data, { merge: true });
+      await db.collection("audit_logs").add({ action: id ? "UPDATE_PANEL_MEMBER" : "CREATE_PANEL_MEMBER", collection: "panel_members", recordId: ref.id, actor: "telegram:" + admin.id, createdAt: now });
+      return NextResponse.json({ ok: true, id: ref.id, record: { id: ref.id, ...data } });
+    }
+    if (action === "panel_archive") {
+      const id = String(body?.id || "").trim();
+      if (!id || id.length > 150) return error("Select a valid panel member.");
+      await db.collection("panel_members").doc(id).set({ status: "ARCHIVED", updatedAt: Date.now(), updatedBy: "telegram:" + admin.id }, { merge: true });
+      await db.collection("audit_logs").add({ action: "ARCHIVE_PANEL_MEMBER", collection: "panel_members", recordId: id, actor: "telegram:" + admin.id, createdAt: Date.now() });
+      return NextResponse.json({ ok: true });
+    }
     if (action === "cms_stats") {
       const counts = await Promise.all(CMS.map(async name=>({name,count:(await db.collection(name).count().get()).data().count})));
       return NextResponse.json({ok:true,counts});
