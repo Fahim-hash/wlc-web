@@ -65,46 +65,53 @@ function tokenize(input: string) {
 }
 
 async function loadKnowledge(): Promise<KnowledgeChunk[]> {
+  const chunks: string[] = [];
   try {
-    const snapshot = await getAdminDb()
-      .collection("kothasokhi_knowledge")
-      .where("status", "==", "PUBLISHED")
-      .limit(100)
-      .get();
+    const db = getAdminDb();
+    const [knowledgeSnapshot, panelSnapshot] = await Promise.all([
+      db.collection("kothasokhi_knowledge").where("status", "==", "PUBLISHED").limit(150).get(),
+      db.collection("panel_members").where("status", "==", "PUBLISHED").limit(100).get().catch(() => null),
+    ]);
 
-    const firestoreChunks = snapshot.docs
-      .map((doc) => {
-        const data = doc.data();
-        const text = [data.title, data.answer, data.source]
-          .filter((value) => typeof value === "string" && value.trim())
-          .join("\n");
-        return text.trim();
-      })
-      .filter(Boolean);
+    for (const doc of knowledgeSnapshot.docs) {
+      const data = doc.data();
+      const text = [data.title, data.answer, data.source]
+        .filter((value) => typeof value === "string" && value.trim())
+        .join("\n");
+      if (text.trim()) chunks.push(text.trim());
+    }
 
-    if (firestoreChunks.length) {
-      return firestoreChunks.map((text) => ({
-        text,
-        normalized: normalizeText(text),
-        tokens: tokenize(text),
-      }));
+    const panelMembers = (panelSnapshot?.docs || [])
+      .map((doc) => ({ id: doc.id, ...doc.data() }))
+      .filter((member: any) => member.panelId === "GEN-3")
+      .sort((a: any, b: any) => Number(a.sortOrder || 0) - Number(b.sortOrder || 0));
+
+    if (panelMembers.length) {
+      const executive = panelMembers.filter((member: any) => member.group === "executive");
+      const advisor = panelMembers.filter((member: any) => member.group === "advisor");
+      const format = (member: any) => `নাম: ${member.name}\nপদবি: ${member.role}${member.department ? `\nবিভাগ: ${member.department}` : ""}`;
+      chunks.push([
+        "WLC GEN-3 (২০২৬) Executive ও Advisor Panel — প্রকাশিত অফিসিয়াল তথ্য।",
+        "Executive Panel:",
+        ...executive.map(format),
+        "Advisor Panel:",
+        ...advisor.map(format),
+        "অফিসিয়াল প্যানেল পেজ: https://wlc.pro.bd/panel/GEN-3",
+      ].join("\n\n"));
     }
   } catch (error) {
     console.warn("Firestore Kothasokhi knowledge unavailable; using local fallback:", error);
   }
 
+  if (chunks.length) {
+    return chunks.map((text) => ({ text, normalized: normalizeText(text), tokens: tokenize(text) }));
+  }
+
   const filePath = path.join(process.cwd(), "data", "wlc-info.txt");
   const raw = fs.readFileSync(filePath, "utf8");
-
-  return raw
-    .split(/(?=^=== )/m)
-    .map((text) => text.trim())
-    .filter(Boolean)
-    .map((text) => ({
-      text,
-      normalized: normalizeText(text),
-      tokens: tokenize(text),
-    }));
+  return raw.split(/(?=^=== )/m).map((text) => text.trim()).filter(Boolean).map((text) => ({
+    text, normalized: normalizeText(text), tokens: tokenize(text),
+  }));
 }
 
 function retrieveKnowledge(query: string, chunks: KnowledgeChunk[], limit = 3) {
@@ -165,7 +172,7 @@ function actionReply(input: string): string | null {
     { terms: ["ইনস্টাগ্রাম"], label: "Official WLC Instagram", url: "https://www.instagram.com/willes_literary_club/", message: "এটাই উইল্‌স সাহিত্য ক্লাবের official Instagram:" },
     { terms: ["রেজিস্ট্রেশন", "সদস্য", "মেম্বার"], label: "Join WLC", url: "https://wlc.pro.bd/register", message: "WLC-তে সদস্য হওয়ার অফিসিয়াল রেজিস্ট্রেশন পেজ:" },
     { terms: ["ওয়েবসাইট"], label: "WLC Website", url: "https://wlc.pro.bd/", message: "উইল্‌স সাহিত্য ক্লাবের অফিসিয়াল ওয়েবসাইট:" },
-    { terms: ["কমিটি", "প্যানেল"], label: "Current Committee", url: "https://wlc.pro.bd/panel/GEN-2", message: "বর্তমান ২০২৬ কমিটি:" },
+    { terms: ["কমিটি", "প্যানেল"], label: "Current Committee", url: "https://wlc.pro.bd/panel/GEN-3", message: "WLC-এর GEN-3 প্যানেল:" },
     { terms: ["ইভেন্ট"], label: "WLC Events", url: "https://wlc.pro.bd/events", message: "WLC-এর ইভেন্ট পেজ:" },
     { terms: ["অর্জন", "পুরস্কার"], label: "WLC Achievements", url: "https://wlc.pro.bd/achievements", message: "WLC-এর অর্জন ও পুরস্কারের পেজ:" },
     { terms: ["যোগাযোগ"], label: "WLC Contact", url: "https://wlc.pro.bd/contact", message: "WLC-এর অফিসিয়াল যোগাযোগ পেজ:" },
