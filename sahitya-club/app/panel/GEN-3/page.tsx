@@ -52,7 +52,7 @@ function MemberCard({ name, role, index }: { name: string; role: string; index: 
       <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-rose-800 via-amber-600 to-rose-300 opacity-80" />
       <div className="flex items-start gap-4">
         <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-rose-50 font-serif text-lg font-bold text-rose-900 ring-1 ring-rose-100">
-          {String(index + 1).padStart(2, "০")}
+          {String(index + 1).padStart(2, "0").replace(/\\d/g, (digit) => "০১২৩৪৫৬৭৮৯"[Number(digit)])}
         </div>
         <div className="min-w-0 pt-0.5">
           <h3 className="font-serif text-lg font-bold leading-snug text-stone-900">{name}</h3>
