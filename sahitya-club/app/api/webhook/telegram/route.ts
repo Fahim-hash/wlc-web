@@ -343,6 +343,7 @@ async function sendContentMenu(chatId: number | string) {
       { text: "📝 CMS & Publishing", callback_data: "wlc:cms:menu" },
       { text: "📜 Certificate Templates", callback_data: "wlc:cert:menu" },
     ],
+    [{ text: "🏛️ GEN-3 Panel Manager", callback_data: "wlc:cms:new:panel" }],
     [{ text: "🖼️ Media Album", callback_data: "wlc:album_list" }],
     [{ text: "⬅️ Main Control Center", callback_data: "wlc:nav:home" }],
   ]);
