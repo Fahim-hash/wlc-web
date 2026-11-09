@@ -28,7 +28,7 @@ export async function POST(request: Request) {
     const upload = new FormData();
     upload.append("chat_id", chatId);
     upload.append("photo", new Blob([await file.arrayBuffer()], { type: file.type }), file.name.slice(0, 150));
-    upload.append("caption", `🖼️ WLC Control Hub • ${target === "notice" ? "Notification image" : target === "cms" ? "Event / CMS cover" : "Image"}\nUploaded by Telegram admin: ${String(admin.id)}\nFile: ${file.name.slice(0, 180)}`);
+    upload.append("caption", `🖼️ WLC Control Hub • ${target === "notice" ? "Notification image" : target === "cms" ? "Event / CMS cover" : target === "panel" ? "GEN-3 profile photo" : "Image"}\nUploaded by Telegram admin: ${String(admin.id)}\nFile: ${file.name.slice(0, 180)}`);
     const tgResponse = await fetch(`https://api.telegram.org/bot${token}/sendPhoto`, { method: "POST", body: upload, cache: "no-store" });
     const tg = await tgResponse.json();
     if (!tgResponse.ok || !tg.ok || !tg.result?.photo?.length) {
