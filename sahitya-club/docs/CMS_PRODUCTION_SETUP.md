@@ -35,6 +35,7 @@ The seed creates initial events, achievements, and the current running committee
 Authorized Telegram accounts can use:
 
 - /cms
+- /panel — open the GEN-3 panel member manager
 - /event title | date | time | venue | description | publish
 - /member name | role | batch | bio | publish
 - /achievement title | date | category | description | publish
@@ -70,9 +71,17 @@ The CMS preserves Telegram identifiers so a reconciliation process can be added 
 - Every CMS create/update/archive writes an audit_logs record.
 - The old browser-side hardcoded admin PIN has been removed from /controlhub.
 
+## GEN-3 Panel Manager
+
+- The Telegram Control Hub has a GEN-3 Panel Manager tab.
+- `/panel` opens the Telegram CMS menu; choose “প্যানেল সদস্য যোগ” to start a guided bot flow.
+- Panel records are stored in `panel_members` with `panelId`, `group`, `department`, `name`, `role`, `sortOrder`, `status`, and optional `photoFileId`.
+- Profile photos are uploaded to the configured Telegram media chat from the Mini App, or received by the bot as Telegram photos. Firestore stores Telegram file references, not image binaries.
+- The GEN-3 website tree reads PUBLISHED records from Firestore. The first authenticated Control Hub load seeds the 28 supplied GEN-3 records if no GEN-3 records exist yet.
+
 ## Kothasokhi
 
-Kothasokhi now reads PUBLISHED records from kothasokhi_knowledge first and falls back to data/wlc-info.txt if Firestore knowledge is unavailable.
+Kothasokhi combines published `kothasokhi_knowledge` records, the live published GEN-3 `panel_members` records, and the WLC reference file `data/wlc-info.txt`. New panel names, roles, and departments therefore become available to the website chatbot and the separate Telegram Kothasokhi bot without a separate manual knowledge edit.
 
 ## Public pages migrated
 
