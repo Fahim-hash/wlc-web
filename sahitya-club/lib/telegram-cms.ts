@@ -1,7 +1,7 @@
 import { getAdminDb } from "@/lib/firebase-admin";
 import { writeCmsRecord, archiveCmsRecord, listCollection, type CmsCollection } from "@/lib/cms";
 
-type CmsType = "event" | "member" | "achievement" | "announcement" | "writing" | "knowledge";
+type CmsType = "event" | "member" | "achievement" | "announcement" | "writing" | "knowledge" | "panel";
 type CmsSession = {
   type: CmsType;
   step: number;
@@ -17,6 +17,7 @@ const titles: Record<CmsType, string> = {
   announcement: "📢 ঘোষণা",
   writing: "✍️ লেখা",
   knowledge: "🤖 কথাসখী",
+  panel: "🏛️ প্যানেল সদস্য",
 };
 
 const questions: Record<CmsType, string[]> = {
@@ -25,12 +26,13 @@ const questions: Record<CmsType, string[]> = {
   achievement: ["অর্জনের নাম কী?", "তারিখ কী?", "কোন ধরনের অর্জন? (যেমন: প্রতিযোগিতা, স্বীকৃতি)", "অর্জনের সংক্ষিপ্ত বিবরণ লিখুন।", "অর্জনের ছবি পাঠান (ট্রফি, সার্টিফিকেট বা অনুষ্ঠানের ছবি)। ছবি না থাকলে “নেই” লিখুন।"],
   announcement: ["ঘোষণাটির শিরোনাম কী?", "ঘোষণার মূল বক্তব্য লিখুন।", "কোনো ওয়েব লিংক আছে? না থাকলে “নেই” লিখুন।"],
   writing: ["লেখাটির নাম কী?", "লেখকের নাম কী?", "কোন ধরনের লেখা?", "লেখাটি লিখুন বা পেস্ট করুন।"],
-  knowledge: ["জ্ঞানটির বিষয়/শিরোনাম কী?", "কথাসখী কী উত্তর দেবে?", "উৎস/রেফারেন্স কী? না থাকলে “নেই” লিখুন।"],
+  knowledge: ["জ্ঞানটির বিষয়/শিরোনাম কী?", "কথাসখী কী উত্তর দেবে?", "উৎস/রেফারেন্স কী? না থাকলে “নেই” লিখুন."],
+  panel: ["কোন প্যানেল? (GEN-3 লিখুন)", "কোন শাখা? (executive অথবা advisor)", "বিভাগ কী? Executive হলে “নেই” লিখুন।", "সদস্যের পূর্ণ নাম কী?", "পদবি/দায়িত্ব কী?", "সদস্যের ছবি পাঠান। ছবি না থাকলে “নেই” লিখুন।"],
 };
 
 const collections: Record<CmsType, CmsCollection> = {
   event: "events", member: "members", achievement: "achievements",
-  announcement: "announcements", writing: "writing", knowledge: "kothasokhi_knowledge",
+  announcement: "announcements", writing: "writing", knowledge: "kothasokhi_knowledge", panel: "panel_members",
 };
 
 async function telegramApi(method: string, payload: Record<string, unknown>) {
@@ -72,6 +74,7 @@ export async function sendCmsMenu(chatId: number | string) {
     [{ text: "➕ নতুন আয়োজন", callback_data: "wlc:cms:new:event" }, { text: "👤 নতুন সদস্য", callback_data: "wlc:cms:new:member" }],
     [{ text: "🏆 নতুন অর্জন", callback_data: "wlc:cms:new:achievement" }, { text: "📢 নতুন ঘোষণা", callback_data: "wlc:cms:new:announcement" }],
     [{ text: "✍️ নতুন লেখা", callback_data: "wlc:cms:new:writing" }, { text: "🤖 কথাসখী জ্ঞান", callback_data: "wlc:cms:new:knowledge" }],
+    [{ text: "🏛️ প্যানেল সদস্য যোগ", callback_data: "wlc:cms:new:panel" }],
     [{ text: "📋 সাম্প্রতিক বিষয়", callback_data: "wlc:cms:list" }],
     [{ text: "🏠 মূল মেনু", callback_data: "wlc:cancel" }],
   ]);
@@ -88,7 +91,7 @@ async function finishFlow(userId: number, chatId: number | string, session: CmsS
     `📋 ${titles[session.type]}`,
     "",
     ...Object.entries(data).filter(([key]) => !["status", "sortOrder", "bannerFileId", "imageFileId"].includes(key)).map(([key, value]) => `${key}: ${String(value || "নেই")}`),
-    ...(data.bannerFileId || data.imageFileId ? ["🖼️ ছবি: যোগ করা হয়েছে"] : []),
+    ...(data.bannerFileId || data.imageFileId || data.photoFileId ? ["🖼️ ছবি: যোগ করা হয়েছে"] : []),
     "",
     "সব ঠিক আছে?",
   ].join("\n");
@@ -115,12 +118,13 @@ export async function handleTelegramCmsMessage(userId: number, chatId: number | 
   let answer: string | undefined = text;
   const isEventImageStep = session.type === "event" && session.step === 5;
   const isAchievementImageStep = session.type === "achievement" && session.step === 4;
+  const isPanelPhotoStep = session.type === "panel" && session.step === 5;
 
-  if (isEventImageStep || isAchievementImageStep) {
+  if (isEventImageStep || isAchievementImageStep || isPanelPhotoStep) {
     const documentIsImage = Boolean(message.document?.mime_type?.startsWith("image/"));
     const fileId = message.photo?.at(-1)?.file_id || (documentIsImage ? message.document?.file_id : undefined);
     if (fileId) {
-      session.data[isEventImageStep ? "bannerFileId" : "imageFileId"] = fileId;
+      session.data[isEventImageStep ? "bannerFileId" : isPanelPhotoStep ? "photoFileId" : "imageFileId"] = fileId;
       answer = "ছবি যোগ করা হয়েছে";
     } else if (!text) {
       await sendText(chatId, "🖼️ একটি ছবি পাঠান, অথবা ছবি না থাকলে “নেই” লিখুন।");
@@ -155,6 +159,7 @@ export async function handleTelegramCmsMessage(userId: number, chatId: number | 
     return true;
   }
 
+  if (isPanelPhotoStep && !session.data.photoFileId && ["নেই", "না", "no"].includes(text.toLowerCase())) { session.data.photoFileId = ""; answer = "ছবি নেই"; }
   if (isEventImageStep && !session.data.bannerFileId && ["নেই", "না", "no"].includes(text.toLowerCase())) {
     session.data.bannerFileId = "";
     answer = "ছবি নেই";
@@ -171,6 +176,7 @@ export async function handleTelegramCmsMessage(userId: number, chatId: number | 
     announcement: ["title", "message", "link"],
     writing: ["title", "author", "category", "body"],
     knowledge: ["title", "answer", "source"],
+    panel: ["panelId", "group", "department", "name", "role"],
   };
 
   const field = fieldNames[session.type][session.step];
@@ -216,15 +222,15 @@ export async function handleTelegramCmsCallback(userId: number, chatId: number |
     return true;
   }
 
-  const match = action.match(/^wlc:cms:new:(event|member|achievement|announcement|writing|knowledge)$/);
+  const match = action.match(/^wlc:cms:new:(event|member|achievement|announcement|writing|knowledge|panel)$/);
   if (match) { await startFlow(userId, chatId, match[1] as CmsType); return true; }
   return false;
 }
 
 export async function handleTelegramCmsCommand(userId: number, chatId: number | string, text: string) {
   const command = text.trim();
-  if (command === "/cms") { await sendCmsMenu(chatId); return true; }
-  const match = command.match(/^\/(event|member|achievement|announcement|writing|knowledge)$/);
+  if (command === "/cms" || command === "/panel") { await sendCmsMenu(chatId); return true; }
+  const match = command.match(/^\/(event|member|achievement|announcement|writing|knowledge|panel)$/);
   if (match) { await startFlow(userId, chatId, match[1] as CmsType); return true; }
   if (command.startsWith("/archive ")) {
     const [, collection, id] = command.split(/\s+/);
