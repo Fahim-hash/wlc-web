@@ -165,7 +165,7 @@ function actionReply(input: string): string | null {
     { terms: ["ইনস্টাগ্রাম"], label: "Official WLC Instagram", url: "https://www.instagram.com/willes_literary_club/", message: "এটাই উইল্‌স সাহিত্য ক্লাবের official Instagram:" },
     { terms: ["রেজিস্ট্রেশন", "সদস্য", "মেম্বার"], label: "Join WLC", url: "https://wlc.pro.bd/register", message: "WLC-তে সদস্য হওয়ার অফিসিয়াল রেজিস্ট্রেশন পেজ:" },
     { terms: ["ওয়েবসাইট"], label: "WLC Website", url: "https://wlc.pro.bd/", message: "উইল্‌স সাহিত্য ক্লাবের অফিসিয়াল ওয়েবসাইট:" },
-    { terms: ["কমিটি", "প্যানেল"], label: "Current Committee", url: "https://wlc.pro.bd/panel/running", message: "বর্তমান ২০২৬ কমিটি:" },
+    { terms: ["কমিটি", "প্যানেল"], label: "Current Committee", url: "https://wlc.pro.bd/panel/GEN-2", message: "বর্তমান ২০২৬ কমিটি:" },
     { terms: ["ইভেন্ট"], label: "WLC Events", url: "https://wlc.pro.bd/events", message: "WLC-এর ইভেন্ট পেজ:" },
     { terms: ["অর্জন", "পুরস্কার"], label: "WLC Achievements", url: "https://wlc.pro.bd/achievements", message: "WLC-এর অর্জন ও পুরস্কারের পেজ:" },
     { terms: ["যোগাযোগ"], label: "WLC Contact", url: "https://wlc.pro.bd/contact", message: "WLC-এর অফিসিয়াল যোগাযোগ পেজ:" },
