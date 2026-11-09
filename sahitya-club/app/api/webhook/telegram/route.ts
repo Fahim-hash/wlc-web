@@ -444,8 +444,10 @@ async function sendAlbumList(chatId: number | string) {
       mimeType?: string;
       updatedAt?: number;
       createdAt?: number;
+      target?: string;
+      source?: string;
     })
-    .filter((item) => item.messageId && item.fileId && item.mimeType?.startsWith("image/"))
+    .filter((item) => item.messageId && item.fileId && item.mimeType?.startsWith("image/") && (!item.target || item.target === "album" || item.source === "channel_post"))
     .sort((a, b) => (b.updatedAt ?? b.createdAt ?? 0) - (a.updatedAt ?? a.createdAt ?? 0))
     .slice(0, 12);
 
