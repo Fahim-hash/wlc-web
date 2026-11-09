@@ -39,7 +39,7 @@ export default function TelegramAttendanceApp() {
   const [noticeImageName,setNoticeImageName]=useState("");
   const [cmsImageUrl,setCmsImageUrl]=useState("");
   const [cmsImageName,setCmsImageName]=useState("");
-  const [imageUploading,setImageUploading]=useState<"notice"|"cms"|null>(null);
+  const [imageUploading,setImageUploading]=useState<"notice"|"cms"|"panel"|null>(null);
   const [actionResult,setActionResult]=useState("");
   const [memberQuery,setMemberQuery]=useState("");
   const [memberBatch,setMemberBatch]=useState("");
