@@ -80,6 +80,7 @@ export async function GET(request: Request) {
     commands: [
       { command: "start", description: "Open WLC Control Hub" },
       { command: "cms", description: "Open WLC Telegram CMS" },
+      { command: "panel", description: "Manage GEN-3 panel members" },
       { command: "event", description: "Create an event" },
       { command: "member", description: "Create a member" },
       { command: "achievement", description: "Create an achievement" },
