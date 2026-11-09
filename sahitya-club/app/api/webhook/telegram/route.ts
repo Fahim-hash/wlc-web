@@ -283,16 +283,18 @@ ${String(data.reply).slice(0, 3500)}`,
 
 async function sendKothasokhiStats(chatId: number | string) {
   const db = getAdminDb();
-  const [conversations, knowledge] = await Promise.all([
+  const [conversations, knowledge, panelMembers] = await Promise.all([
     db.collection("telegram_ai_conversations").count().get(),
     db.collection("kothasokhi_knowledge").where("status", "==", "PUBLISHED").count().get(),
+    db.collection("panel_members").where("status", "==", "PUBLISHED").count().get(),
   ]);
   await sendText(
     chatId,
     `📊 Kothasokhi AI Stats
 
 💬 Telegram conversations: ${conversations.data().count}
-📚 Published knowledge entries: ${knowledge.data().count}`,
+📚 Published knowledge entries: ${knowledge.data().count}
+🏛️ Published panel members: ${panelMembers.data().count}`,
     [[{ text: "⬅️ Control Center", callback_data: "wlc:kothasokhi:menu" }]]
   );
 }
