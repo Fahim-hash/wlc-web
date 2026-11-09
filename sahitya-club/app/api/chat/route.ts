@@ -103,15 +103,13 @@ async function loadKnowledge(): Promise<KnowledgeChunk[]> {
     console.warn("Firestore Kothasokhi knowledge unavailable; using local fallback:", error);
   }
 
-  if (chunks.length) {
-    return chunks.map((text) => ({ text, normalized: normalizeText(text), tokens: tokenize(text) }));
-  }
-
   const filePath = path.join(process.cwd(), "data", "wlc-info.txt");
   const raw = fs.readFileSync(filePath, "utf8");
-  return raw.split(/(?=^=== )/m).map((text) => text.trim()).filter(Boolean).map((text) => ({
-    text, normalized: normalizeText(text), tokens: tokenize(text),
-  }));
+  const hasDynamicGen3 = chunks.some((text) => text.includes("WLC GEN-3 (২০২৬)"));
+  const fallbackChunks = raw.split(/(?=^=== )/m).map((text) => text.trim()).filter(Boolean)
+    .filter((text) => !(hasDynamicGen3 && text.startsWith("=== GEN-3 PANEL")));
+  const merged = [...chunks, ...fallbackChunks];
+  return merged.map((text) => ({ text, normalized: normalizeText(text), tokens: tokenize(text) }));
 }
 
 function retrieveKnowledge(query: string, chunks: KnowledgeChunk[], limit = 3) {
