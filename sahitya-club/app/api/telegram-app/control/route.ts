@@ -41,7 +41,7 @@ export async function GET(request: Request) {
         kothasokhi = {configured:true,available:true,username:me.username || "",webhookUrl:info.url || "",expectedUrl:KOTHASOKHI_URL(),pendingUpdates:info.pending_update_count || 0,lastError:info.last_error_message || ""};
       } catch (e) { kothasokhi = {configured:true,available:false,error:e instanceof Error?e.message:"Unable to check bot"}; }
     }
-    const albums = (mediaSnap?.docs || []).map(doc => ({id:doc.id,...doc.data()})).filter((item:any)=>item.fileId && item.mimeType?.startsWith("image/")).slice(0,12).map((item:any)=>({id:item.id,messageId:item.messageId,caption:item.caption||"",chatId:item.chatId||"",fileId:item.fileId,imageUrl:item.imageUrl||"",originalName:item.originalName||""}));
+    const albums = (mediaSnap?.docs || []).map(doc => ({id:doc.id,...doc.data()})).filter((item:any)=>item.fileId && item.mimeType?.startsWith("image/") && (!item.target || item.target === "album" || item.source === "channel_post")).slice(0,12).map((item:any)=>({id:item.id,messageId:item.messageId,caption:item.caption||"",chatId:item.chatId||"",fileId:item.fileId,imageUrl:item.imageUrl||"",originalName:item.originalName||""}));
     return NextResponse.json({ok:true,admin:{id:admin.id,firstName:admin.firstName||"WLC Admin"},stats:{subscribers:subscriberCount,members:memberCount.data().count,attendance:attendanceCount.data().count,cms:cmsCounts},albums,kothasokhi});
   } catch { return error("Could not load Control Hub data.",500); }
 }
@@ -168,7 +168,7 @@ export async function POST(request: Request) {
     }
     if (action === "album_list") {
       const snap=await db.collection("telegram_media").orderBy("updatedAt","desc").limit(30).get().catch(()=>db.collection("telegram_media").limit(30).get());
-      const records=snap.docs.map(doc=>({id:doc.id,...doc.data()})).filter((m:any)=>m.fileId&&m.mimeType?.startsWith("image/")).slice(0,20).map((m:any)=>({id:m.id,messageId:m.messageId,caption:m.caption||"",chatId:m.chatId||"",fileId:m.fileId,imageUrl:m.imageUrl||"",originalName:m.originalName||""}));
+      const records=snap.docs.map(doc=>({id:doc.id,...doc.data()})).filter((m:any)=>m.fileId&&m.mimeType?.startsWith("image/")&&(!m.target||m.target==="album"||m.source==="channel_post")).slice(0,20).map((m:any)=>({id:m.id,messageId:m.messageId,caption:m.caption||"",chatId:m.chatId||"",fileId:m.fileId,imageUrl:m.imageUrl||"",originalName:m.originalName||""}));
       return NextResponse.json({ok:true,records});
     }
     if (action === "album_delete") {
