@@ -8,7 +8,7 @@ export default function PanelMainDashboard() {
       title: "জেনারেশন - ২",
       subtitle: "GEN-2 (2026)",
       desc: "উইল্‌স সাহিত্য ক্লাবের বর্তমান কার্যনির্বাহী নেতৃত্ব ও ২০২৬ সেশনের কমিটি।",
-      link: "/panel/running",
+      link: "/panel/GEN-2",
       color: "from-rose-800 to-rose-950",
       icon: "✍️"
     },
