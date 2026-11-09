@@ -56,7 +56,8 @@ Official website: https://wlc.pro.bd/
 Registration page: https://wlc.pro.bd/register
 About: https://wlc.pro.bd/about
 Leadership archive: https://wlc.pro.bd/panel
-Current committee: https://wlc.pro.bd/panel/GEN-2
+Current committee: https://wlc.pro.bd/panel/GEN-3
+GEN-2 archive: https://wlc.pro.bd/panel/GEN-2
 Gen-1 archive: https://wlc.pro.bd/panel/GEN-1
 Interim wing: https://wlc.pro.bd/panel/temporary
 Teacher moderators: https://wlc.pro.bd/panel/moderator
@@ -87,7 +88,45 @@ Membership opportunities described by the site include literary gatherings, repr
 Registration: https://wlc.pro.bd/register
 FAQ: https://wlc.pro.bd/faq
 
-=== GEN-2 PANEL — 2026 ===
+=== GEN-3 PANEL — 2026 ===
+Official panel page: https://wlc.pro.bd/panel/GEN-3
+Executive Panel:
+- হাসনাত আযান — সভাপতি
+- তৌসিফ মাহমুদ গুঞ্জন — সহ সভাপতি
+- সুদিঠি বিনতে সাখাওয়াত — সাধারণ সম্পাদক
+- আয়েশা খান — সম্পাদক (সম্পাদনা বিভাগ)
+- ফারহানা তাসনিম রাইসা — সাংগঠনিক সম্পাদক
+- উম্মে ওয়াকিয়া জারা — মুখ্য সংগঠক
+- ওয়ালিন হোসেন সিকদার — নিয়ন্ত্রক (বাংলা সাহিত্য)
+- সামশিহা পরী — নিয়ন্ত্রক (ইংরেজি সাহিত্য)
+- সায়েম আহমেদ — নিয়ন্ত্রক (ধর্মীয় সাহিত্য)
+- আব্দুল কাইয়ুম ত্বোহা — নিয়ন্ত্রক (বিশেষ শিশু শাখা)
+- শেখ তাসিন — যোগাযোগ বিষয়ক সম্পাদক
+- আতিক আহরার — প্রকাশনা বিষয়ক সম্পাদক
+- সুরাইয়া আক্তার — গ্রন্থাগার বিষয়ক সম্পাদক
+- রাকিবুল ইসলাম আকাশ — চলচ্চিত্র বিষয়ক সম্পাদক
+- তানভীর আহমেদ — স্থিরচিত্র বিষয়ক সম্পাদক
+- মেঘলা আহসান — দেয়ালিকা বিষয়ক সম্পাদক
+- মেহরাব জামান আরিয়ান — দেয়ালিকা বিষয়ক সহ-সম্পাদক
+- আহনাফ অমি — নথিসংগ্রাহক
+- সুমাইয়া আল-আমিন ইশা — কার্যনির্বাহী
+- মিশকাত রহমান — কার্যনির্বাহী
+- আব্দুল্লাহ আহমেদ — কার্যনির্বাহী
+
+Advisor Panel — প্রশাসনিক বিভাগ:
+- আরিয়ান আজমাইন মিয়ন — উপদেষ্টা
+- এহসান আহমেদ সিয়াম — উপদেষ্টা
+- মোল্লা সৌম্য রহমান — পরামর্শদাতা
+- রাফিদুল আমিন সাব্বির — পরামর্শদাতা
+
+Advisor Panel — সম্পাদনা বিভাগ:
+- আইশান শান — উপদেষ্টা
+- সৈয়দ ফাহিম মুদ্দাসির — পরামর্শদাতা
+- নাজমুস সাকিব — পরামর্শদাতা
+
+Source: https://wlc.pro.bd/panel/GEN-3
+
+=== GEN-2 PANEL — ARCHIVE ===
 GEN-2 panel page: https://wlc.pro.bd/panel/GEN-2
 
 Advisors / advisers:
@@ -249,7 +288,7 @@ If a user asks for any of these, do not explain that you cannot provide it. Give
 - Instagram / Insta / IG / ইনস্টাগ্রাম → [BUTTON:Official Instagram|https://www.instagram.com/willes_literary_club/]
 - website / site / ওয়েবসাইট → [BUTTON:WLC Website|https://wlc.pro.bd/]
 - register / registration / join / membership / রেজিস্ট্রেশন / মেম্বার → [BUTTON:Join WLC|https://wlc.pro.bd/register]
-- committee / panel / কমিটি / প্যানেল → [BUTTON:GEN-2 Panel|https://wlc.pro.bd/panel/GEN-2]
+- committee / panel / কমিটি / প্যানেল → [BUTTON:GEN-3 Panel|https://wlc.pro.bd/panel/GEN-3]
 - Gen-1 / old committee / historical panel → [BUTTON:Gen-1 Archive|https://wlc.pro.bd/panel/GEN-1]
 - events / event / ইভেন্ট → [BUTTON:Events|https://wlc.pro.bd/events]
 - achievements / awards / অর্জন → [BUTTON:Achievements|https://wlc.pro.bd/achievements]
