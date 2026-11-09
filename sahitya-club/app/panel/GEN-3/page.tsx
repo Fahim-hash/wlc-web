@@ -98,7 +98,7 @@ export default function GenThreePage() {
           <span className="w-fit rounded-full bg-rose-50 px-3 py-1.5 text-xs font-bold text-rose-900 ring-1 ring-rose-100">২১ সদস্য</span>
         </div>
         <div className="mb-5 grid gap-4 md:grid-cols-3">
-          {executives.filter((member) => member.group === "leadership").map((member, index) => (
+          {executives.filter((member) => member.group === "leadership").map((member) => (
             <div key={member.name} className="rounded-2xl border border-rose-200 bg-gradient-to-br from-rose-50 to-white p-5 text-center shadow-sm">
               <span className="text-[10px] font-bold uppercase tracking-[0.18em] text-rose-700">{member.role}</span>
               <h3 className="mt-2 font-serif text-xl font-bold text-stone-950">{member.name}</h3>
