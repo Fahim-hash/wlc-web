@@ -22,7 +22,7 @@ export const metadata: Metadata = {
 export default function PanelLayout({ children }: { children: ReactNode }) {
   const links = [
     { name: "জেনারেশন-২", path: "/panel/running" },
-    { name: "জেনারেশন-৩ (আসন্ন)", path: "/panel/GEN-3" },
+    { name: "জেনারেশন-৩", path: "/panel/GEN-3" },
     { name: "জেনারেশন-১", path: "/panel/GEN-1" },
     { name: "অস্থায়ী কার্যনির্বাহী", path: "/panel/temporary" },
     { name: "শিক্ষক মডারেটর", path: "/panel/moderator" },
