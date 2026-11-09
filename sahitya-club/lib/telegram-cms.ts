@@ -90,7 +90,7 @@ async function finishFlow(userId: number, chatId: number | string, session: CmsS
   const preview = [
     `📋 ${titles[session.type]}`,
     "",
-    ...Object.entries(data).filter(([key]) => !["status", "sortOrder", "bannerFileId", "imageFileId"].includes(key)).map(([key, value]) => `${key}: ${String(value || "নেই")}`),
+    ...Object.entries(data).filter(([key]) => !["status", "sortOrder", "bannerFileId", "imageFileId", "photoFileId"].includes(key)).map(([key, value]) => `${key}: ${String(value || "নেই")}`),
     ...(data.bannerFileId || data.imageFileId || data.photoFileId ? ["🖼️ ছবি: যোগ করা হয়েছে"] : []),
     "",
     "সব ঠিক আছে?",
