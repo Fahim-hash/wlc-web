@@ -22,8 +22,8 @@ export default function PanelMainDashboard() {
     },
     {
       title: "জেনারেশন - ৩",
-      subtitle: "GEN-3 (UPCOMING)",
-      desc: "নতুন প্রজন্মের প্যানেল নির্বাচন শুরু হয়েছে। GEN-3-এর সদস্য তালিকা ও বিস্তারিত খুব শিগগির প্রকাশ করা হবে।",
+      subtitle: "GEN-3 (2026)",
+      desc: "তৃতীয় প্রজন্মের নির্বাহী পর্ষদ ও উপদেষ্টা পর্ষদের সদস্য পরিচিতি ও দায়িত্বসমূহ।",
       link: "/panel/GEN-3",
       color: "from-violet-700 to-indigo-950",
       icon: "🌱"
