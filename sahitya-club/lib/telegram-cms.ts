@@ -204,7 +204,22 @@ export async function handleTelegramCmsCallback(userId: number, chatId: number |
   if (action === "wlc:cms:publish" || action === "wlc:cms:draft") {
     const session = await getSession(userId);
     if (!session) { await sendText(chatId, "⚠️ কোনো অসম্পূর্ণ বিষয় পাওয়া যায়নি।"); return true; }
-    const data = { ...session.data, status: action.endsWith("publish") ? "PUBLISHED" : "DRAFT", sortOrder: Date.now() };
+    const data: Record<string, unknown> = { ...session.data, status: action.endsWith("publish") ? "PUBLISHED" : "DRAFT", sortOrder: Number(session.data.sortOrder || Date.now()) };
+    if (session.type === "panel") {
+      const panelId = String(data.panelId || "GEN-3").trim().toUpperCase();
+      const groupValue = String(data.group || "").trim().toLowerCase();
+      const group = groupValue.includes("advisor") || groupValue.includes("উপদেষ্টা") ? "advisor" : "executive";
+      if (panelId !== "GEN-3" || !String(data.name || "").trim() || !String(data.role || "").trim()) {
+        await sendText(chatId, "⚠️ প্যানেলের তথ্য অসম্পূর্ণ বা panel ID ভুল। /panel দিয়ে আবার শুরু করুন।");
+        await clearSession(userId);
+        return true;
+      }
+      data.panelId = "GEN-3";
+      data.group = group;
+      data.panelName = group === "advisor" ? "Advisor Panel" : "Executive Panel";
+      data.department = group === "advisor" ? String(data.department || "").trim() : "";
+      data.photoFileId = String(data.photoFileId || "");
+    }
     await writeCmsRecord(collections[session.type], data, undefined, "telegram:" + userId);
     await clearSession(userId);
     await sendText(chatId,
