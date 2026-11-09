@@ -218,6 +218,11 @@ export async function handleTelegramCmsCallback(userId: number, chatId: number |
       data.group = group;
       data.panelName = group === "advisor" ? "Advisor Panel" : "Executive Panel";
       data.department = group === "advisor" ? String(data.department || "").trim() : "";
+      if (group === "advisor" && !["প্রশাসনিক বিভাগ", "সম্পাদনা বিভাগ"].includes(String(data.department))) {
+        await sendText(chatId, "⚠️ Advisor Panel-এর বিভাগ হিসেবে “প্রশাসনিক বিভাগ” অথবা “সম্পাদনা বিভাগ” লিখুন। /panel দিয়ে আবার শুরু করুন।");
+        await clearSession(userId);
+        return true;
+      }
       data.photoFileId = String(data.photoFileId || "");
     }
     await writeCmsRecord(collections[session.type], data, undefined, "telegram:" + userId);
