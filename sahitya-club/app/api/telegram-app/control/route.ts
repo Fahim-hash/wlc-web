@@ -219,8 +219,12 @@ export async function POST(request: Request) {
       return NextResponse.json({ok:true,reply:String(data.reply).slice(0,3000)});
     }
     if (action === "kothasokhi_stats") {
-      const [conversations,knowledge]=await Promise.all([db.collection("telegram_ai_conversations").count().get(),db.collection("kothasokhi_knowledge").where("status","==","PUBLISHED").count().get()]);
-      return NextResponse.json({ok:true,conversations:conversations.data().count,knowledge:knowledge.data().count});
+      const [conversations,knowledge,panelMembers]=await Promise.all([
+        db.collection("telegram_ai_conversations").count().get(),
+        db.collection("kothasokhi_knowledge").where("status","==","PUBLISHED").count().get(),
+        db.collection("panel_members").where("status","==","PUBLISHED").count().get(),
+      ]);
+      return NextResponse.json({ok:true,conversations:conversations.data().count,knowledge:knowledge.data().count,panelMembers:panelMembers.data().count});
     }
     if (action === "member_export") {
       const snap=await db.collection("registered_members").orderBy("createdAt","desc").limit(500).get();
