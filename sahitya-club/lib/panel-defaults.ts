@@ -1,3 +1,5 @@
+import type { Firestore } from "firebase-admin/firestore";
+
 export type Gen3PanelSeed = {
   id: string;
   panelId: "GEN-3";
@@ -53,7 +55,7 @@ export const GEN3_PANEL_SEED: Gen3PanelSeed[] = [
   photoFileId: "",
 }));
 
-export async function ensureGen3PanelSeed(db: FirebaseFirestore.Firestore) {
+export async function ensureGen3PanelSeed(db: Firestore) {
   const ref = db.collection("panel_members");
   const existing = await ref.where("panelId", "==", "GEN-3").limit(1).get();
   if (!existing.empty) return false;
