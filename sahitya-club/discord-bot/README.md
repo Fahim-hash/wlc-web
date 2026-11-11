@@ -13,10 +13,10 @@ A standalone, persistent Discord.js worker for Willes Literary Club. It lives in
 ## Setup
 
 1. Create a Discord application and bot in the Discord Developer Portal.
-2. Enable the **Server Members Intent** only if future member-to-account role assignment is required. This first version uses slash commands and does not read message content.
-3. Invite the bot with `bot` and `applications.commands` scopes. Grant View Channels, Send Messages, Embed Links, Manage Roles, and Read Message History as needed. Keep the bot's highest role above the WLC generation roles.
+2. Enable **Server Members Intent** under Developer Portal → Bot → Privileged Gateway Intents. The bot uses this to detect new members; it does not need Message Content Intent.
+3. Invite the bot with `bot` and `applications.commands` scopes. Grant View Channels, Send Messages, Embed Links, Manage Roles, Manage Channels, and Read Message History. Keep the bot's highest role above the auto-assigned role and any roles it manages.
 4. Copy `.env.example` to `.env` and fill in the values.
-5. In Vercel, add the same `DISCORD_BOT_SYNC_SECRET` to the production environment. Keep it private; never use a `NEXT_PUBLIC_` variable.
+5. In Railway, set `DISCORD_WELCOME_CHANNEL_ID` to the fixed welcome text-channel ID and `DISCORD_AUTO_ROLE_ID` to the role automatically given to every new joiner. Optionally set `DISCORD_WELCOME_ALLOWED_ROLE_IDS` to comma-separated role IDs that may also send messages in the welcome channel. Everyone else is denied Send Messages there; the bot and listed roles are explicitly allowed.\n6. In Vercel, add the same `DISCORD_BOT_SYNC_SECRET` to the production environment. Keep it private; never use a `NEXT_PUBLIC_` variable.
 6. Run `npm install` and `npm start` from this directory on a persistent Node.js host.
 
 Set `DISCORD_GUILD_ID` for immediate per-server slash-command registration during setup. Omit it to register global commands (Discord propagation can take longer).
