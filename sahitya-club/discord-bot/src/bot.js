@@ -23,6 +23,10 @@ const applicationId = process.env.DISCORD_APPLICATION_ID.trim();
 const guildId = process.env.DISCORD_GUILD_ID?.trim();
 const apiBase = process.env.WLC_API_BASE_URL.trim().replace(/\/$/, "");
 const syncSecret = process.env.DISCORD_BOT_SYNC_SECRET.trim();
+const welcomeChannelId = process.env.DISCORD_WELCOME_CHANNEL_ID?.trim();
+const autoRoleId = process.env.DISCORD_AUTO_ROLE_ID?.trim();
+const welcomeAllowedRoleIds = (process.env.DISCORD_WELCOME_ALLOWED_ROLE_IDS || "")
+  .split(",").map(id => id.trim()).filter(Boolean);
 
 const commands = [
   new SlashCommandBuilder().setName("wlc").setDescription("WLC bot help and status"),
@@ -46,6 +50,68 @@ const commands = [
 
 const rest = new REST({ version: "10" }).setToken(token);
 const client = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMembers] });
+
+async function configureWelcomeChannel(guild) {
+  if (!welcomeChannelId) return;
+  const channel = await guild.channels.fetch(welcomeChannelId);
+  if (!channel || !channel.isTextBased() || !("permissionOverwrites" in channel)) {
+    throw new Error("DISCORD_WELCOME_CHANNEL_ID must point to a text channel in the target server.");
+  }
+
+  // Lock the channel for @everyone, then explicitly allow the bot and selected roles.
+  await channel.permissionOverwrites.edit(guild.roles.everyone, {
+    SendMessages: false,
+    SendMessagesInThreads: false,
+    CreatePublicThreads: false,
+    CreatePrivateThreads: false,
+  });
+
+  const botMember = await guild.members.fetchMe();
+  await channel.permissionOverwrites.edit(botMember, {
+    ViewChannel: true,
+    SendMessages: true,
+    SendMessagesInThreads: true,
+    EmbedLinks: true,
+  });
+
+  for (const roleId of welcomeAllowedRoleIds) {
+    const role = await guild.roles.fetch(roleId);
+    if (!role) {
+      console.warn(`Welcome channel role not found: ${roleId}`);
+      continue;
+    }
+    await channel.permissionOverwrites.edit(role, {
+      ViewChannel: true,
+      SendMessages: true,
+      SendMessagesInThreads: true,
+    });
+  }
+  console.log(`Welcome channel permissions configured: #${channel.name}`);
+}
+
+async function handleNewMember(member) {
+  if (!welcomeChannelId) return;
+  try {
+    if (autoRoleId) {
+      const role = await member.guild.roles.fetch(autoRoleId);
+      if (!role) throw new Error(`Auto role not found: ${autoRoleId}`);
+      await member.roles.add(role, "Automatic WLC Discord welcome role");
+    }
+
+    const channel = await member.guild.channels.fetch(welcomeChannelId);
+    if (!channel || !channel.isTextBased() || !("send" in channel)) {
+      throw new Error("Welcome channel is missing or is not a text channel.");
+    }
+
+    await channel.send({
+      content: `Welcome to **Willes Literary Club**! 🎉\nস্বাগতম, <@${member.id}>! WLC Discord community-তে যোগ দেওয়ার জন্য ধন্যবাদ।\n\nসার্ভারের নিয়মাবলি মেনে চলুন এবং সাহিত্যচর্চার সঙ্গে যুক্ত থাকুন।`,
+      allowedMentions: { users: [member.id] },
+    });
+    console.log(`Welcomed new member ${member.user.tag} in #${channel.name}`);
+  } catch (error) {
+    console.error(`New member welcome failed for ${member.id}:`, error);
+  }
+}
 
 async function fetchPanels() {
   const response = await fetch(`${apiBase}/api/discord/panels`, {
@@ -75,6 +141,15 @@ function panelEmbed(generation, members) {
 
 client.once(Events.ClientReady, async readyClient => {
   console.log(`WLC Discord Bot online as ${readyClient.user.tag}`);
+  if (welcomeChannelId) {
+    try {
+      const channel = await readyClient.channels.fetch(welcomeChannelId);
+      if (!channel || !channel.guild) throw new Error("Welcome channel could not be found.");
+      await configureWelcomeChannel(channel.guild);
+    } catch (error) {
+      console.error("Welcome channel setup failed. Check channel ID and Manage Channels permission:", error);
+    }
+  }
   try {
     if (guildId) {
       await rest.put(Routes.applicationGuildCommands(applicationId, guildId), { body: commands });
@@ -87,6 +162,8 @@ client.once(Events.ClientReady, async readyClient => {
     console.error("Slash command registration failed:", error);
   }
 });
+
+client.on(Events.GuildMemberAdd, handleNewMember);
 
 client.on(Events.InteractionCreate, async interaction => {
   if (!interaction.isChatInputCommand()) return;
