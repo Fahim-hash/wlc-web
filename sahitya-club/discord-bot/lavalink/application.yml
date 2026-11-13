@@ -10,11 +10,15 @@ plugins:
     allowSearch: true
     allowDirectVideoIds: true
     allowDirectPlaylistIds: true
+    # Keep playback-capable clients first. MUSIC is search-only and must not
+    # be used as a playback client.
     clients:
-      - ANDROID_VR
+      - MWEB
       - WEB
       - WEBEMBEDDED
-      - MUSIC
+      - ANDROID_MUSIC
+      - ANDROID_VR
+      - TVHTML5_SIMPLY
 
 lavalink:
   plugins:
