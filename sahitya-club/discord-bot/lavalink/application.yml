@@ -20,12 +20,10 @@ plugins:
       - ANDROID_MUSIC
       - ANDROID_VR
   lavasrc:
-    # Spotify is metadata/search only; resolve its tracks to playable providers.
-    # Prefer SoundCloud to reduce dependence on YouTube playback.
+    # Spotify is metadata/search only; resolve tracks through SoundCloud.
+    # Do not use YouTube as a mirror provider: this node is receiving bot/login blocks.
     providers:
       - "scsearch:%QUERY%"
-      - "ytmsearch:%QUERY%"
-      - "ytsearch:%QUERY%"
     sources:
       spotify: true
       applemusic: false
