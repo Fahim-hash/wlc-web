@@ -59,7 +59,7 @@ const commands = [
     .setDefaultMemberPermissions(PermissionFlagsBits.ManageGuild),
 
   new SlashCommandBuilder()
-    .setName("play").setDescription("Play music using Spotify search")
+    .setName("play").setDescription("Play music using YouTube Music search")
     .addStringOption(option => option.setName("query").setDescription("Song name or Spotify track link").setRequired(true).setMaxLength(500)),
   new SlashCommandBuilder().setName("skip").setDescription("Skip the current song"),
   new SlashCommandBuilder().setName("pause").setDescription("Pause music"),
@@ -173,11 +173,11 @@ function getMusicPlayer(guildId) {
 function musicSearchCandidates(query) {
   if (/^https?:\/\//i.test(query)) {
     if (!/(open\.spotify\.com\/track\/|spotify\.link\/)/i.test(query)) {
-      throw new Error("Only Spotify track links are supported. Paste a Spotify link or search by song name.");
+      throw new Error("Only YouTube video links are supported. Paste a YouTube link or search by song name.");
     }
     return [query];
   }
-  return [`spsearch:${query}`];
+  return [`ytmsearch:${query}`, `ytsearch:${query}`];
 }
 
 async function searchMusic(player, query, requester = client.user) {
@@ -188,10 +188,10 @@ async function searchMusic(player, query, requester = client.user) {
       if (result?.tracks?.length) return { result, track: result.tracks[0], searchQuery };
     } catch (error) {
       lastError = error;
-      console.warn(`Spotify search failed for "${searchQuery}":`, error?.message || error);
+      console.warn(`YouTube search failed for "${searchQuery}":`, error?.message || error);
     }
   }
-  if (lastError) console.warn("Spotify search failed:", lastError?.message || lastError);
+  if (lastError) console.warn("YouTube search failed:", lastError?.message || lastError);
   return null;
 }
 
@@ -211,7 +211,7 @@ async function addRadioTrack(player) {
       console.error(`Radio search failed for "${query}":`, error);
     }
   }
-  console.error("WLC Radio could not find a playable Spotify track. Check Spotify API credentials and the configured audio resolver.");
+  console.error("WLC Radio could not find a playable YouTube Music track. Check the YouTube source plugin and Lavalink logs.");
   return false;
 }
 
@@ -453,7 +453,7 @@ client.on(Events.InteractionCreate, async interaction => {
     if (interaction.commandName === "wlc") {
       await interaction.reply({
         ephemeral: true,
-        content: "**Willes Literary Club Bot**\nOfficial community management, panel directory and music radio.\nManagement: `/panels`, `/gen`, `/sync`, `/announce`.\nMusic: `/play`, `/skip`, `/pause`, `/resume`, `/queue`, `/nowplaying`, `/volume`, `/stop`.",
+        content: "**Willes Literary Club Bot**\nOfficial community management, panel directory and music radio.\nManagement: `/panels`, `/gen`, `/sync`, `/announce`.\nMusic: `/play` (YouTube Music), `/skip`, `/pause`, `/resume`, `/queue`, `/nowplaying`, `/volume`, `/stop`.",
       });
       return;
     }
@@ -545,14 +545,14 @@ client.on(Events.InteractionCreate, async interaction => {
       const query = interaction.options.getString("query", true).trim();
       const found = await searchMusic(player, query, interaction.user);
       if (!found?.track) {
-        await interaction.editReply("No playable Spotify result was found. Check Spotify Client ID/Secret on Lavalink and try another track.");
+        await interaction.editReply("No playable YouTube Music result was found. Check the YouTube source plugin and try another search.");
         return;
       }
       // Keep search results focused: one best match is queued for text searches.
       const first = found.track;
       await player.queue.add(first);
       if (!player.playing) await player.play();
-      await interaction.editReply(`🎶 Added **[${first.info.title}](${first.info.uri || "https://open.spotify.com"})** to the queue.\nSource: Spotify`);
+      await interaction.editReply(`🎶 Added **[${first.info.title}](${first.info.uri || "https://open.spotify.com"})** to the queue.\nSource: YouTube Music`);
       return;
     }
 
