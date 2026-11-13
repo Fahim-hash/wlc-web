@@ -32,7 +32,7 @@ Set `DISCORD_GUILD_ID` for immediate per-server slash-command registration durin
 ## Music architecture and operation
 
 - The Discord bot uses `lavalink-client` 2.11.x, which supports Lavalink v4 and Discord DAVE voice encryption.
-- The separate Lavalink 4.2.2 service performs audio streaming; YouTube source plugin 1.18.2 and LavaSrc 4.8.3 are enabled in `lavalink/application.yml`.
+- The separate Lavalink 4.2.2 service performs audio streaming; LavaSrc 4.8.3 handles Spotify search and track resolution in `lavalink/application.yml`. The YouTube plugin is removed.
 - On startup, the bot joins the configured WLC voice channel and starts a radio search. When the queue empties, it searches the next configured query and queues a new track.
 - Members can search by song name or provide a Spotify track link with `/play`. Spotify is the only user-facing search source. Spotify does not expose native audio playback to Lavalink, so LavaSrc uses SoundCloud internally as the audio resolver for Spotify metadata; no YouTube search or fallback is configured. Spotify track search/links require Spotify Client ID and Client Secret on the Lavalink service. The bot only controls one active player per Discord server; members must join the same music voice channel to control it.
 - `/radio enabled:false` stops the automatic station but leaves the player available for member requests. `/radio enabled:true` restarts it.
