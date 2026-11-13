@@ -10,19 +10,15 @@ plugins:
     allowSearch: true
     allowDirectVideoIds: true
     allowDirectPlaylistIds: true
-    # Keep playback-capable clients first. MUSIC is search-only and must not
-    # be used as a playback client.
+    # MUSIC provides YouTube Music search only; playback is handled by
+    # the regular playback-capable clients below.
     clients:
+      - MUSIC
       - MWEB
       - WEB
       - WEBEMBEDDED
       - ANDROID_MUSIC
       - ANDROID_VR
-      - TVHTML5_SIMPLY
-    # OAuth can reduce YouTube's automated-client sign-in challenges.
-    # Complete the one-time device flow from the Lavalink service logs.
-    oauth:
-      enabled: true
 
 lavalink:
   plugins:
