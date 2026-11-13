@@ -9,6 +9,7 @@ import {
   PermissionFlagsBits,
   ChannelType,
 } from "discord.js";
+import { LavalinkManager } from "lavalink-client";
 
 const required = ["DISCORD_BOT_TOKEN", "DISCORD_APPLICATION_ID", "DISCORD_BOT_SYNC_SECRET", "WLC_API_BASE_URL"];
 for (const key of required) {
@@ -28,6 +29,16 @@ const autoRoleId = process.env.DISCORD_AUTO_ROLE_ID?.trim();
 const welcomeAllowedRoleIds = (process.env.DISCORD_WELCOME_ALLOWED_ROLE_IDS || "")
   .split(",").map(id => id.trim()).filter(Boolean);
 
+const musicGuildId = process.env.MUSIC_GUILD_ID?.trim() || guildId;
+const musicVoiceChannelId = process.env.MUSIC_VOICE_CHANNEL_ID?.trim();
+const musicTextChannelId = process.env.MUSIC_TEXT_CHANNEL_ID?.trim() || welcomeChannelId;
+const musicRadioQueries = (process.env.MUSIC_RADIO_QUERIES ||
+  "lofi study beats;chill instrumental music;acoustic cafe music;ambient piano music;soft instrumental music")
+  .split(";").map(query => query.trim()).filter(Boolean);
+const defaultMusicVolume = Math.min(100, Math.max(1, Number(process.env.MUSIC_DEFAULT_VOLUME) || 35));
+let radioEnabled = (process.env.MUSIC_RADIO_ENABLED || "true").toLowerCase() !== "false";
+let radioQueryIndex = 0;
+
 const commands = [
   new SlashCommandBuilder().setName("wlc").setDescription("WLC bot help and status"),
   new SlashCommandBuilder().setName("panels").setDescription("Show available WLC generations"),
@@ -46,10 +57,144 @@ const commands = [
     .setName("sync")
     .setDescription("Synchronize published GEN panel roles from the WLC website")
     .setDefaultMemberPermissions(PermissionFlagsBits.ManageGuild),
+
+  new SlashCommandBuilder()
+    .setName("play").setDescription("Play a YouTube song or add it to the queue")
+    .addStringOption(option => option.setName("query").setDescription("Song name or YouTube URL").setRequired(true).setMaxLength(500)),
+  new SlashCommandBuilder().setName("skip").setDescription("Skip the current song"),
+  new SlashCommandBuilder().setName("pause").setDescription("Pause music"),
+  new SlashCommandBuilder().setName("resume").setDescription("Resume music"),
+  new SlashCommandBuilder().setName("stop").setDescription("Stop playback and clear the queue"),
+  new SlashCommandBuilder().setName("queue").setDescription("Show the current music queue"),
+  new SlashCommandBuilder().setName("nowplaying").setDescription("Show the currently playing song"),
+  new SlashCommandBuilder()
+    .setName("volume").setDescription("Set music volume")
+    .addIntegerOption(option => option.setName("level").setDescription("Volume from 1 to 100").setRequired(true).setMinValue(1).setMaxValue(100)),
+  new SlashCommandBuilder()
+    .setName("radio").setDescription("Enable or disable the automatic WLC radio")
+    .addBooleanOption(option => option.setName("enabled").setDescription("Turn automatic radio on or off").setRequired(true))
+    .setDefaultMemberPermissions(PermissionFlagsBits.ManageGuild),
 ].map(command => command.toJSON());
 
 const rest = new REST({ version: "10" }).setToken(token);
-const client = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMembers] });
+const client = new Client({
+  intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMembers, GatewayIntentBits.GuildVoiceStates],
+});
+
+const lavalinkHost = process.env.LAVALINK_HOST?.trim();
+const lavalinkPassword = process.env.LAVALINK_PASSWORD?.trim();
+const lavalinkPort = Number(process.env.LAVALINK_PORT || 2333);
+const lavalinkSecure = (process.env.LAVALINK_SECURE || "false").toLowerCase() === "true";
+const musicConfigured = Boolean(lavalinkHost && lavalinkPassword && Number.isInteger(lavalinkPort) && lavalinkPort > 0);
+
+if (musicConfigured) {
+  client.lavalink = new LavalinkManager({
+    nodes: [{
+      id: "wlc-primary",
+      host: lavalinkHost,
+      port: lavalinkPort,
+      authorization: lavalinkPassword,
+      secure: lavalinkSecure,
+      retryAmount: 10,
+      retryDelay: 10_000,
+      requestTimeout: 15_000,
+    }],
+    sendToShard: (targetGuildId, payload) => client.guilds.cache.get(targetGuildId)?.shard?.send(payload),
+    autoSkip: true,
+    client: { id: applicationId, username: "সাহিত্য বন্ধু" },
+    playerOptions: {
+      applyVolumeAsFilter: false,
+      clientBasedPositionUpdateInterval: 250,
+      defaultSearchPlatform: "ytsearch",
+      onDisconnect: { autoReconnect: true, destroyPlayer: false },
+      onEmptyQueue: {
+        autoPlayFunction: async player => {
+          if (!radioEnabled || player.guildId !== musicGuildId) return;
+          await addRadioTrack(player);
+        },
+      },
+    },
+    queueOptions: { maxPreviousTracks: 10 },
+  });
+
+  client.on("raw", packet => client.lavalink.sendRawData(packet));
+  client.lavalink.on("trackStart", (player, track) => {
+    console.log(`Music started in ${player.guildId}: ${track.info?.title || "Unknown track"}`);
+  });
+  client.lavalink.nodeManager.on("error", (node, error) => {
+    console.error(`Lavalink node ${node.id} error:`, error);
+  });
+} else {
+  console.warn("Music is disabled: configure LAVALINK_HOST, LAVALINK_PORT and LAVALINK_PASSWORD.");
+}
+
+function getMusicPlayer(guildId) {
+  return client.lavalink?.getPlayer(guildId);
+}
+
+async function addRadioTrack(player) {
+  if (!client.lavalink?.useable || !musicRadioQueries.length) return false;
+
+  for (let attempt = 0; attempt < musicRadioQueries.length; attempt += 1) {
+    const query = musicRadioQueries[radioQueryIndex % musicRadioQueries.length];
+    radioQueryIndex += 1;
+    try {
+      const result = await player.search({ query: `ytsearch:${query}` }, client.user);
+      const tracks = result?.tracks || [];
+      if (!tracks.length) continue;
+      await player.queue.add(tracks[0]);
+      console.log(`WLC Radio queued: ${tracks[0].info?.title || query}`);
+      return true;
+    } catch (error) {
+      console.error(`Radio search failed for "${query}":`, error);
+    }
+  }
+  console.error("WLC Radio could not find a playable track from the configured queries.");
+  return false;
+}
+
+async function createMusicPlayer(guild, voiceChannelId, textChannelId) {
+  if (!client.lavalink?.useable) throw new Error("The music server is not connected yet. Please try again shortly.");
+  let player = getMusicPlayer(guild.id);
+  if (player && player.voiceChannelId && player.voiceChannelId !== voiceChannelId) {
+    throw new Error(`I am already playing in <#${player.voiceChannelId}>. Join that voice channel first.`);
+  }
+  if (!player) {
+    player = await client.lavalink.createPlayer({
+      guildId: guild.id,
+      voiceChannelId,
+      textChannelId: textChannelId || undefined,
+      selfDeaf: true,
+      selfMute: false,
+      volume: defaultMusicVolume,
+    });
+  }
+  if (!player.connected) await player.connect();
+  return player;
+}
+
+async function startWlcRadio() {
+  if (!musicVoiceChannelId || !musicGuildId) {
+    console.warn("WLC Radio is not auto-started: set MUSIC_GUILD_ID and MUSIC_VOICE_CHANNEL_ID.");
+    return;
+  }
+  if (!radioEnabled || !client.lavalink?.useable) return;
+
+  const guild = await client.guilds.fetch(musicGuildId);
+  const voiceChannel = await guild.channels.fetch(musicVoiceChannelId);
+  if (!voiceChannel?.isVoiceBased()) {
+    throw new Error("MUSIC_VOICE_CHANNEL_ID must point to a voice or stage channel.");
+  }
+
+  const player = await createMusicPlayer(guild, voiceChannel.id, musicTextChannelId);
+  if (!player.playing && !player.queue.current && player.queue.tracks.length === 0) {
+    const added = await addRadioTrack(player);
+    if (added) await player.play();
+  } else if (!player.playing && (player.queue.current || player.queue.tracks.length > 0)) {
+    await player.play();
+  }
+  console.log(`WLC Radio connected to #${voiceChannel.name}`);
+}
 
 async function configureWelcomeChannel(guild) {
   if (!welcomeChannelId) return;
@@ -58,7 +203,6 @@ async function configureWelcomeChannel(guild) {
     throw new Error("DISCORD_WELCOME_CHANNEL_ID must point to a text channel in the target server.");
   }
 
-  // Lock the channel for @everyone, then explicitly allow the bot and selected roles.
   await channel.permissionOverwrites.edit(guild.roles.everyone, {
     SendMessages: false,
     SendMessagesInThreads: false,
@@ -139,6 +283,31 @@ function panelEmbed(generation, members) {
   };
 }
 
+function durationLabel(milliseconds) {
+  if (!milliseconds) return "LIVE";
+  const totalSeconds = Math.floor(milliseconds / 1000);
+  const hours = Math.floor(totalSeconds / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const seconds = totalSeconds % 60;
+  return hours ? `${hours}:${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}` :
+    `${minutes}:${String(seconds).padStart(2, "0")}`;
+}
+
+function musicUnavailableMessage() {
+  return "Music service is not configured or the Lavalink node is offline. Please contact a WLC administrator.";
+}
+
+async function requireMusicPlayer(interaction) {
+  if (!client.lavalink?.useable) throw new Error(musicUnavailableMessage());
+  const player = getMusicPlayer(interaction.guildId);
+  if (!player?.connected) throw new Error("Nothing is connected to a voice channel right now. Join a voice channel and use /play.");
+  const memberVoiceId = interaction.member?.voice?.channelId;
+  if (memberVoiceId && player.voiceChannelId !== memberVoiceId) {
+    throw new Error(`Join <#${player.voiceChannelId}> to control the music.`);
+  }
+  return player;
+}
+
 client.once(Events.ClientReady, async readyClient => {
   console.log(`WLC Discord Bot online as ${readyClient.user.tag}`);
   if (welcomeChannelId) {
@@ -161,6 +330,16 @@ client.once(Events.ClientReady, async readyClient => {
   } catch (error) {
     console.error("Slash command registration failed:", error);
   }
+
+  if (client.lavalink) {
+    try {
+      await client.lavalink.init({ ...readyClient.user });
+      console.log("Lavalink manager initialized.");
+      await startWlcRadio();
+    } catch (error) {
+      console.error("Lavalink initialization / WLC Radio startup failed:", error);
+    }
+  }
 });
 
 client.on(Events.GuildMemberAdd, handleNewMember);
@@ -172,7 +351,7 @@ client.on(Events.InteractionCreate, async interaction => {
     if (interaction.commandName === "wlc") {
       await interaction.reply({
         ephemeral: true,
-        content: "**Willes Literary Club Bot**\nOfficial community management and panel directory.\nCommands: `/panels`, `/gen`, `/sync`, `/announce`.",
+        content: "**Willes Literary Club Bot**\nOfficial community management, panel directory and music radio.\nManagement: `/panels`, `/gen`, `/sync`, `/announce`.\nMusic: `/play`, `/skip`, `/pause`, `/resume`, `/queue`, `/nowplaying`, `/volume`, `/stop`.",
       });
       return;
     }
@@ -238,10 +417,129 @@ client.on(Events.InteractionCreate, async interaction => {
         `Source timestamp: ${generatedAt}`,
         "This initial sync prepares generation roles; individual Discord account linking and member-role assignment are not enabled yet.",
       ].join("\n"));
+      return;
+    }
+
+    if (interaction.commandName === "play") {
+      await interaction.deferReply();
+      if (!interaction.guild || !interaction.member?.voice?.channelId) {
+        await interaction.editReply("Join a voice channel first, then use /play.");
+        return;
+      }
+      const voiceId = musicVoiceChannelId && interaction.guildId === musicGuildId
+        ? musicVoiceChannelId
+        : interaction.member.voice.channelId;
+      if (musicVoiceChannelId && interaction.guildId === musicGuildId && interaction.member.voice.channelId !== musicVoiceChannelId) {
+        await interaction.editReply(`Please join the WLC Music voice channel <#${musicVoiceChannelId}> first.`);
+        return;
+      }
+      const player = await createMusicPlayer(interaction.guild, voiceId, interaction.channelId);
+      const query = interaction.options.getString("query", true);
+      const result = await player.search({ query }, interaction.user);
+      if (!result?.tracks?.length) {
+        await interaction.editReply("No playable YouTube results found. Try another song title or link.");
+        return;
+      }
+      await player.queue.add(result.tracks);
+      if (!player.playing) await player.play();
+      const first = result.tracks[0];
+      const extra = result.tracks.length > 1 ? ` Added **${result.tracks.length} tracks**.` : "";
+      await interaction.editReply(`🎶 Added **[${first.info.title}](${first.info.uri || "https://youtube.com"})** to the queue.${extra}`);
+      return;
+    }
+
+    if (interaction.commandName === "skip") {
+      const player = await requireMusicPlayer(interaction);
+      if (!player.queue.current) throw new Error("There is no song to skip.");
+      await player.skip();
+      await interaction.reply("⏭️ Skipped the current song.");
+      return;
+    }
+
+    if (interaction.commandName === "pause") {
+      const player = await requireMusicPlayer(interaction);
+      if (player.paused) throw new Error("Music is already paused.");
+      await player.pause();
+      await interaction.reply("⏸️ Music paused.");
+      return;
+    }
+
+    if (interaction.commandName === "resume") {
+      const player = await requireMusicPlayer(interaction);
+      if (!player.paused && player.playing) throw new Error("Music is already playing.");
+      await player.resume();
+      await interaction.reply("▶️ Music resumed.");
+      return;
+    }
+
+    if (interaction.commandName === "stop") {
+      const player = await requireMusicPlayer(interaction);
+      await player.stopPlaying(true, false);
+      await interaction.reply("⏹️ Playback stopped and the queue was cleared. Use /play or ask an admin to restart /radio.");
+      return;
+    }
+
+    if (interaction.commandName === "queue") {
+      const player = await requireMusicPlayer(interaction);
+      const current = player.queue.current;
+      const upcoming = player.queue.tracks.slice(0, 10);
+      const lines = upcoming.map((track, index) =>
+        `${index + 1}. **${track.info.title}** — ${durationLabel(track.info.duration)}`
+      );
+      await interaction.reply({
+        embeds: [{
+          color: 0x8f263d,
+          title: "🎶 WLC Music Queue",
+          description: [
+            current ? `**Now playing:** [${current.info.title}](${current.info.uri || "https://youtube.com"})` : "Nothing is playing right now.",
+            lines.length ? "\n**Up next:**\n" + lines.join("\n") : "\nThe queue is empty.",
+            player.queue.tracks.length > 10 ? `\n…and ${player.queue.tracks.length - 10} more tracks.` : "",
+          ].join("\n"),
+          footer: { text: `${player.queue.tracks.length} tracks in queue` },
+        }],
+      });
+      return;
+    }
+
+    if (interaction.commandName === "nowplaying") {
+      const player = await requireMusicPlayer(interaction);
+      const track = player.queue.current;
+      if (!track) throw new Error("Nothing is playing right now.");
+      await interaction.reply({
+        embeds: [{
+          color: 0x8f263d,
+          title: "🎧 Now Playing",
+          description: `[${track.info.title}](${track.info.uri || "https://youtube.com"})\n**Artist:** ${track.info.author || "Unknown"}\n**Duration:** ${durationLabel(track.info.duration)}`,
+          thumbnail: track.info.artworkUrl ? { url: track.info.artworkUrl } : undefined,
+        }],
+      });
+      return;
+    }
+
+    if (interaction.commandName === "volume") {
+      const player = await requireMusicPlayer(interaction);
+      const level = interaction.options.getInteger("level", true);
+      await player.setVolume(level);
+      await interaction.reply(`🔊 Volume set to **${level}%**.`);
+      return;
+    }
+
+    if (interaction.commandName === "radio") {
+      radioEnabled = interaction.options.getBoolean("enabled", true);
+      if (radioEnabled) {
+        await interaction.deferReply({ ephemeral: true });
+        await startWlcRadio();
+        await interaction.editReply("📻 WLC Auto Radio is enabled. It will refill the queue automatically.");
+      } else {
+        const player = musicGuildId ? getMusicPlayer(musicGuildId) : undefined;
+        if (player) await player.stopPlaying(true, false);
+        await interaction.reply({ content: "📻 WLC Auto Radio is disabled. Members can still use /play.", ephemeral: true });
+      }
+      return;
     }
   } catch (error) {
     console.error(`Command /${interaction.commandName} failed:`, error);
-    const message = "Something went wrong. Please try again or contact a WLC administrator.";
+    const message = error instanceof Error ? error.message : "Something went wrong. Please try again or contact a WLC administrator.";
     if (interaction.deferred || interaction.replied) {
       await interaction.editReply({ content: message }).catch(() => {});
     } else {
