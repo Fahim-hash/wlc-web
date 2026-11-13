@@ -59,7 +59,7 @@ const commands = [
     .setDefaultMemberPermissions(PermissionFlagsBits.ManageGuild),
 
   new SlashCommandBuilder()
-    .setName("play").setDescription("Play a YouTube song or add it to the queue")
+    .setName("play").setDescription("Search YouTube Music and play a song")
     .addStringOption(option => option.setName("query").setDescription("Song name or YouTube URL").setRequired(true).setMaxLength(500)),
   new SlashCommandBuilder().setName("skip").setDescription("Skip the current song"),
   new SlashCommandBuilder().setName("pause").setDescription("Pause music"),
@@ -105,7 +105,7 @@ if (musicConfigured) {
     playerOptions: {
       applyVolumeAsFilter: false,
       clientBasedPositionUpdateInterval: 250,
-      defaultSearchPlatform: "ytsearch",
+      defaultSearchPlatform: "ytmsearch",
       onDisconnect: { autoReconnect: true, destroyPlayer: false },
       // Allow a few isolated YouTube failures without destroying the voice player.
       // autoSkip still advances past individual failed tracks.
@@ -179,7 +179,7 @@ async function addRadioTrack(player) {
     const query = musicRadioQueries[radioQueryIndex % musicRadioQueries.length];
     radioQueryIndex += 1;
     try {
-      const result = await player.search({ query: `ytsearch:${query}` }, client.user);
+      const result = await player.search({ query: `ytmsearch:${query}` }, client.user);
       const tracks = result?.tracks || [];
       if (!tracks.length) continue;
       await player.queue.add(tracks[0]);
@@ -521,9 +521,9 @@ client.on(Events.InteractionCreate, async interaction => {
       }
       const player = await createMusicPlayer(interaction.guild, voiceId, interaction.channelId);
       const query = interaction.options.getString("query", true);
-      const result = await player.search({ query }, interaction.user);
+      const searchQuery = /^https?:\/\//i.test(query) ? query : `ytmsearch:${query}`;\n      const result = await player.search({ query: searchQuery }, interaction.user);
       if (!result?.tracks?.length) {
-        await interaction.editReply("No playable YouTube results found. Try another song title or link.");
+        await interaction.editReply("No playable YouTube Music results found. Try another song title or a direct YouTube link.");
         return;
       }
       // A search returns many similarly named videos. Add only the top match,
