@@ -5,20 +5,6 @@ server:
     enabled: false
 
 plugins:
-  youtube:
-    enabled: true
-    allowSearch: true
-    allowDirectVideoIds: true
-    allowDirectPlaylistIds: true
-    # MUSIC provides YouTube Music search only; playback is handled by
-    # the regular playback-capable clients below.
-    clients:
-      - MUSIC
-      - MWEB
-      - WEB
-      - WEBEMBEDDED
-      - ANDROID_MUSIC
-      - ANDROID_VR
   lavasrc:
     # Spotify is metadata/search only; resolve tracks through SoundCloud.
     # Do not use YouTube as a mirror provider: this node is receiving bot/login blocks.
@@ -38,9 +24,6 @@ plugins:
 
 lavalink:
   plugins:
-    - dependency: "dev.lavalink.youtube:youtube-plugin:1.18.2"
-      repository: "https://maven.lavalink.dev/releases"
-      snapshot: false
     - dependency: "com.github.topi314.lavasrc:lavasrc-plugin:4.8.3"
       repository: "https://maven.lavalink.dev/releases"
       snapshot: false
