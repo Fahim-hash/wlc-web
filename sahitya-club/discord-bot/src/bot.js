@@ -175,10 +175,10 @@ async function createMusicPlayer(guild, voiceChannelId, textChannelId) {
 
 async function startWlcRadio() {
   if (!musicVoiceChannelId || !musicGuildId) {
-    console.warn("WLC Radio is not auto-started: set MUSIC_GUILD_ID and MUSIC_VOICE_CHANNEL_ID.");
-    return;
+    throw new Error("Set MUSIC_GUILD_ID and MUSIC_VOICE_CHANNEL_ID to configure the WLC radio.");
   }
-  if (!radioEnabled || !client.lavalink?.useable) return;
+  if (!radioEnabled) return;
+  if (!client.lavalink?.useable) throw new Error(musicUnavailableMessage());
 
   const guild = await client.guilds.fetch(musicGuildId);
   const voiceChannel = await guild.channels.fetch(musicVoiceChannelId);
@@ -301,7 +301,8 @@ async function requireMusicPlayer(interaction) {
   if (!client.lavalink?.useable) throw new Error(musicUnavailableMessage());
   const player = getMusicPlayer(interaction.guildId);
   if (!player?.connected) throw new Error("Nothing is connected to a voice channel right now. Join a voice channel and use /play.");
-  const memberVoiceId = interaction.member?.voice?.channelId;
+  const member = await interaction.guild.members.fetch(interaction.user.id);
+  const memberVoiceId = member.voice.channelId;
   if (memberVoiceId && player.voiceChannelId !== memberVoiceId) {
     throw new Error(`Join <#${player.voiceChannelId}> to control the music.`);
   }
@@ -422,14 +423,20 @@ client.on(Events.InteractionCreate, async interaction => {
 
     if (interaction.commandName === "play") {
       await interaction.deferReply();
-      if (!interaction.guild || !interaction.member?.voice?.channelId) {
+      if (!interaction.guild) {
+        await interaction.editReply("Use /play inside a Discord server.");
+        return;
+      }
+      const member = await interaction.guild.members.fetch(interaction.user.id);
+      const requesterVoiceId = member.voice.channelId;
+      if (!requesterVoiceId) {
         await interaction.editReply("Join a voice channel first, then use /play.");
         return;
       }
       const voiceId = musicVoiceChannelId && interaction.guildId === musicGuildId
         ? musicVoiceChannelId
-        : interaction.member.voice.channelId;
-      if (musicVoiceChannelId && interaction.guildId === musicGuildId && interaction.member.voice.channelId !== musicVoiceChannelId) {
+        : requesterVoiceId;
+      if (musicVoiceChannelId && interaction.guildId === musicGuildId && requesterVoiceId !== musicVoiceChannelId) {
         await interaction.editReply(`Please join the WLC Music voice channel <#${musicVoiceChannelId}> first.`);
         return;
       }
