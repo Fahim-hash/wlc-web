@@ -121,8 +121,21 @@ if (musicConfigured) {
   client.lavalink.on("trackStart", (player, track) => {
     console.log(`Music started in ${player.guildId}: ${track.info?.title || "Unknown track"}`);
   });
+  client.lavalink.nodeManager.on("create", node => {
+    console.log(`Lavalink node created: ${node.id} (${node.options?.host || lavalinkHost}:${node.options?.port || lavalinkPort})`);
+  });
+  client.lavalink.nodeManager.on("connect", node => {
+    console.log(`Lavalink node connected: ${node.id}`);
+    if (discordReady && radioEnabled) void startWlcRadioWhenReady();
+  });
+  client.lavalink.nodeManager.on("reconnecting", node => {
+    console.warn(`Lavalink node reconnecting: ${node.id}`);
+  });
+  client.lavalink.nodeManager.on("disconnect", (node, reason) => {
+    console.warn(`Lavalink node disconnected: ${node.id}`, reason);
+  });
   client.lavalink.nodeManager.on("error", (node, error) => {
-    console.error(`Lavalink node ${node.id} error:`, error);
+    console.error(`Lavalink node ${node.id} error:`, error?.message || error);
   });
 } else {
   console.warn("Music is disabled: configure LAVALINK_HOST, LAVALINK_PORT and LAVALINK_PASSWORD.");
@@ -171,6 +184,40 @@ async function createMusicPlayer(guild, voiceChannelId, textChannelId) {
   }
   if (!player.connected) await player.connect();
   return player;
+}
+
+let discordReady = false;
+let radioStartPromise = null;
+
+async function waitForLavalinkConnection(timeoutMs = 60_000) {
+  if (client.lavalink?.useable) return;
+  console.log(`Waiting up to ${Math.round(timeoutMs / 1000)}s for Lavalink node connection...`);
+  await new Promise((resolve, reject) => {
+    const manager = client.lavalink?.nodeManager;
+    if (!manager) return reject(new Error("Lavalink node manager is unavailable."));
+    const timeout = setTimeout(() => {
+      manager.off("connect", onConnect);
+      reject(new Error("Timed out waiting for Lavalink node connection. Check TCP proxy, port and Lavalink password."));
+    }, timeoutMs);
+    const onConnect = () => {
+      clearTimeout(timeout);
+      manager.off("connect", onConnect);
+      resolve();
+    };
+    manager.on("connect", onConnect);
+    if (client.lavalink?.useable) onConnect();
+  });
+}
+
+function startWlcRadioWhenReady() {
+  if (!radioEnabled || !client.lavalink?.useable) return Promise.resolve();
+  if (radioStartPromise) return radioStartPromise;
+  radioStartPromise = startWlcRadio()
+    .catch(error => {
+      console.error("WLC Radio startup failed:", error);
+      radioStartPromise = null;
+    });
+  return radioStartPromise;
 }
 
 async function startWlcRadio() {
@@ -310,6 +357,7 @@ async function requireMusicPlayer(interaction) {
 }
 
 client.once(Events.ClientReady, async readyClient => {
+  discordReady = true;
   console.log(`WLC Discord Bot online as ${readyClient.user.tag}`);
   if (welcomeChannelId) {
     try {
@@ -334,11 +382,15 @@ client.once(Events.ClientReady, async readyClient => {
 
   if (client.lavalink) {
     try {
+      console.log(`Connecting to Lavalink at ${lavalinkHost}:${lavalinkPort} (secure=${lavalinkSecure})...`);
       await client.lavalink.init({ ...readyClient.user });
-      console.log("Lavalink manager initialized.");
-      await startWlcRadio();
+      console.log("Lavalink manager initialized; waiting for a connected node.");
+      await waitForLavalinkConnection(60_000);
+      console.log("Lavalink node is usable.");
+      await startWlcRadioWhenReady();
     } catch (error) {
-      console.error("Lavalink initialization / WLC Radio startup failed:", error);
+      console.error("Lavalink startup diagnostic:", error?.stack || error);
+      console.error("Music will remain unavailable until the Lavalink node connects; automatic reconnect is enabled.");
     }
   }
 });
