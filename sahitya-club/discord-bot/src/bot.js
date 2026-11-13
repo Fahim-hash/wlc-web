@@ -521,7 +521,8 @@ client.on(Events.InteractionCreate, async interaction => {
       }
       const player = await createMusicPlayer(interaction.guild, voiceId, interaction.channelId);
       const query = interaction.options.getString("query", true);
-      const searchQuery = /^https?:\/\//i.test(query) ? query : `ytmsearch:${query}`;\n      const result = await player.search({ query: searchQuery }, interaction.user);
+      const searchQuery = /^https?:\/\//i.test(query) ? query : `ytmsearch:${query}`;
+      const result = await player.search({ query: searchQuery }, interaction.user);
       if (!result?.tracks?.length) {
         await interaction.editReply("No playable YouTube Music results found. Try another song title or a direct YouTube link.");
         return;
