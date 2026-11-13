@@ -63,7 +63,7 @@ const commands = [
     .addStringOption(option => option.setName("query").setDescription("Song name or a Spotify, SoundCloud or YouTube link").setRequired(true).setMaxLength(500))
     .addStringOption(option => option.setName("source").setDescription("Choose where to search").setRequired(false)
       .addChoices(
-        { name: "Auto (SoundCloud first)", value: "auto" },
+        { name: "Auto (SoundCloud only)", value: "auto" },
         { name: "SoundCloud", value: "soundcloud" },
         { name: "YouTube Music", value: "youtube" },
         { name: "Spotify", value: "spotify" }
@@ -112,7 +112,7 @@ if (musicConfigured) {
     playerOptions: {
       applyVolumeAsFilter: false,
       clientBasedPositionUpdateInterval: 250,
-      defaultSearchPlatform: "ytmsearch",
+      defaultSearchPlatform: "scsearch",
       onDisconnect: { autoReconnect: true, destroyPlayer: false },
       // Allow a few isolated YouTube failures without destroying the voice player.
       // autoSkip still advances past individual failed tracks.
