@@ -48,6 +48,12 @@ const commands = [
     .addStringOption(option => option.setName("generation").setDescription("Generation").setRequired(true)
       .addChoices({ name: "GEN-1", value: "GEN-1" }, { name: "GEN-2", value: "GEN-2" }, { name: "GEN-3", value: "GEN-3" })),
   new SlashCommandBuilder()
+    .setName("post")
+    .setDescription("Send a normal text message to a channel")
+    .addStringOption(option => option.setName("message").setDescription("Message to send (up to 2000 characters)").setRequired(true).setMaxLength(2000))
+    .addChannelOption(option => option.setName("channel").setDescription("Destination channel (defaults to this channel)").addChannelTypes(ChannelType.GuildText))
+    .setDefaultMemberPermissions(PermissionFlagsBits.ManageGuild),
+  new SlashCommandBuilder()
     .setName("announce")
     .setDescription("Publish an official WLC announcement")
     .addStringOption(option => option.setName("message").setDescription("Announcement text").setRequired(true).setMaxLength(1800))
@@ -473,6 +479,21 @@ client.on(Events.InteractionCreate, async interaction => {
       const generation = interaction.options.getString("generation", true);
       const { panels } = await fetchPanels();
       await interaction.editReply({ embeds: [panelEmbed(generation, panels[generation] || [])] });
+      return;
+    }
+
+    if (interaction.commandName === "post") {
+      const message = interaction.options.getString("message", true);
+      const channel = interaction.options.getChannel("channel") || interaction.channel;
+      if (!channel || !channel.isTextBased() || !("send" in channel)) {
+        await interaction.reply({ content: "একটি টেক্সট চ্যানেল নির্বাচন করুন।", ephemeral: true });
+        return;
+      }
+      await channel.send({
+        content: message,
+        allowedMentions: { parse: [] },
+      });
+      await interaction.reply({ content: `বার্তাটি ${channel} চ্যানেলে সাধারণ টেক্সট হিসেবে পাঠানো হয়েছে।`, ephemeral: true });
       return;
     }
 
