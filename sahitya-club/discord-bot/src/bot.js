@@ -59,15 +59,8 @@ const commands = [
     .setDefaultMemberPermissions(PermissionFlagsBits.ManageGuild),
 
   new SlashCommandBuilder()
-    .setName("play").setDescription("Play music from SoundCloud, YouTube Music or Spotify")
-    .addStringOption(option => option.setName("query").setDescription("Song name or a Spotify, SoundCloud or YouTube link").setRequired(true).setMaxLength(500))
-    .addStringOption(option => option.setName("source").setDescription("Choose where to search").setRequired(false)
-      .addChoices(
-        { name: "Auto (SoundCloud only)", value: "auto" },
-        { name: "SoundCloud", value: "soundcloud" },
-        { name: "YouTube Music", value: "youtube" },
-        { name: "Spotify", value: "spotify" }
-      )),
+    .setName("play").setDescription("Play music using Spotify search")
+    .addStringOption(option => option.setName("query").setDescription("Song name or Spotify track link").setRequired(true).setMaxLength(500)),
   new SlashCommandBuilder().setName("skip").setDescription("Skip the current song"),
   new SlashCommandBuilder().setName("pause").setDescription("Pause music"),
   new SlashCommandBuilder().setName("resume").setDescription("Resume music"),
@@ -179,33 +172,28 @@ function getMusicPlayer(guildId) {
   return client.lavalink?.getPlayer(guildId);
 }
 
-function musicSearchCandidates(query, source = "auto") {
-  if (/^https?:\/\//i.test(query)) return [query];
-
-  const candidates = {
-    auto: [`scsearch:${query}`],
-    soundcloud: [`scsearch:${query}`],
-    // YouTube is opt-in only: YouTube may reject server-side playback with
-    // "Sign in to confirm you're not a bot". Never silently fall back to it.
-    youtube: [`ytmsearch:${query}`],
-    // Spotify is metadata/search; LavaSrc mirrors the result through SoundCloud.
-    spotify: [`spsearch:${query}`, `scsearch:${query}`],
-  };
-  return candidates[source] || candidates.auto;
+function musicSearchCandidates(query) {
+  if (/^https?:\/\//i.test(query)) {
+    if (!/(open\.spotify\.com\/track\/|spotify\.link\/)/i.test(query)) {
+      throw new Error("Only Spotify track links are supported. Paste a Spotify link or search by song name.");
+    }
+    return [query];
+  }
+  return [`spsearch:${query}`];
 }
 
-async function searchMusic(player, query, source = "auto", requester = client.user) {
+async function searchMusic(player, query, requester = client.user) {
   let lastError;
-  for (const searchQuery of musicSearchCandidates(query, source)) {
+  for (const searchQuery of musicSearchCandidates(query)) {
     try {
       const result = await player.search({ query: searchQuery }, requester);
       if (result?.tracks?.length) return { result, track: result.tracks[0], searchQuery };
     } catch (error) {
       lastError = error;
-      console.warn(`Music source failed for "${searchQuery}":`, error?.message || error);
+      console.warn(`Spotify search failed for "${searchQuery}":`, error?.message || error);
     }
   }
-  if (lastError) console.warn("All music search providers failed:", lastError?.message || lastError);
+  if (lastError) console.warn("Spotify search failed:", lastError?.message || lastError);
   return null;
 }
 
@@ -216,7 +204,7 @@ async function addRadioTrack(player) {
     const query = musicRadioQueries[radioQueryIndex % musicRadioQueries.length];
     radioQueryIndex += 1;
     try {
-      const found = await searchMusic(player, query, "auto", client.user);
+      const found = await searchMusic(player, query, client.user);
       if (!found?.track) continue;
       await player.queue.add(found.track);
       console.log(`WLC Radio queued via ${found.searchQuery}: ${found.track.info?.title || query}`);
@@ -225,7 +213,7 @@ async function addRadioTrack(player) {
       console.error(`Radio search failed for "${query}":`, error);
     }
   }
-  console.error("WLC Radio could not find a playable SoundCloud track. YouTube fallback is intentionally disabled to avoid login-blocked playback.");
+  console.error("WLC Radio could not find a playable Spotify track. Check Spotify API credentials and the configured audio resolver.");
   return false;
 }
 
@@ -557,18 +545,16 @@ client.on(Events.InteractionCreate, async interaction => {
       }
       const player = await createMusicPlayer(interaction.guild, voiceId, interaction.channelId);
       const query = interaction.options.getString("query", true).trim();
-      const source = interaction.options.getString("source") || "auto";
-      const found = await searchMusic(player, query, source, interaction.user);
+      const found = await searchMusic(player, query, interaction.user);
       if (!found?.track) {
-        await interaction.editReply("No playable result was found. Auto mode uses SoundCloud only. Spotify links need Spotify API credentials on Lavalink; YouTube is available only when explicitly selected.");
+        await interaction.editReply("No playable Spotify result was found. Check Spotify Client ID/Secret on Lavalink and try another track.");
         return;
       }
       // Keep search results focused: one best match is queued for text searches.
       const first = found.track;
       await player.queue.add(first);
       if (!player.playing) await player.play();
-      const sourceLabel = first.info?.sourceName || found.searchQuery.split(":")[0];
-      await interaction.editReply(`🎶 Added **[${first.info.title}](${first.info.uri || "https://youtube.com"})** to the queue.\nSource: ${sourceLabel}`);
+      await interaction.editReply(`🎶 Added **[${first.info.title}](${first.info.uri || "https://open.spotify.com"})** to the queue.\nSource: Spotify`);
       return;
     }
 
@@ -633,7 +619,7 @@ client.on(Events.InteractionCreate, async interaction => {
         embeds: [{
           color: 0x8f263d,
           title: "🎧 Now Playing",
-          description: `[${track.info.title}](${track.info.uri || "https://youtube.com"})\n**Artist:** ${track.info.author || "Unknown"}\n**Duration:** ${durationLabel(track.info.duration)}`,
+          description: `[${track.info.title}](${track.info.uri || "https://open.spotify.com"})\n**Artist:** ${track.info.author || "Unknown"}\n**Duration:** ${durationLabel(track.info.duration)}`,
           thumbnail: track.info.artworkUrl ? { url: track.info.artworkUrl } : undefined,
         }],
       });
