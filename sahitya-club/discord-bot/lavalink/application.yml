@@ -19,10 +19,31 @@ plugins:
       - WEBEMBEDDED
       - ANDROID_MUSIC
       - ANDROID_VR
+  lavasrc:
+    # Spotify is metadata/search only; resolve its tracks to playable providers.
+    # Prefer SoundCloud to reduce dependence on YouTube playback.
+    providers:
+      - "scsearch:%QUERY%"
+      - "ytmsearch:%QUERY%"
+      - "ytsearch:%QUERY%"
+    sources:
+      spotify: true
+      applemusic: false
+      deezer: false
+      yandexmusic: false
+      flowerytts: false
+      youtube: false
+    spotify:
+      clientId: ${SPOTIFY_CLIENT_ID:}
+      clientSecret: ${SPOTIFY_CLIENT_SECRET:}
+      countryCode: "BD"
 
 lavalink:
   plugins:
     - dependency: "dev.lavalink.youtube:youtube-plugin:1.18.2"
+      repository: "https://maven.lavalink.dev/releases"
+      snapshot: false
+    - dependency: "com.github.topi314.lavasrc:lavasrc-plugin:4.8.3"
       repository: "https://maven.lavalink.dev/releases"
       snapshot: false
   server:
