@@ -19,6 +19,10 @@ plugins:
       - ANDROID_MUSIC
       - ANDROID_VR
       - TVHTML5_SIMPLY
+    # OAuth can reduce YouTube's automated-client sign-in challenges.
+    # Complete the one-time device flow from the Lavalink service logs.
+    oauth:
+      enabled: true
 
 lavalink:
   plugins:
