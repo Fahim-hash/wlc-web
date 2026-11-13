@@ -107,6 +107,10 @@ if (musicConfigured) {
       clientBasedPositionUpdateInterval: 250,
       defaultSearchPlatform: "ytsearch",
       onDisconnect: { autoReconnect: true, destroyPlayer: false },
+      // Allow a few isolated YouTube failures without destroying the voice player.
+      // autoSkip still advances past individual failed tracks.
+      maxErrorsPerTime: { threshold: 30_000, maxAmount: 6 },
+      minAutoPlayMs: 15_000,
       onEmptyQueue: {
         autoPlayFunction: async player => {
           if (!radioEnabled || player.guildId !== musicGuildId) return;
@@ -120,6 +124,29 @@ if (musicConfigured) {
   client.on("raw", packet => client.lavalink.sendRawData(packet));
   client.lavalink.on("trackStart", (player, track) => {
     console.log(`Music started in ${player.guildId}: ${track.info?.title || "Unknown track"}`);
+  });
+  client.lavalink.on("trackError", (player, track, payload) => {
+    const exception = payload?.exception || payload || {};
+    console.error(
+      `Track playback failed in ${player.guildId}: ${track?.info?.title || "Unknown track"}`,
+      JSON.stringify({
+        message: exception.message,
+        severity: exception.severity,
+        cause: exception.cause,
+      })
+    );
+  });
+  client.lavalink.on("trackStuck", (player, track, payload) => {
+    console.warn(
+      `Track playback stuck in ${player.guildId}: ${track?.info?.title || "Unknown track"}`,
+      JSON.stringify(payload || {})
+    );
+  });
+  client.lavalink.on("playerDisconnect", (player, voiceChannelId) => {
+    console.warn(`Music player disconnected in ${player.guildId} from voice channel ${voiceChannelId || "unknown"}`);
+  });
+  client.lavalink.on("playerDestroy", (player, reason) => {
+    console.warn(`Music player destroyed in ${player.guildId}; reason: ${reason || "not provided"}`);
   });
   client.lavalink.nodeManager.on("create", node => {
     console.log(`Lavalink node created: ${node.id} (${node.options?.host || lavalinkHost}:${node.options?.port || lavalinkPort})`);
@@ -499,11 +526,12 @@ client.on(Events.InteractionCreate, async interaction => {
         await interaction.editReply("No playable YouTube results found. Try another song title or link.");
         return;
       }
-      await player.queue.add(result.tracks);
-      if (!player.playing) await player.play();
+      // A search returns many similarly named videos. Add only the top match,
+      // not every result, so unrelated videos do not flood the queue.
       const first = result.tracks[0];
-      const extra = result.tracks.length > 1 ? ` Added **${result.tracks.length} tracks**.` : "";
-      await interaction.editReply(`🎶 Added **[${first.info.title}](${first.info.uri || "https://youtube.com"})** to the queue.${extra}`);
+      await player.queue.add(first);
+      if (!player.playing) await player.play();
+      await interaction.editReply(`🎶 Added **[${first.info.title}](${first.info.uri || "https://youtube.com"})** to the queue.`);
       return;
     }
 
