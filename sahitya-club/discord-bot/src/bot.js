@@ -59,8 +59,15 @@ const commands = [
     .setDefaultMemberPermissions(PermissionFlagsBits.ManageGuild),
 
   new SlashCommandBuilder()
-    .setName("play").setDescription("Search YouTube Music and play a song")
-    .addStringOption(option => option.setName("query").setDescription("Song name or YouTube URL").setRequired(true).setMaxLength(500)),
+    .setName("play").setDescription("Play music from SoundCloud, YouTube Music or Spotify")
+    .addStringOption(option => option.setName("query").setDescription("Song name or a Spotify, SoundCloud or YouTube link").setRequired(true).setMaxLength(500))
+    .addStringOption(option => option.setName("source").setDescription("Choose where to search").setRequired(false)
+      .addChoices(
+        { name: "Auto (SoundCloud first)", value: "auto" },
+        { name: "SoundCloud", value: "soundcloud" },
+        { name: "YouTube Music", value: "youtube" },
+        { name: "Spotify", value: "spotify" }
+      )),
   new SlashCommandBuilder().setName("skip").setDescription("Skip the current song"),
   new SlashCommandBuilder().setName("pause").setDescription("Pause music"),
   new SlashCommandBuilder().setName("resume").setDescription("Resume music"),
@@ -172,6 +179,33 @@ function getMusicPlayer(guildId) {
   return client.lavalink?.getPlayer(guildId);
 }
 
+function musicSearchCandidates(query, source = "auto") {
+  if (/^https?:\/\//i.test(query)) return [query];
+
+  const candidates = {
+    auto: [`scsearch:${query}`, `ytmsearch:${query}`],
+    soundcloud: [`scsearch:${query}`, `ytmsearch:${query}`],
+    youtube: [`ytmsearch:${query}`, `scsearch:${query}`],
+    spotify: [`spsearch:${query}`, `scsearch:${query}`, `ytmsearch:${query}`],
+  };
+  return candidates[source] || candidates.auto;
+}
+
+async function searchMusic(player, query, source = "auto", requester = client.user) {
+  let lastError;
+  for (const searchQuery of musicSearchCandidates(query, source)) {
+    try {
+      const result = await player.search({ query: searchQuery }, requester);
+      if (result?.tracks?.length) return { result, track: result.tracks[0], searchQuery };
+    } catch (error) {
+      lastError = error;
+      console.warn(`Music source failed for "${searchQuery}":`, error?.message || error);
+    }
+  }
+  if (lastError) console.warn("All music search providers failed:", lastError?.message || lastError);
+  return null;
+}
+
 async function addRadioTrack(player) {
   if (!client.lavalink?.useable || !musicRadioQueries.length) return false;
 
@@ -179,17 +213,16 @@ async function addRadioTrack(player) {
     const query = musicRadioQueries[radioQueryIndex % musicRadioQueries.length];
     radioQueryIndex += 1;
     try {
-      const result = await player.search({ query: `ytmsearch:${query}` }, client.user);
-      const tracks = result?.tracks || [];
-      if (!tracks.length) continue;
-      await player.queue.add(tracks[0]);
-      console.log(`WLC Radio queued: ${tracks[0].info?.title || query}`);
+      const found = await searchMusic(player, query, "auto", client.user);
+      if (!found?.track) continue;
+      await player.queue.add(found.track);
+      console.log(`WLC Radio queued via ${found.searchQuery}: ${found.track.info?.title || query}`);
       return true;
     } catch (error) {
       console.error(`Radio search failed for "${query}":`, error);
     }
   }
-  console.error("WLC Radio could not find a playable track from the configured queries.");
+  console.error("WLC Radio could not find a playable track from SoundCloud or YouTube Music.");
   return false;
 }
 
@@ -520,19 +553,19 @@ client.on(Events.InteractionCreate, async interaction => {
         return;
       }
       const player = await createMusicPlayer(interaction.guild, voiceId, interaction.channelId);
-      const query = interaction.options.getString("query", true);
-      const searchQuery = /^https?:\/\//i.test(query) ? query : `ytmsearch:${query}`;
-      const result = await player.search({ query: searchQuery }, interaction.user);
-      if (!result?.tracks?.length) {
-        await interaction.editReply("No playable YouTube Music results found. Try another song title or a direct YouTube link.");
+      const query = interaction.options.getString("query", true).trim();
+      const source = interaction.options.getString("source") || "auto";
+      const found = await searchMusic(player, query, source, interaction.user);
+      if (!found?.track) {
+        await interaction.editReply("No playable result was found. Try another source or paste a Spotify, SoundCloud or YouTube link.");
         return;
       }
-      // A search returns many similarly named videos. Add only the top match,
-      // not every result, so unrelated videos do not flood the queue.
-      const first = result.tracks[0];
+      // Keep search results focused: one best match is queued for text searches.
+      const first = found.track;
       await player.queue.add(first);
       if (!player.playing) await player.play();
-      await interaction.editReply(`🎶 Added **[${first.info.title}](${first.info.uri || "https://youtube.com"})** to the queue.`);
+      const sourceLabel = first.info?.sourceName || found.searchQuery.split(":")[0];
+      await interaction.editReply(`🎶 Added **[${first.info.title}](${first.info.uri || "https://youtube.com"})** to the queue.\nSource: ${sourceLabel}`);
       return;
     }
 
