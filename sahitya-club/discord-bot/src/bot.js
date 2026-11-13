@@ -60,7 +60,7 @@ const commands = [
 
   new SlashCommandBuilder()
     .setName("play").setDescription("Play music using YouTube Music search")
-    .addStringOption(option => option.setName("query").setDescription("Song name or Spotify track link").setRequired(true).setMaxLength(500)),
+    .addStringOption(option => option.setName("query").setDescription("Song name or YouTube video link").setRequired(true).setMaxLength(500)),
   new SlashCommandBuilder().setName("skip").setDescription("Skip the current song"),
   new SlashCommandBuilder().setName("pause").setDescription("Pause music"),
   new SlashCommandBuilder().setName("resume").setDescription("Resume music"),
@@ -172,7 +172,7 @@ function getMusicPlayer(guildId) {
 
 function musicSearchCandidates(query) {
   if (/^https?:\/\//i.test(query)) {
-    if (!/(open\.spotify\.com\/track\/|spotify\.link\/)/i.test(query)) {
+    if (!/(youtube\.com\/(watch|shorts|live)\/|youtu\.be\/|music\.youtube\.com\/)/i.test(query)) {
       throw new Error("Only YouTube video links are supported. Paste a YouTube link or search by song name.");
     }
     return [query];
@@ -552,7 +552,7 @@ client.on(Events.InteractionCreate, async interaction => {
       const first = found.track;
       await player.queue.add(first);
       if (!player.playing) await player.play();
-      await interaction.editReply(`🎶 Added **[${first.info.title}](${first.info.uri || "https://open.spotify.com"})** to the queue.\nSource: YouTube Music`);
+      await interaction.editReply(`🎶 Added **[${first.info.title}](${first.info.uri || "https://www.youtube.com"})** to the queue.\nSource: YouTube Music`);
       return;
     }
 
@@ -599,7 +599,7 @@ client.on(Events.InteractionCreate, async interaction => {
           color: 0x8f263d,
           title: "🎶 WLC Music Queue",
           description: [
-            current ? `**Now playing:** [${current.info.title}](${current.info.uri || "https://open.spotify.com"})` : "Nothing is playing right now.",
+            current ? `**Now playing:** [${current.info.title}](${current.info.uri || "https://www.youtube.com"})` : "Nothing is playing right now.",
             lines.length ? "\n**Up next:**\n" + lines.join("\n") : "\nThe queue is empty.",
             player.queue.tracks.length > 10 ? `\n…and ${player.queue.tracks.length - 10} more tracks.` : "",
           ].join("\n"),
@@ -617,7 +617,7 @@ client.on(Events.InteractionCreate, async interaction => {
         embeds: [{
           color: 0x8f263d,
           title: "🎧 Now Playing",
-          description: `[${track.info.title}](${track.info.uri || "https://open.spotify.com"})\n**Artist:** ${track.info.author || "Unknown"}\n**Duration:** ${durationLabel(track.info.duration)}`,
+          description: `[${track.info.title}](${track.info.uri || "https://www.youtube.com"})\n**Artist:** ${track.info.author || "Unknown"}\n**Duration:** ${durationLabel(track.info.duration)}`,
           thumbnail: track.info.artworkUrl ? { url: track.info.artworkUrl } : undefined,
         }],
       });
