@@ -183,10 +183,13 @@ function musicSearchCandidates(query, source = "auto") {
   if (/^https?:\/\//i.test(query)) return [query];
 
   const candidates = {
-    auto: [`scsearch:${query}`, `ytmsearch:${query}`],
-    soundcloud: [`scsearch:${query}`, `ytmsearch:${query}`],
-    youtube: [`ytmsearch:${query}`, `scsearch:${query}`],
-    spotify: [`spsearch:${query}`, `scsearch:${query}`, `ytmsearch:${query}`],
+    auto: [`scsearch:${query}`],
+    soundcloud: [`scsearch:${query}`],
+    // YouTube is opt-in only: YouTube may reject server-side playback with
+    // "Sign in to confirm you're not a bot". Never silently fall back to it.
+    youtube: [`ytmsearch:${query}`],
+    // Spotify is metadata/search; LavaSrc mirrors the result through SoundCloud.
+    spotify: [`spsearch:${query}`, `scsearch:${query}`],
   };
   return candidates[source] || candidates.auto;
 }
@@ -222,7 +225,7 @@ async function addRadioTrack(player) {
       console.error(`Radio search failed for "${query}":`, error);
     }
   }
-  console.error("WLC Radio could not find a playable track from SoundCloud or YouTube Music.");
+  console.error("WLC Radio could not find a playable SoundCloud track. YouTube fallback is intentionally disabled to avoid login-blocked playback.");
   return false;
 }
 
@@ -557,7 +560,7 @@ client.on(Events.InteractionCreate, async interaction => {
       const source = interaction.options.getString("source") || "auto";
       const found = await searchMusic(player, query, source, interaction.user);
       if (!found?.track) {
-        await interaction.editReply("No playable result was found. Try another source or paste a Spotify, SoundCloud or YouTube link.");
+        await interaction.editReply("No playable result was found. Auto mode uses SoundCloud only. Spotify links need Spotify API credentials on Lavalink; YouTube is available only when explicitly selected.");
         return;
       }
       // Keep search results focused: one best match is queued for text searches.
