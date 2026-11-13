@@ -177,7 +177,7 @@ function musicSearchCandidates(query) {
     }
     return [query];
   }
-  return [`ytmsearch:${query}`, `ytsearch:${query}`];
+  return [`ytmsearch:${query}`, `ytsearch:${query}`, `scsearch:${query}`];
 }
 
 async function searchMusic(player, query, requester = client.user) {
@@ -188,10 +188,10 @@ async function searchMusic(player, query, requester = client.user) {
       if (result?.tracks?.length) return { result, track: result.tracks[0], searchQuery };
     } catch (error) {
       lastError = error;
-      console.warn(`YouTube search failed for "${searchQuery}":`, error?.message || error);
+      console.warn(`Music search failed for "${searchQuery}":`, error?.message || error);
     }
   }
-  if (lastError) console.warn("YouTube search failed:", lastError?.message || lastError);
+  if (lastError) console.warn("Music search failed:", lastError?.message || lastError);
   return null;
 }
 
@@ -211,7 +211,7 @@ async function addRadioTrack(player) {
       console.error(`Radio search failed for "${query}":`, error);
     }
   }
-  console.error("WLC Radio could not find a playable YouTube Music track. Check the YouTube source plugin and Lavalink logs.");
+  console.error("WLC Radio could not find a playable track from YouTube Music or SoundCloud. Check Lavalink logs.");
   return false;
 }
 
