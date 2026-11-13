@@ -172,7 +172,7 @@ function getMusicPlayer(guildId) {
 
 function musicSearchCandidates(query) {
   if (/^https?:\/\//i.test(query)) {
-    if (!/(youtube\.com\/(watch|shorts|live)\/|youtu\.be\/|music\.youtube\.com\/)/i.test(query)) {
+    if (!/((www\.)?youtube\.com\/(watch\?|shorts\/|live\/)|youtu\.be\/|music\.youtube\.com\/)/i.test(query)) {
       throw new Error("Only YouTube video links are supported. Paste a YouTube link or search by song name.");
     }
     return [query];
