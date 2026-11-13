@@ -1,8 +1,8 @@
 {
   "name": "wlc-discord-bot",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "private": true,
-  "description": "Willes Literary Club Discord management bot",
+  "description": "Willes Literary Club Discord management and music bot",
   "type": "module",
   "scripts": {
     "start": "node src/bot.js",
@@ -13,6 +13,7 @@
   },
   "dependencies": {
     "discord.js": "^14.22.1",
-    "dotenv": "^16.4.7"
+    "dotenv": "^16.4.7",
+    "lavalink-client": "^2.11.0"
   }
 }
