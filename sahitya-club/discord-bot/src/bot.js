@@ -105,7 +105,7 @@ if (musicConfigured) {
     playerOptions: {
       applyVolumeAsFilter: false,
       clientBasedPositionUpdateInterval: 250,
-      defaultSearchPlatform: "scsearch",
+      defaultSearchPlatform: "spsearch",
       onDisconnect: { autoReconnect: true, destroyPlayer: false },
       maxErrorsPerTime: { threshold: 30_000, maxAmount: 6 },
       minAutoPlayMs: 15_000,
