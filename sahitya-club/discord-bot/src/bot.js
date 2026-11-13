@@ -107,8 +107,6 @@ if (musicConfigured) {
       clientBasedPositionUpdateInterval: 250,
       defaultSearchPlatform: "scsearch",
       onDisconnect: { autoReconnect: true, destroyPlayer: false },
-      // Allow a few isolated YouTube failures without destroying the voice player.
-      // autoSkip still advances past individual failed tracks.
       maxErrorsPerTime: { threshold: 30_000, maxAmount: 6 },
       minAutoPlayMs: 15_000,
       onEmptyQueue: {
@@ -601,7 +599,7 @@ client.on(Events.InteractionCreate, async interaction => {
           color: 0x8f263d,
           title: "🎶 WLC Music Queue",
           description: [
-            current ? `**Now playing:** [${current.info.title}](${current.info.uri || "https://youtube.com"})` : "Nothing is playing right now.",
+            current ? `**Now playing:** [${current.info.title}](${current.info.uri || "https://open.spotify.com"})` : "Nothing is playing right now.",
             lines.length ? "\n**Up next:**\n" + lines.join("\n") : "\nThe queue is empty.",
             player.queue.tracks.length > 10 ? `\n…and ${player.queue.tracks.length - 10} more tracks.` : "",
           ].join("\n"),
