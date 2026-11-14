@@ -14,12 +14,14 @@ lavalink:
     sources:
       youtube: false
       bandcamp: false
-      soundcloud: true
+      soundcloud: false
       twitch: false
       vimeo: false
       nico: false
       http: true
       local: false
+    soundcloudSearchEnabled: true
+    soundcloudFilterOutPreviewTracks: true
     filters:
       volume: true
       equalizer: true
@@ -37,7 +39,7 @@ plugins:
     providers:
       - "scsearch:%QUERY%"
     sources:
-      spotify: true
+      spotify: false
       applemusic: false
       deezer: false
       yandexmusic: false
