@@ -65,8 +65,8 @@ const commands = [
     .setDefaultMemberPermissions(PermissionFlagsBits.ManageGuild),
 
   new SlashCommandBuilder()
-    .setName("play").setDescription("Play music using Spotify search or a Spotify link")
-    .addStringOption(option => option.setName("query").setDescription("Song name or Spotify track/album/playlist link").setRequired(true).setMaxLength(500)),
+    .setName("play").setDescription("Play music using SoundCloud search or a SoundCloud link")
+    .addStringOption(option => option.setName("query").setDescription("Song name or SoundCloud track/playlist link").setRequired(true).setMaxLength(500)),
   new SlashCommandBuilder().setName("skip").setDescription("Skip the current song"),
   new SlashCommandBuilder().setName("pause").setDescription("Pause music"),
   new SlashCommandBuilder().setName("resume").setDescription("Resume music"),
@@ -111,7 +111,7 @@ if (musicConfigured) {
     playerOptions: {
       applyVolumeAsFilter: false,
       clientBasedPositionUpdateInterval: 250,
-      defaultSearchPlatform: "spsearch",
+      defaultSearchPlatform: "scsearch",
       onDisconnect: { autoReconnect: true, destroyPlayer: false },
       maxErrorsPerTime: { threshold: 30_000, maxAmount: 6 },
       minAutoPlayMs: 15_000,
@@ -178,14 +178,14 @@ function getMusicPlayer(guildId) {
 
 function musicSearchCandidates(query) {
   const value = query.trim();
-  if (!value) throw new Error("Enter a song name or Spotify link.");
+  if (!value) throw new Error("Enter a song name or SoundCloud link.");
   if (/^https?:\/\//i.test(value)) {
     if (!/^https?:\/\/open\.spotify\.com\/(?:intl-[a-z]{2}\/)?(?:track|album|playlist|artist)\//i.test(value)) {
       throw new Error("Only Spotify track, album, playlist, or artist links are supported.");
     }
     return [value];
   }
-  return [`spsearch:${value}`];
+  return [`scsearch:${value}`];
 }
 
 async function searchMusic(player, query, requester = client.user) {
@@ -195,7 +195,7 @@ async function searchMusic(player, query, requester = client.user) {
     if (result?.tracks?.length) return { result, track: result.tracks[0], searchQuery };
     return null;
   } catch (error) {
-    console.warn(`Spotify search failed for "${searchQuery}":`, error?.message || error);
+    console.warn(`SoundCloud search failed for "${searchQuery}":`, error?.message || error);
     throw error;
   }
 }
@@ -211,18 +211,18 @@ async function addRadioTrack(player) {
   try {
     const found = await searchMusic(player, query, client.user);
     if (!found?.track) {
-      console.warn(`WLC Radio found no Spotify result for "${query}"; one search was attempted and no fallback fetch was made.`);
+      console.warn(`WLC Radio found no Soundcloud result for "${query}"; one search was attempted and no fallback fetch was made.`);
       return false;
     }
     if (player.queue.tracks.length > 0) {
-      console.log("WLC Radio skipped its result because another track was queued while Spotify search was running.");
+      console.log("WLC Radio skipped its result because another track was queued while SoundCloud search was running.");
       return false;
     }
     await player.queue.add(found.track);
-    console.log(`WLC Radio queued one Spotify result via ${found.searchQuery}: ${found.track.info?.title || query}`);
+    console.log(`WLC Radio queued one Soundcloud result via ${found.searchQuery}: ${found.track.info?.title || query}`);
     return true;
   } catch (error) {
-    console.error(`WLC Radio Spotify search failed for "${query}":`, error);
+    console.error(`WLC Radio SoundCloud search failed for "${query}":`, error);
     return false;
   } finally {
     radioFetchInProgress = false;
@@ -467,7 +467,7 @@ client.on(Events.InteractionCreate, async interaction => {
     if (interaction.commandName === "wlc") {
       await interaction.reply({
         ephemeral: true,
-        content: "**Willes Literary Club Bot**\nOfficial community management, panel directory and music radio.\nManagement: `/panels`, `/gen`, `/sync`, `/announce`.\nMusic: `/play` (Spotify), `/skip`, `/pause`, `/resume`, `/queue`, `/nowplaying`, `/volume`, `/stop`.",
+        content: "**Willes Literary Club Bot**\nOfficial community management, panel directory and music radio.\nManagement: `/panels`, `/gen`, `/sync`, `/announce`.\nMusic: `/play` (SoundCloud), `/skip`, `/pause`, `/resume`, `/queue`, `/nowplaying`, `/volume`, `/stop`.",
       });
       return;
     }
@@ -574,14 +574,14 @@ client.on(Events.InteractionCreate, async interaction => {
       const query = interaction.options.getString("query", true).trim();
       const found = await searchMusic(player, query, interaction.user);
       if (!found?.track) {
-        await interaction.editReply("No Spotify result was found. Check the LavaSrc plugin and Spotify credentials, then try another search.");
+        await interaction.editReply("No Soundcloud result was found. Check the LavaSrc plugin and Spotify credentials, then try another search.");
         return;
       }
       // Keep search results focused: one best match is queued for text searches.
       const first = found.track;
       await player.queue.add(first);
       if (!player.playing) await player.play();
-      await interaction.editReply(`🎶 Added **[${first.info.title}](${first.info.uri || "https://open.spotify.com"})** to the queue.\nSource: Spotify`);
+      await interaction.editReply(`🎶 Added **[${first.info.title}](${first.info.uri || "https://open.spotify.com"})** to the queue.\nSource: SoundCloud`);
       return;
     }
 
@@ -628,7 +628,7 @@ client.on(Events.InteractionCreate, async interaction => {
           color: 0x8f263d,
           title: "🎶 WLC Music Queue",
           description: [
-            current ? `**Now playing:** [${current.info.title}](${current.info.uri || "https://open.spotify.com"})` : "Nothing is playing right now.",
+            current ? `**Now playing:** [${current.info.title}](${current.info.uri || "https://soundcloud.com"})` : "Nothing is playing right now.",
             lines.length ? "\n**Up next:**\n" + lines.join("\n") : "\nThe queue is empty.",
             player.queue.tracks.length > 10 ? `\n…and ${player.queue.tracks.length - 10} more tracks.` : "",
           ].join("\n"),
@@ -646,7 +646,7 @@ client.on(Events.InteractionCreate, async interaction => {
         embeds: [{
           color: 0x8f263d,
           title: "🎧 Now Playing",
-          description: `[${track.info.title}](${track.info.uri || "https://open.spotify.com"})\n**Artist:** ${track.info.author || "Unknown"}\n**Duration:** ${durationLabel(track.info.duration)}`,
+          description: `[${track.info.title}](${track.info.uri || "https://soundcloud.com"})\n**Artist:** ${track.info.author || "Unknown"}\n**Duration:** ${durationLabel(track.info.duration)}`,
           thumbnail: track.info.artworkUrl ? { url: track.info.artworkUrl } : undefined,
         }],
       });
