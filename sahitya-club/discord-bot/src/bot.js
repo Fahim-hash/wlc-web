@@ -574,7 +574,7 @@ client.on(Events.InteractionCreate, async interaction => {
       const query = interaction.options.getString("query", true).trim();
       const found = await searchMusic(player, query, interaction.user);
       if (!found?.track) {
-        await interaction.editReply("No Soundcloud result was found. Check the LavaSrc plugin and Spotify credentials, then try another search.");
+        await interaction.editReply("SoundCloud could not load a playable audio stream. The source may be temporarily incompatible; please try again later.");
         return;
       }
       // Keep search results focused: one best match is queued for text searches.
