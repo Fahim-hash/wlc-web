@@ -65,8 +65,8 @@ const commands = [
     .setDefaultMemberPermissions(PermissionFlagsBits.ManageGuild),
 
   new SlashCommandBuilder()
-    .setName("play").setDescription("Play music using YouTube Music search")
-    .addStringOption(option => option.setName("query").setDescription("Song name or YouTube video link").setRequired(true).setMaxLength(500)),
+    .setName("play").setDescription("Play music using Spotify search or a Spotify link")
+    .addStringOption(option => option.setName("query").setDescription("Song name or Spotify track/album/playlist link").setRequired(true).setMaxLength(500)),
   new SlashCommandBuilder().setName("skip").setDescription("Skip the current song"),
   new SlashCommandBuilder().setName("pause").setDescription("Pause music"),
   new SlashCommandBuilder().setName("resume").setDescription("Resume music"),
@@ -177,48 +177,56 @@ function getMusicPlayer(guildId) {
 }
 
 function musicSearchCandidates(query) {
-  if (/^https?:\/\//i.test(query)) {
-    if (!/((www\.)?youtube\.com\/(watch\?|shorts\/|live\/)|youtu\.be\/|music\.youtube\.com\/)/i.test(query)) {
-      throw new Error("Only YouTube video links are supported. Paste a YouTube link or search by song name.");
+  const value = query.trim();
+  if (!value) throw new Error("Enter a song name or Spotify link.");
+  if (/^https?:\/\//i.test(value)) {
+    if (!/^https?:\/\/open\.spotify\.com\/(?:intl-[a-z]{2}\/)?(?:track|album|playlist|artist)\//i.test(value)) {
+      throw new Error("Only Spotify track, album, playlist, or artist links are supported.");
     }
-    return [query];
+    return [value];
   }
-  return [`ytmsearch:${query}`, `ytsearch:${query}`, `scsearch:${query}`];
+  return [`spsearch:${value}`];
 }
 
 async function searchMusic(player, query, requester = client.user) {
-  let lastError;
-  for (const searchQuery of musicSearchCandidates(query)) {
-    try {
-      const result = await player.search({ query: searchQuery }, requester);
-      if (result?.tracks?.length) return { result, track: result.tracks[0], searchQuery };
-    } catch (error) {
-      lastError = error;
-      console.warn(`Music search failed for "${searchQuery}":`, error?.message || error);
-    }
+  const searchQuery = musicSearchCandidates(query)[0];
+  try {
+    const result = await player.search({ query: searchQuery }, requester);
+    if (result?.tracks?.length) return { result, track: result.tracks[0], searchQuery };
+    return null;
+  } catch (error) {
+    console.warn(`Spotify search failed for "${searchQuery}":`, error?.message || error);
+    throw error;
   }
-  if (lastError) console.warn("Music search failed:", lastError?.message || lastError);
-  return null;
 }
 
-async function addRadioTrack(player) {
-  if (!client.lavalink?.useable || !musicRadioQueries.length) return false;
+let radioFetchInProgress = false;
 
-  for (let attempt = 0; attempt < musicRadioQueries.length; attempt += 1) {
-    const query = musicRadioQueries[radioQueryIndex % musicRadioQueries.length];
-    radioQueryIndex += 1;
-    try {
-      const found = await searchMusic(player, query, client.user);
-      if (!found?.track) continue;
-      await player.queue.add(found.track);
-      console.log(`WLC Radio queued via ${found.searchQuery}: ${found.track.info?.title || query}`);
-      return true;
-    } catch (error) {
-      console.error(`Radio search failed for "${query}":`, error);
+async function addRadioTrack(player) {
+  if (!client.lavalink?.useable || !musicRadioQueries.length || radioFetchInProgress) return false;
+
+  radioFetchInProgress = true;
+  const query = musicRadioQueries[radioQueryIndex % musicRadioQueries.length];
+  radioQueryIndex = (radioQueryIndex + 1) % musicRadioQueries.length;
+  try {
+    const found = await searchMusic(player, query, client.user);
+    if (!found?.track) {
+      console.warn(`WLC Radio found no Spotify result for "${query}"; one search was attempted and no fallback fetch was made.`);
+      return false;
     }
+    if (player.queue.tracks.length > 0) {
+      console.log("WLC Radio skipped its result because another track was queued while Spotify search was running.");
+      return false;
+    }
+    await player.queue.add(found.track);
+    console.log(`WLC Radio queued one Spotify result via ${found.searchQuery}: ${found.track.info?.title || query}`);
+    return true;
+  } catch (error) {
+    console.error(`WLC Radio Spotify search failed for "${query}":`, error);
+    return false;
+  } finally {
+    radioFetchInProgress = false;
   }
-  console.error("WLC Radio could not find a playable track from YouTube Music or SoundCloud. Check Lavalink logs.");
-  return false;
 }
 
 async function createMusicPlayer(guild, voiceChannelId, textChannelId) {
@@ -459,7 +467,7 @@ client.on(Events.InteractionCreate, async interaction => {
     if (interaction.commandName === "wlc") {
       await interaction.reply({
         ephemeral: true,
-        content: "**Willes Literary Club Bot**\nOfficial community management, panel directory and music radio.\nManagement: `/panels`, `/gen`, `/sync`, `/announce`.\nMusic: `/play` (YouTube Music), `/skip`, `/pause`, `/resume`, `/queue`, `/nowplaying`, `/volume`, `/stop`.",
+        content: "**Willes Literary Club Bot**\nOfficial community management, panel directory and music radio.\nManagement: `/panels`, `/gen`, `/sync`, `/announce`.\nMusic: `/play` (Spotify), `/skip`, `/pause`, `/resume`, `/queue`, `/nowplaying`, `/volume`, `/stop`.",
       });
       return;
     }
@@ -566,14 +574,14 @@ client.on(Events.InteractionCreate, async interaction => {
       const query = interaction.options.getString("query", true).trim();
       const found = await searchMusic(player, query, interaction.user);
       if (!found?.track) {
-        await interaction.editReply("No playable YouTube Music result was found. Check the YouTube source plugin and try another search.");
+        await interaction.editReply("No Spotify result was found. Check the LavaSrc plugin and Spotify credentials, then try another search.");
         return;
       }
       // Keep search results focused: one best match is queued for text searches.
       const first = found.track;
       await player.queue.add(first);
       if (!player.playing) await player.play();
-      await interaction.editReply(`🎶 Added **[${first.info.title}](${first.info.uri || "https://www.youtube.com"})** to the queue.\nSource: YouTube Music`);
+      await interaction.editReply(`🎶 Added **[${first.info.title}](${first.info.uri || "https://open.spotify.com"})** to the queue.\nSource: Spotify`);
       return;
     }
 
@@ -620,7 +628,7 @@ client.on(Events.InteractionCreate, async interaction => {
           color: 0x8f263d,
           title: "🎶 WLC Music Queue",
           description: [
-            current ? `**Now playing:** [${current.info.title}](${current.info.uri || "https://www.youtube.com"})` : "Nothing is playing right now.",
+            current ? `**Now playing:** [${current.info.title}](${current.info.uri || "https://open.spotify.com"})` : "Nothing is playing right now.",
             lines.length ? "\n**Up next:**\n" + lines.join("\n") : "\nThe queue is empty.",
             player.queue.tracks.length > 10 ? `\n…and ${player.queue.tracks.length - 10} more tracks.` : "",
           ].join("\n"),
@@ -638,7 +646,7 @@ client.on(Events.InteractionCreate, async interaction => {
         embeds: [{
           color: 0x8f263d,
           title: "🎧 Now Playing",
-          description: `[${track.info.title}](${track.info.uri || "https://www.youtube.com"})\n**Artist:** ${track.info.author || "Unknown"}\n**Duration:** ${durationLabel(track.info.duration)}`,
+          description: `[${track.info.title}](${track.info.uri || "https://open.spotify.com"})\n**Artist:** ${track.info.author || "Unknown"}\n**Duration:** ${durationLabel(track.info.duration)}`,
           thumbnail: track.info.artworkUrl ? { url: track.info.artworkUrl } : undefined,
         }],
       });
