@@ -180,8 +180,8 @@ function musicSearchCandidates(query) {
   const value = query.trim();
   if (!value) throw new Error("Enter a song name or SoundCloud link.");
   if (/^https?:\/\//i.test(value)) {
-    if (!/^https?:\/\/open\.spotify\.com\/(?:intl-[a-z]{2}\/)?(?:track|album|playlist|artist)\//i.test(value)) {
-      throw new Error("Only Spotify track, album, playlist, or artist links are supported.");
+    if (!/^https?:\/\/(?:www\.)?soundcloud\.com\//i.test(value)) {
+      throw new Error("Only SoundCloud track or playlist links are supported.");
     }
     return [value];
   }
