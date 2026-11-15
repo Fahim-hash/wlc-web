@@ -65,8 +65,8 @@ const commands = [
     .setDefaultMemberPermissions(PermissionFlagsBits.ManageGuild),
 
   new SlashCommandBuilder()
-    .setName("play").setDescription("Play music using SoundCloud search or a SoundCloud link")
-    .addStringOption(option => option.setName("query").setDescription("Song name or SoundCloud track/playlist link").setRequired(true).setMaxLength(500)),
+    .setName("play").setDescription("Play music using YouTube or SoundCloud")
+    .addStringOption(option => option.setName("query").setDescription("Song name or YouTube/SoundCloud link").setRequired(true).setMaxLength(500)),
   new SlashCommandBuilder().setName("skip").setDescription("Skip the current song"),
   new SlashCommandBuilder().setName("pause").setDescription("Pause music"),
   new SlashCommandBuilder().setName("resume").setDescription("Resume music"),
@@ -111,7 +111,7 @@ if (musicConfigured) {
     playerOptions: {
       applyVolumeAsFilter: false,
       clientBasedPositionUpdateInterval: 250,
-      defaultSearchPlatform: "scsearch",
+      defaultSearchPlatform: "ytsearch",
       onDisconnect: { autoReconnect: true, destroyPlayer: false },
       maxErrorsPerTime: { threshold: 30_000, maxAmount: 6 },
       minAutoPlayMs: 15_000,
@@ -125,7 +125,16 @@ if (musicConfigured) {
     queueOptions: { maxPreviousTracks: 10 },
   });
 
-  client.on("raw", packet => client.lavalink.sendRawData(packet));
+  client.on("raw", packet => {
+    // Discord voice-state updates can arrive while Lavalink is reconnecting.
+    // Do not forward them into a disconnected node.
+    if (!client.lavalink?.useable) return;
+    try {
+      client.lavalink.sendRawData(packet);
+    } catch (error) {
+      console.warn("Skipped Lavalink voice-state packet while node was unavailable:", error?.message || error);
+    }
+  });
   client.lavalink.on("trackStart", (player, track) => {
     console.log(`Music started in ${player.guildId}: ${track.info?.title || "Unknown track"}`);
   });
@@ -178,26 +187,39 @@ function getMusicPlayer(guildId) {
 
 function musicSearchCandidates(query) {
   const value = query.trim();
-  if (!value) throw new Error("Enter a song name or SoundCloud link.");
+  if (!value) throw new Error("Enter a song name or a YouTube/SoundCloud link.");
+
   if (/^https?:\/\//i.test(value)) {
-    if (!/^https?:\/\/(?:www\.)?soundcloud\.com\//i.test(value)) {
-      throw new Error("Only SoundCloud track or playlist links are supported.");
+    if (/^https?:\/\/(?:www\.)?(?:youtube\.com|music\.youtube\.com|youtu\.be)\//i.test(value) ||
+        /^https?:\/\/(?:www\.)?soundcloud\.com\//i.test(value)) {
+      return [value];
     }
-    return [value];
+    throw new Error("Use a YouTube or SoundCloud track/playlist link, or search by song name.");
   }
-  return [`scsearch:${value}`];
+
+  // Prefer YouTube for broad catalogue coverage; use SoundCloud when YouTube has no result.
+  return [`ytsearch:${value}`, `ytmsearch:${value}`, `scsearch:${value}`];
 }
 
 async function searchMusic(player, query, requester = client.user) {
-  const searchQuery = musicSearchCandidates(query)[0];
-  try {
-    const result = await player.search({ query: searchQuery }, requester);
-    if (result?.tracks?.length) return { result, track: result.tracks[0], searchQuery };
-    return null;
-  } catch (error) {
-    console.warn(`SoundCloud search failed for "${searchQuery}":`, error?.message || error);
-    throw error;
+  const candidates = musicSearchCandidates(query);
+  const failures = [];
+
+  for (const searchQuery of candidates) {
+    try {
+      const result = await player.search({ query: searchQuery }, requester);
+      if (result?.tracks?.length) {
+        return { result, track: result.tracks[0], searchQuery };
+      }
+      console.info(`No playable search result from ${searchQuery}`);
+    } catch (error) {
+      failures.push(`${searchQuery}: ${error?.message || error}`);
+      console.warn(`Music search failed for "${searchQuery}":`, error?.message || error);
+    }
   }
+
+  if (failures.length) console.warn("All music search sources failed:", failures.join(" | "));
+  return null;
 }
 
 let radioFetchInProgress = false;
@@ -206,23 +228,36 @@ async function addRadioTrack(player) {
   if (!client.lavalink?.useable || !musicRadioQueries.length || radioFetchInProgress) return false;
 
   radioFetchInProgress = true;
-  const query = musicRadioQueries[radioQueryIndex % musicRadioQueries.length];
-  radioQueryIndex = (radioQueryIndex + 1) % musicRadioQueries.length;
   try {
-    const found = await searchMusic(player, query, client.user);
-    if (!found?.track) {
-      console.warn(`WLC Radio found no Soundcloud result for "${query}"; one search was attempted and no fallback fetch was made.`);
-      return false;
+    // Try each configured station query. Each query itself falls back through
+    // YouTube search, YouTube Music search, and then SoundCloud.
+    for (let attempt = 0; attempt < musicRadioQueries.length; attempt += 1) {
+      if (!client.lavalink?.useable) return false;
+      if (player.queue.tracks.length > 0) return false;
+
+      const query = musicRadioQueries[radioQueryIndex % musicRadioQueries.length];
+      radioQueryIndex = (radioQueryIndex + 1) % musicRadioQueries.length;
+
+      const found = await searchMusic(player, query, client.user);
+      if (!found?.track) {
+        console.warn(`WLC Radio found no result for "${query}" across configured sources; trying the next station query.`);
+        continue;
+      }
+
+      if (player.queue.tracks.length > 0) {
+        console.log("WLC Radio skipped its result because another track was queued while search was running.");
+        return false;
+      }
+
+      await player.queue.add(found.track);
+      console.log(`WLC Radio queued via ${found.searchQuery}: ${found.track.info?.title || query}`);
+      return true;
     }
-    if (player.queue.tracks.length > 0) {
-      console.log("WLC Radio skipped its result because another track was queued while SoundCloud search was running.");
-      return false;
-    }
-    await player.queue.add(found.track);
-    console.log(`WLC Radio queued one Soundcloud result via ${found.searchQuery}: ${found.track.info?.title || query}`);
-    return true;
+
+    console.error("WLC Radio could not find a track after trying every configured query and source.");
+    return false;
   } catch (error) {
-    console.error(`WLC Radio SoundCloud search failed for "${query}":`, error);
+    console.error("WLC Radio search failed:", error);
     return false;
   } finally {
     radioFetchInProgress = false;
@@ -410,7 +445,14 @@ function musicUnavailableMessage() {
 async function requireMusicPlayer(interaction) {
   if (!client.lavalink?.useable) throw new Error(musicUnavailableMessage());
   const player = getMusicPlayer(interaction.guildId);
-  if (!player?.connected) throw new Error("Nothing is connected to a voice channel right now. Join a voice channel and use /play.");
+
+  // The client library's connected flag can briefly lag behind the persisted
+  // voiceChannelId during node reconnects. The channel ID is the reliable
+  // indicator that this guild has an assigned voice player.
+  if (!player?.voiceChannelId) {
+    throw new Error("Nothing is connected to a voice channel right now. Join a voice channel and use /play.");
+  }
+
   const member = await interaction.guild.members.fetch(interaction.user.id);
   const memberVoiceId = member.voice.channelId;
   if (memberVoiceId && player.voiceChannelId !== memberVoiceId) {
@@ -467,7 +509,7 @@ client.on(Events.InteractionCreate, async interaction => {
     if (interaction.commandName === "wlc") {
       await interaction.reply({
         ephemeral: true,
-        content: "**Willes Literary Club Bot**\nOfficial community management, panel directory and music radio.\nManagement: `/panels`, `/gen`, `/sync`, `/announce`.\nMusic: `/play` (SoundCloud), `/skip`, `/pause`, `/resume`, `/queue`, `/nowplaying`, `/volume`, `/stop`.",
+        content: "**Willes Literary Club Bot**\nOfficial community management, panel directory and music radio.\nManagement: `/panels`, `/gen`, `/sync`, `/announce`.\nMusic: `/play` (YouTube + SoundCloud fallback), `/skip`, `/pause`, `/resume`, `/queue`, `/nowplaying`, `/volume`, `/stop`.",
       });
       return;
     }
@@ -574,14 +616,17 @@ client.on(Events.InteractionCreate, async interaction => {
       const query = interaction.options.getString("query", true).trim();
       const found = await searchMusic(player, query, interaction.user);
       if (!found?.track) {
-        await interaction.editReply("SoundCloud could not load a playable audio stream. The source may be temporarily incompatible; please try again later.");
+        await interaction.editReply("No playable result was found on YouTube or SoundCloud. Try another song title or link.");
         return;
       }
       // Keep search results focused: one best match is queued for text searches.
       const first = found.track;
       await player.queue.add(first);
       if (!player.playing) await player.play();
-      await interaction.editReply(`🎶 Added **[${first.info.title}](${first.info.uri || "https://open.spotify.com"})** to the queue.\nSource: SoundCloud`);
+      const sourceName = found.searchQuery.startsWith("scsearch:") || /soundcloud\.com/i.test(found.searchQuery)
+        ? "SoundCloud"
+        : "YouTube";
+      await interaction.editReply(`🎶 Added **[${first.info.title}](${first.info.uri || "https://www.youtube.com"})** to the queue.\nSource: ${sourceName}`);
       return;
     }
 
