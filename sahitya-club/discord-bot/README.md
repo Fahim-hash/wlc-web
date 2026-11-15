@@ -9,10 +9,12 @@ A standalone, persistent Discord.js worker for Willes Literary Club. It lives in
 - `/gen generation:GEN-1|GEN-2|GEN-3` — view a published panel
 - `/announce message:<text> channel:<optional>` — publish an official embed (Manage Server permission)
 - `/sync` — verify website panel data and prepare generation roles (Manage Server permission)
-- `/play query:<song or YouTube/SoundCloud link>` — search YouTube first, then SoundCloud
-- `/skip`, `/pause`, `/resume`, `/stop` — playback controls
-- `/queue`, `/nowplaying`, `/volume level:<1-100>` — music information and controls
-- `/radio enabled:true|false` — enable/disable automatic WLC radio (Manage Server permission)
+- `/userinfo`, `/serverinfo`, `/avatar` — member profile, server overview and avatar tools
+- `/clear amount:<1–100>` — bulk-delete recent messages (Manage Messages)
+- `/lock`, `/unlock`, `/slowmode seconds:<0–21600>` — channel controls (Manage Channels)
+- `/timeout member:<user> minutes:<1–40320>`, `/untimeout member:<user>` — timeout controls (Moderate Members)
+- `/kick member:<user>`, `/ban member:<user> delete_days:<0–7>` — moderation actions with optional reasons (Kick/Ban Members)
+- Music commands are intentionally disabled; the bot runs community and moderation features only.
 
 ## Setup
 
