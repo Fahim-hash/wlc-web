@@ -69,15 +69,16 @@ async function refreshLatestEventActivity() {
 }
 
 function rotateWlcPresence() {
-  const note = presenceNotes[presenceIndex % presenceNotes.length];
-  const activityName = note.dynamicEvent && latestEventTitle
-    ? `Organising: ${latestEventTitle}`.slice(0, 100)
-    : note.name;
+  // Temporary API test: Discord custom activity (type 4) with a state string.
+  // This is not guaranteed to render as the avatar Note bubble for bot accounts.
   client.user?.setPresence({
     status: "online",
-    activities: [{ name: activityName, type: note.type }],
+    activities: [{
+      name: "Custom Status",
+      type: ActivityType.Custom,
+      state: "🧪 WLC custom status test",
+    }],
   });
-  presenceIndex = (presenceIndex + 1) % presenceNotes.length;
 }
 
 async function startWlcPresence() {
