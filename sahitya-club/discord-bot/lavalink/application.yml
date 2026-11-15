@@ -11,9 +11,6 @@ lavalink:
     - dependency: "com.github.topi314.lavasrc:lavasrc-plugin:4.8.3"
       repository: "https://maven.lavalink.dev/releases"
       snapshot: false
-    - dependency: "dev.lavalink.youtube:youtube-plugin:1.18.2"
-      repository: "https://maven.lavalink.dev/releases"
-      snapshot: false
   server:
     password: ${LAVALINK_PASSWORD}
     sources:
@@ -39,19 +36,3 @@ lavalink:
       channelMix: true
       lowPass: true
 
-plugins:
-  youtube:
-    enabled: true
-    allowSearch: true
-    allowDirectVideoIds: true
-    allowDirectPlaylistIds: true
-    # No OAuth or Google account is configured. These public clients are tried in order.
-    clients:
-      - IOS
-      - WEB
-      - MWEB
-      - ANDROID_VR
-      - WEBEMBEDDED
-      - ANDROID_MUSIC
-      - ANDROID
-      - MUSIC
