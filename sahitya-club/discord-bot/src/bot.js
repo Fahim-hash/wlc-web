@@ -65,7 +65,7 @@ const commands = [
     .setDefaultMemberPermissions(PermissionFlagsBits.ManageGuild),
 
   new SlashCommandBuilder()
-    .setName("play").setDescription("Play music using YouTube or SoundCloud")
+    .setName("play").setDescription("Play music from SoundCloud")
     .addStringOption(option => option.setName("query").setDescription("Song name or YouTube/SoundCloud link").setRequired(true).setMaxLength(500)),
   new SlashCommandBuilder().setName("skip").setDescription("Skip the current song"),
   new SlashCommandBuilder().setName("pause").setDescription("Pause music"),
@@ -111,7 +111,7 @@ if (musicConfigured) {
     playerOptions: {
       applyVolumeAsFilter: false,
       clientBasedPositionUpdateInterval: 250,
-      defaultSearchPlatform: "ytsearch",
+      defaultSearchPlatform: "scsearch",
       onDisconnect: { autoReconnect: true, destroyPlayer: false },
       maxErrorsPerTime: { threshold: 30_000, maxAmount: 6 },
       minAutoPlayMs: 15_000,
@@ -187,42 +187,35 @@ function getMusicPlayer(guildId) {
 
 function musicSearchCandidates(query) {
   const value = query.trim();
-  if (!value) throw new Error("Enter a song name or a YouTube/SoundCloud link.");
-
-  if (/^https?:\/\//i.test(value)) {
-    if (/^https?:\/\/(?:www\.)?(?:youtube\.com|music\.youtube\.com|youtu\.be)\//i.test(value) ||
-        /^https?:\/\/(?:www\.)?soundcloud\.com\//i.test(value)) {
-      return [value];
+  if (!value) throw new Error("Enter a song name or a SoundCloud link.");
+  if (/^https?:\\/\\//i.test(value)) {
+    if (/^https?:\\/\\/(?:www\\.)?soundcloud\\.com\\//i.test(value)) return [value];
+    if (/^https?:\\/\\/(?:www\\.)?(?:youtube\\.com|music\\.youtube\\.com|youtu\\.be)\\//i.test(value)) {
+      throw new Error("এই বট এখন শুধু SoundCloud চালায়। গানটির নাম দিয়ে সার্চ করুন অথবা SoundCloud link দিন।");
     }
-    throw new Error("Use a YouTube or SoundCloud track/playlist link, or search by song name.");
+    throw new Error("Use a SoundCloud track/playlist link, or search by song name.");
   }
-
-  // SoundCloud first: its AAC/fMP4 source plugin supports public playback without YouTube OAuth.
-  // YouTube remains a secondary search fallback for tracks unavailable on SoundCloud.
-  return [`scsearch:${value}`, `ytmsearch:${value}`, `ytsearch:${value}`];
+  const simplified = value.replace(/\\([^)]*\\)|\\[[^\\]]*\\]/g, " ").replace(/\\b(official|audio|lyrics|lyric video|visualizer|topic)\\b/gi, " ").replace(/[|,:;]+/g, " ").replace(/\\s+/g, " ").trim();
+  const candidates = ["scsearch:" + value];
+  if (simplified && simplified.toLowerCase() !== value.toLowerCase()) candidates.push("scsearch:" + simplified);
+  return [...new Set(candidates)];
 }
 
 async function searchMusic(player, query, requester = client.user) {
-  const candidates = musicSearchCandidates(query);
   const failures = [];
-
-  for (const searchQuery of candidates) {
+  for (const searchQuery of musicSearchCandidates(query)) {
     try {
       const result = await player.search({ query: searchQuery }, requester);
-      if (result?.tracks?.length) {
-        return { result, track: result.tracks[0], searchQuery };
-      }
-      console.info(`No playable search result from ${searchQuery}`);
+      if (result?.tracks?.length) return { result, track: result.tracks[0], searchQuery };
+      console.info("No SoundCloud match from " + searchQuery);
     } catch (error) {
-      failures.push(`${searchQuery}: ${error?.message || error}`);
-      console.warn(`Music search failed for "${searchQuery}":`, error?.message || error);
+      failures.push(searchQuery + ": " + (error?.message || error));
+      console.warn("SoundCloud search failed for " + searchQuery + ":", error?.message || error);
     }
   }
-
-  if (failures.length) console.warn("All music search sources failed:", failures.join(" | "));
+  if (failures.length) console.warn("SoundCloud search attempts failed:", failures.join(" | "));
   return null;
 }
-
 let radioFetchInProgress = false;
 
 async function addRadioTrack(player) {
@@ -230,8 +223,7 @@ async function addRadioTrack(player) {
 
   radioFetchInProgress = true;
   try {
-    // Try each configured station query. Each query itself falls back through
-    // YouTube search, YouTube Music search, and then SoundCloud.
+    // Radio uses SoundCloud only; each station query tries a relevance-ranked match.
     for (let attempt = 0; attempt < musicRadioQueries.length; attempt += 1) {
       if (!client.lavalink?.useable) return false;
       if (player.queue.tracks.length > 0) return false;
@@ -510,7 +502,7 @@ client.on(Events.InteractionCreate, async interaction => {
     if (interaction.commandName === "wlc") {
       await interaction.reply({
         ephemeral: true,
-        content: "**Willes Literary Club Bot**\nOfficial community management, panel directory and music radio.\nManagement: `/panels`, `/gen`, `/sync`, `/announce`.\nMusic: `/play` (YouTube + SoundCloud fallback), `/skip`, `/pause`, `/resume`, `/queue`, `/nowplaying`, `/volume`, `/stop`.",
+        content: "**Willes Literary Club Bot**\nOfficial community management, panel directory and music radio.\nManagement: `/panels`, `/gen`, `/sync`, `/announce`.\nMusic: `/play` (SoundCloud only), `/skip`, `/pause`, `/resume`, `/queue`, `/nowplaying`, `/volume`, `/stop`.",
       });
       return;
     }
@@ -617,17 +609,14 @@ client.on(Events.InteractionCreate, async interaction => {
       const query = interaction.options.getString("query", true).trim();
       const found = await searchMusic(player, query, interaction.user);
       if (!found?.track) {
-        await interaction.editReply("No playable result was found on YouTube or SoundCloud. Try another song title or link.");
+        await interaction.editReply("SoundCloud-এ কোনো playable match পাওয়া যায়নি। কাছাকাছি title বা artist দিয়ে আবার চেষ্টা করুন।");
         return;
       }
       // Keep search results focused: one best match is queued for text searches.
       const first = found.track;
       await player.queue.add(first);
       if (!player.playing) await player.play();
-      const sourceName = found.searchQuery.startsWith("scsearch:") || /soundcloud\.com/i.test(found.searchQuery)
-        ? "SoundCloud"
-        : "YouTube";
-      await interaction.editReply(`🎶 Added **[${first.info.title}](${first.info.uri || "https://www.youtube.com"})** to the queue.\nSource: ${sourceName}`);
+      await interaction.editReply(`🎶 Added **[${first.info.title}](${first.info.uri || "https://soundcloud.com"})** to the queue.\nSource: SoundCloud · Best related match`);
       return;
     }
 
