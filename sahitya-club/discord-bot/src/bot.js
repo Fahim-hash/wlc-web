@@ -36,7 +36,7 @@ const musicRadioQueries = (process.env.MUSIC_RADIO_QUERIES ||
   "lofi study beats;chill instrumental music;acoustic cafe music;ambient piano music;soft instrumental music")
   .split(";").map(query => query.trim()).filter(Boolean);
 const defaultMusicVolume = Math.min(100, Math.max(1, Number(process.env.MUSIC_DEFAULT_VOLUME) || 35));
-let radioEnabled = (process.env.MUSIC_RADIO_ENABLED || "true").toLowerCase() !== "false";
+let radioEnabled = false; // Automatic radio intentionally disabled.
 let radioQueryIndex = 0;
 
 const commands = [
@@ -64,22 +64,6 @@ const commands = [
     .setDescription("Synchronize published GEN panel roles from the WLC website")
     .setDefaultMemberPermissions(PermissionFlagsBits.ManageGuild),
 
-  new SlashCommandBuilder()
-    .setName("play").setDescription("Play music from SoundCloud")
-    .addStringOption(option => option.setName("query").setDescription("Song name or YouTube/SoundCloud link").setRequired(true).setMaxLength(500)),
-  new SlashCommandBuilder().setName("skip").setDescription("Skip the current song"),
-  new SlashCommandBuilder().setName("pause").setDescription("Pause music"),
-  new SlashCommandBuilder().setName("resume").setDescription("Resume music"),
-  new SlashCommandBuilder().setName("stop").setDescription("Stop playback and clear the queue"),
-  new SlashCommandBuilder().setName("queue").setDescription("Show the current music queue"),
-  new SlashCommandBuilder().setName("nowplaying").setDescription("Show the currently playing song"),
-  new SlashCommandBuilder()
-    .setName("volume").setDescription("Set music volume")
-    .addIntegerOption(option => option.setName("level").setDescription("Volume from 1 to 100").setRequired(true).setMinValue(1).setMaxValue(100)),
-  new SlashCommandBuilder()
-    .setName("radio").setDescription("Enable or disable the automatic WLC radio")
-    .addBooleanOption(option => option.setName("enabled").setDescription("Turn automatic radio on or off").setRequired(true))
-    .setDefaultMemberPermissions(PermissionFlagsBits.ManageGuild),
 ].map(command => command.toJSON());
 
 const rest = new REST({ version: "10" }).setToken(token);
@@ -91,7 +75,7 @@ const lavalinkHost = process.env.LAVALINK_HOST?.trim();
 const lavalinkPassword = process.env.LAVALINK_PASSWORD?.trim();
 const lavalinkPort = Number(process.env.LAVALINK_PORT || 2333);
 const lavalinkSecure = (process.env.LAVALINK_SECURE || "false").toLowerCase() === "true";
-const musicConfigured = Boolean(lavalinkHost && lavalinkPassword && Number.isInteger(lavalinkPort) && lavalinkPort > 0);
+const musicConfigured = false; // Music system intentionally disabled; WLC bot remains for community features.
 
 if (musicConfigured) {
   client.lavalink = new LavalinkManager({
@@ -524,7 +508,7 @@ client.on(Events.InteractionCreate, async interaction => {
     if (interaction.commandName === "wlc") {
       await interaction.reply({
         ephemeral: true,
-        content: "**Willes Literary Club Bot**\nOfficial community management, panel directory and music radio.\nManagement: `/panels`, `/gen`, `/sync`, `/announce`.\nMusic: `/play` (SoundCloud only), `/skip`, `/pause`, `/resume`, `/queue`, `/nowplaying`, `/volume`, `/stop`.",
+        content: "**Willes Literary Club Bot**\nOfficial WLC community management and panel directory.\nManagement: `/panels`, `/gen`, `/sync`, `/announce`, `/post`.",
       });
       return;
     }
