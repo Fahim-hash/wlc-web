@@ -6,7 +6,7 @@ server:
 
 lavalink:
   plugins:
-    - dependency: "com.github.topi314.lavasrc:lavasrc-plugin:4.8.3"
+    - dependency: "dev.lavalink.youtube:youtube-plugin:1.18.2"
       repository: "https://maven.lavalink.dev/releases"
       snapshot: false
   server:
@@ -35,25 +35,16 @@ lavalink:
       lowPass: true
 
 plugins:
-  lavasrc:
-    providers:
-      - "scsearch:%QUERY%"
-    sources:
-      spotify: false
-      applemusic: false
-      deezer: false
-      yandexmusic: false
-      flowerytts: false
-      youtube: false
-      vkmusic: false
-      tidal: false
-      qobuz: false
-      ytdlp: false
-    spotify:
-      clientId: ${SPOTIFY_CLIENT_ID}
-      clientSecret: ${SPOTIFY_CLIENT_SECRET}
-      countryCode: "BD"
-      playlistLoadLimit: 3
-      albumLoadLimit: 3
-      resolveArtistsInSearch: true
-      preferAnonymousToken: true
+  youtube:
+    enabled: true
+    allowSearch: true
+    allowDirectVideoIds: true
+    allowDirectPlaylistIds: true
+    # No OAuth or Google account is configured. These public clients are tried in order.
+    clients:
+      - WEB
+      - MWEB
+      - ANDROID_VR
+      - WEBEMBEDDED
+      - ANDROID_MUSIC
+      - MUSIC
