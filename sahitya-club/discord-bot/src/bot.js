@@ -8,6 +8,8 @@ import {
   SlashCommandBuilder,
   PermissionFlagsBits,
   ChannelType,
+  ActionRowBuilder, ButtonBuilder, ButtonStyle,
+  ModalBuilder, TextInputBuilder, TextInputStyle,
 } from "discord.js";
 import { LavalinkManager } from "lavalink-client";
 
@@ -26,6 +28,12 @@ const apiBase = process.env.WLC_API_BASE_URL.trim().replace(/\/$/, "");
 const syncSecret = process.env.DISCORD_BOT_SYNC_SECRET.trim();
 const welcomeChannelId = process.env.DISCORD_WELCOME_CHANNEL_ID?.trim();
 const autoRoleId = process.env.DISCORD_AUTO_ROLE_ID?.trim();
+const generalMemberRoleId = process.env.DISCORD_GENERAL_MEMBER_ROLE_ID?.trim();
+const panelMemberRoleId = process.env.DISCORD_PANEL_MEMBER_ROLE_ID?.trim();
+const generalInviteCode = process.env.DISCORD_GENERAL_INVITE_CODE?.trim();
+const panelInviteCode = process.env.DISCORD_PANEL_INVITE_CODE?.trim();
+const inviteUseCache = new Map();
+let joinProcessing = Promise.resolve();
 const welcomeAllowedRoleIds = (process.env.DISCORD_WELCOME_ALLOWED_ROLE_IDS || "")
   .split(",").map(id => id.trim()).filter(Boolean);
 
@@ -62,6 +70,9 @@ const commands = [
   new SlashCommandBuilder()
     .setName("sync")
     .setDescription("Synchronize published GEN panel roles from the WLC website")
+    .setDefaultMemberPermissions(PermissionFlagsBits.ManageGuild),
+  new SlashCommandBuilder().setName("setupjoinlinks")
+    .setDescription("Create permanent General Member and Panel Member invite links")
     .setDefaultMemberPermissions(PermissionFlagsBits.ManageGuild),
 
 
@@ -412,27 +423,62 @@ async function configureWelcomeChannel(guild) {
   console.log(`Welcome channel permissions configured: #${channel.name}`);
 }
 
+async function cacheGuildInvites(guild) {
+  const invites = await guild.invites.fetch();
+  inviteUseCache.set(guild.id, new Map(invites.map(invite => [invite.code, invite.uses || 0])));
+}
+
+async function identifyJoinInvite(member) {
+  const before = inviteUseCache.get(member.guild.id) || new Map();
+  const invites = await member.guild.invites.fetch();
+  const increased = [...invites.values()].filter(invite => (invite.uses || 0) > (before.get(invite.code) || 0));
+  inviteUseCache.set(member.guild.id, new Map(invites.map(invite => [invite.code, invite.uses || 0])));
+  if (increased.length !== 1) {
+    console.warn(`Invite attribution ambiguous for ${member.user.tag}; changed invites: ${increased.length}`);
+    return null;
+  }
+  if (increased[0].code === generalInviteCode) return "general";
+  if (increased[0].code === panelInviteCode) return "panel";
+  return null;
+}
+
 async function handleNewMember(member) {
-  if (!welcomeChannelId) return;
   try {
-    if (autoRoleId) {
+    const inviteType = await identifyJoinInvite(member);
+    if (inviteType === "panel") {
+      const role = panelMemberRoleId && await member.guild.roles.fetch(panelMemberRoleId);
+      if (!role) throw new Error("Panel Member role missing or not configured.");
+      await member.roles.add(role, "Joined using WLC Panel Member invite");
+      await member.send("স্বাগতম WLC Panel! তোমাকে স্বয়ংক্রিয়ভাবে **Panel Member** role দেওয়া হয়েছে।").catch(() => {});
+    } else if (inviteType === "general") {
+      if (!generalMemberRoleId) throw new Error("General Member role ID is not configured.");
+      const row = new ActionRowBuilder().addComponents(
+        new ButtonBuilder().setCustomId(`wlc_verify:${member.guild.id}`).setLabel("Verify WLC Member ID").setStyle(ButtonStyle.Primary)
+      );
+      await member.send({
+        content: "স্বাগতম **Willes Literary Club** Discord community-তে!\nGeneral Member role পেতে নিচের বাটনে ক্লিক করে WLC Member ID verify করো। শুধু ACTIVE membership গ্রহণযোগ্য।",
+        components: [row],
+      });
+    } else {
+      console.warn(`Could not identify a trusted WLC invite for ${member.user.tag}; no member role assigned.`);
+      await member.send("স্বাগতম WLC Discord server-এ! তোমার invite link শনাক্ত করা যায়নি, তাই member role দেওয়া হয়নি। WLC administrator-এর সঙ্গে যোগাযোগ করো।").catch(() => {});
+    }
+
+    if (autoRoleId && autoRoleId !== generalMemberRoleId && autoRoleId !== panelMemberRoleId) {
       const role = await member.guild.roles.fetch(autoRoleId);
-      if (!role) throw new Error(`Auto role not found: ${autoRoleId}`);
-      await member.roles.add(role, "Automatic WLC Discord welcome role");
+      if (role) await member.roles.add(role, "Automatic WLC Discord welcome role");
     }
-
-    const channel = await member.guild.channels.fetch(welcomeChannelId);
-    if (!channel || !channel.isTextBased() || !("send" in channel)) {
-      throw new Error("Welcome channel is missing or is not a text channel.");
+    if (welcomeChannelId) {
+      const channel = await member.guild.channels.fetch(welcomeChannelId);
+      if (channel?.isTextBased() && "send" in channel) {
+        await channel.send({
+          content: `Welcome to **Willes Literary Club**! 🎉\nস্বাগতম, <@${member.id}>! WLC Discord community-তে যোগ দেওয়ার জন্য ধন্যবাদ।`,
+          allowedMentions: { users: [member.id] },
+        });
+      }
     }
-
-    await channel.send({
-      content: `Welcome to **Willes Literary Club**! 🎉\nস্বাগতম, <@${member.id}>! WLC Discord community-তে যোগ দেওয়ার জন্য ধন্যবাদ।\n\nসার্ভারের নিয়মাবলি মেনে চলুন এবং সাহিত্যচর্চার সঙ্গে যুক্ত থাকুন।`,
-      allowedMentions: { users: [member.id] },
-    });
-    console.log(`Welcomed new member ${member.user.tag} in #${channel.name}`);
   } catch (error) {
-    console.error(`New member welcome failed for ${member.id}:`, error);
+    console.error(`New member onboarding failed for ${member.id}:`, error);
   }
 }
 
@@ -498,6 +544,10 @@ async function requireMusicPlayer(interaction) {
 client.once(Events.ClientReady, async readyClient => {
   discordReady = true;
   console.log(`WLC Discord Bot online as ${readyClient.user.tag}`);
+  for (const guild of readyClient.guilds.cache.values()) {
+    try { await cacheGuildInvites(guild); }
+    catch (error) { console.error(`Invite cache initialization failed for ${guild.id}; check Manage Server permission:`, error); }
+  }
   if (welcomeChannelId) {
     try {
       const channel = await readyClient.channels.fetch(welcomeChannelId);
@@ -534,12 +584,69 @@ client.once(Events.ClientReady, async readyClient => {
   }
 });
 
-client.on(Events.GuildMemberAdd, handleNewMember);
+client.on(Events.GuildMemberAdd, member => {
+  joinProcessing = joinProcessing.then(() => handleNewMember(member)).catch(error => console.error("Join queue failed:", error));
+});
 
 client.on(Events.InteractionCreate, async interaction => {
+  if (interaction.isButton() && interaction.customId.startsWith("wlc_verify:")) {
+    const guildIdForVerify = interaction.customId.split(":")[1];
+    const modal = new ModalBuilder().setCustomId(`wlc_verify_modal:${guildIdForVerify}`).setTitle("WLC Member Verification");
+    const field = new TextInputBuilder().setCustomId("member_id").setLabel("WLC Member ID")
+      .setPlaceholder("WLC-XXXX-001").setStyle(TextInputStyle.Short).setRequired(true).setMaxLength(64);
+    modal.addComponents(new ActionRowBuilder().addComponents(field));
+    await interaction.showModal(modal);
+    return;
+  }
+  if (interaction.isModalSubmit() && interaction.customId.startsWith("wlc_verify_modal:")) {
+    await interaction.deferReply({ ephemeral: true });
+    const guildIdForVerify = interaction.customId.split(":")[1];
+    const memberId = interaction.fields.getTextInputValue("member_id").trim().toUpperCase();
+    try {
+      const response = await fetch(`${apiBase}/api/member-portal/verify?id=${encodeURIComponent(memberId)}`);
+      const result = await response.json();
+      if (!response.ok || !result.valid) {
+        await interaction.editReply(result.message || "এই Member ID verify করা যায়নি। ACTIVE WLC membership প্রয়োজন।");
+        return;
+      }
+      const guild = await client.guilds.fetch(guildIdForVerify);
+      const member = await guild.members.fetch(interaction.user.id);
+      const role = generalMemberRoleId && await guild.roles.fetch(generalMemberRoleId);
+      if (!role) throw new Error("General Member role missing or not configured.");
+      await member.roles.add(role, `Verified active WLC Member ID: ${result.memberId}`);
+      await interaction.editReply(`✅ Verification successful! **${result.memberId}** যাচাই হয়েছে এবং তোমাকে **General Member** role দেওয়া হয়েছে।`);
+    } catch (error) {
+      console.error("WLC member verification failed:", error);
+      await interaction.editReply("Verification service এখন unavailable। কিছুক্ষণ পর আবার চেষ্টা করো।");
+    }
+    return;
+  }
   if (!interaction.isChatInputCommand()) return;
 
   try {
+    if (interaction.commandName === "setupjoinlinks") {
+      const guild = interaction.guild;
+      if (!guild) throw new Error("এই command server-এর ভিতরে ব্যবহার করতে হবে।");
+      if (!generalMemberRoleId || !panelMemberRoleId) throw new Error("Railway-এ দুইটি member role ID configure করা হয়নি।");
+      const channel = (welcomeChannelId && await guild.channels.fetch(welcomeChannelId).catch(() => null))
+        || guild.systemChannel || guild.channels.cache.find(c => c.type === ChannelType.GuildText);
+      if (!channel || !channel.isTextBased() || !("createInvite" in channel)) throw new Error("Invite তৈরির জন্য text channel পাওয়া যায়নি।");
+      const generalInvite = await channel.createInvite({ maxAge: 0, maxUses: 0, unique: true, reason: "Permanent WLC General Member onboarding invite" });
+      const panelInvite = await channel.createInvite({ maxAge: 0, maxUses: 0, unique: true, reason: "Permanent WLC Panel Member onboarding invite" });
+      await cacheGuildInvites(guild);
+      await interaction.reply({ ephemeral: true, content: [
+        "**WLC join links created**",
+        `General Member: https://discord.gg/${generalInvite.code}`,
+        `Panel Member: https://discord.gg/${panelInvite.code}`,
+        "",
+        "**দুইটি invite code Railway variables-এ বসাতে হবে:**",
+        `DISCORD_GENERAL_INVITE_CODE=${generalInvite.code}`,
+        `DISCORD_PANEL_INVITE_CODE=${panelInvite.code}`,
+        "Link দুটির মেয়াদ নেই এবং ব্যবহারসংখ্যার সীমা নেই। এগুলো delete/regenerate কোরো না।",
+      ].join("\n") });
+      return;
+    }
+
     if (interaction.commandName === "wlc") {
       await interaction.reply({
         ephemeral: true,
