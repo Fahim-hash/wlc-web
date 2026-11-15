@@ -149,6 +149,22 @@ if (musicConfigured) {
       })
     );
   });
+  client.lavalink.on("queueEnd", player => {
+    if (!radioEnabled || player.guildId !== musicGuildId) return;
+    if (radioRetryTimers.has(player.guildId)) return;
+    console.warn("WLC Radio queue ended without a replacement track; retrying in 6 seconds.");
+    const timer = setTimeout(async () => {
+      radioRetryTimers.delete(player.guildId);
+      if (!radioEnabled || !client.lavalink?.useable || player.queue.current || player.queue.tracks.length) return;
+      try {
+        const added = await addRadioTrack(player);
+        if (added && !player.playing) await player.play();
+      } catch (error) {
+        console.error("WLC Radio recovery attempt failed:", error);
+      }
+    }, 6000);
+    radioRetryTimers.set(player.guildId, timer);
+  });
   client.lavalink.on("trackStuck", (player, track, payload) => {
     console.warn(
       `Track playback stuck in ${player.guildId}: ${track?.info?.title || "Unknown track"}`,
@@ -216,12 +232,13 @@ async function searchMusic(player, query, requester = client.user) {
   if (failures.length) console.warn("SoundCloud search attempts failed:", failures.join(" | "));
   return null;
 }
-let radioFetchInProgress = false;
+const radioFetchInProgress = new Set();
+const radioRetryTimers = new Map();
 
 async function addRadioTrack(player) {
-  if (!client.lavalink?.useable || !musicRadioQueries.length || radioFetchInProgress) return false;
+  if (!client.lavalink?.useable || !musicRadioQueries.length || radioFetchInProgress.has(player.guildId)) return false;
 
-  radioFetchInProgress = true;
+  radioFetchInProgress.add(player.guildId);
   try {
     // Radio uses SoundCloud only; each station query tries a relevance-ranked match.
     for (let attempt = 0; attempt < musicRadioQueries.length; attempt += 1) {
@@ -237,6 +254,7 @@ async function addRadioTrack(player) {
         continue;
       }
 
+      if (!radioEnabled || player.guildId !== musicGuildId) return false;
       if (player.queue.tracks.length > 0) {
         console.log("WLC Radio skipped its result because another track was queued while search was running.");
         return false;
@@ -253,7 +271,7 @@ async function addRadioTrack(player) {
     console.error("WLC Radio search failed:", error);
     return false;
   } finally {
-    radioFetchInProgress = false;
+    radioFetchInProgress.delete(player.guildId);
   }
 }
 
@@ -306,6 +324,9 @@ function startWlcRadioWhenReady() {
   radioStartPromise = startWlcRadio()
     .catch(error => {
       console.error("WLC Radio startup failed:", error);
+    })
+    .finally(() => {
+      // Allow a later Lavalink reconnect to initialize the radio again.
       radioStartPromise = null;
     });
   return radioStartPromise;
