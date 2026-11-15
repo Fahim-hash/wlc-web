@@ -3,6 +3,7 @@ import {
   Client,
   Events,
   GatewayIntentBits,
+  ActivityType,
   REST,
   Routes,
   SlashCommandBuilder,
@@ -33,6 +34,59 @@ const panelMemberRoleId = process.env.DISCORD_PANEL_MEMBER_ROLE_ID?.trim();
 const generalInviteCode = process.env.DISCORD_GENERAL_INVITE_CODE?.trim();
 const panelInviteCode = process.env.DISCORD_PANEL_INVITE_CODE?.trim();
 const inviteUseCache = new Map();
+const presenceIntervalMs = 45_000;
+const presenceFallbacks = [
+  { type: ActivityType.Listening, name: "চাইনা মেয়ে", details: "by Hridoy Khan" },
+  { type: ActivityType.Playing, name: "with words & writing" },
+  { type: ActivityType.Playing, name: "organising something special" },
+  { type: ActivityType.Watching, name: "the world of literature" },
+];
+let presenceIndex = 0;
+let latestEventActivity = null;
+let presenceTimer = null;
+
+async function refreshLatestEventActivity() {
+  try {
+    const response = await fetch(`${apiBase}/api/discord/presence-event`, {
+      cache: "no-store",
+      signal: AbortSignal.timeout(10000),
+    });
+    if (!response.ok) throw new Error(`Event endpoint returned ${response.status}`);
+    const data = await response.json();
+    if (data?.event?.title) {
+      latestEventActivity = {
+        type: ActivityType.Watching,
+        name: String(data.event.title).slice(0, 100),
+      };
+    } else {
+      latestEventActivity = null;
+    }
+  } catch (error) {
+    console.warn("Could not refresh WLC latest-event presence:", error?.message || error);
+  }
+}
+
+function rotateWlcPresence() {
+  const activity = presenceIndex === 2 && latestEventActivity
+    ? latestEventActivity
+    : presenceFallbacks[presenceIndex % presenceFallbacks.length];
+  client.user?.setPresence({
+    status: "online",
+    activities: [{ name: activity.name, type: activity.type }],
+  });
+  presenceIndex = (presenceIndex + 1) % presenceFallbacks.length;
+}
+
+async function startWlcPresence() {
+  await refreshLatestEventActivity();
+  rotateWlcPresence();
+  if (presenceTimer) clearInterval(presenceTimer);
+  presenceTimer = setInterval(() => {
+    rotateWlcPresence();
+    if (presenceIndex === 0) void refreshLatestEventActivity();
+  }, presenceIntervalMs);
+}
+
 let joinProcessing = Promise.resolve();
 const welcomeAllowedRoleIds = (process.env.DISCORD_WELCOME_ALLOWED_ROLE_IDS || "")
   .split(",").map(id => id.trim()).filter(Boolean);
@@ -544,6 +598,7 @@ async function requireMusicPlayer(interaction) {
 client.once(Events.ClientReady, async readyClient => {
   discordReady = true;
   console.log(`WLC Discord Bot online as ${readyClient.user.tag}`);
+  await startWlcPresence();
   for (const guild of readyClient.guilds.cache.values()) {
     try { await cacheGuildInvites(guild); }
     catch (error) { console.error(`Invite cache initialization failed for ${guild.id}; check Manage Server permission:`, error); }
