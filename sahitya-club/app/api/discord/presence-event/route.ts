@@ -7,7 +7,13 @@ export const dynamic = "force-dynamic";
 export async function GET() {
   try {
     const events = await listPublished("events", 50);
-    const event = events.find((item: any) => item.title && item.status === "PUBLISHED") || null;
+    const event = events
+      .filter((item: any) => item.title && item.status === "PUBLISHED")
+      .sort((a: any, b: any) => {
+        const dateA = new Date(a.date || a.updatedAt || a.createdAt || 0).getTime();
+        const dateB = new Date(b.date || b.updatedAt || b.createdAt || 0).getTime();
+        return dateB - dateA;
+      })[0] || null;
 
     return NextResponse.json({
       event: event
