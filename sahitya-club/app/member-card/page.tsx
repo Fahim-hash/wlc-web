@@ -58,7 +58,7 @@ export default function MemberCardPage() {
         </header>
 
         <form onSubmit={searchMember} className="rounded-2xl border border-stone-200 bg-white p-5 shadow-sm sm:p-6 print:hidden">
-          <label htmlName="memberId" className="mb-2 block text-sm font-semibold">Official Member ID</label>
+          <label htmlFor="memberId" className="mb-2 block text-sm font-semibold">Official Member ID</label>
           <div className="flex flex-col gap-3 sm:flex-row">
             <input
               id="memberId"
