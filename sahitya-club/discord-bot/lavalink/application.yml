@@ -6,6 +6,11 @@ server:
 
 lavalink:
   plugins:
+    # Keep LavaSrc present: the AAC SoundCloud extension links against its classes.
+    # Spotify remains unused; no Spotify credentials or Premium account are configured.
+    - dependency: "com.github.topi314.lavasrc:lavasrc-plugin:4.8.3"
+      repository: "https://maven.lavalink.dev/releases"
+      snapshot: false
     - dependency: "dev.lavalink.youtube:youtube-plugin:1.18.2"
       repository: "https://maven.lavalink.dev/releases"
       snapshot: false
