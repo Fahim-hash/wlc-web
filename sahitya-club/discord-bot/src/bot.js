@@ -204,14 +204,15 @@ function getMusicPlayer(guildId) {
 function musicSearchCandidates(query) {
   const value = query.trim();
   if (!value) throw new Error("Enter a song name or a SoundCloud link.");
-  if (/^https?:\/\//i.test(value)) {
-    if (/^https?:\/\/(?:www\.)?soundcloud\.com\//i.test(value)) return [value];
-    if (/^https?:\/\/(?:www\.)?(?:youtube\.com|music\.youtube\.com|youtu\.be)\//i.test(value)) {
+  if (value.toLowerCase().startsWith("http://") || value.toLowerCase().startsWith("https://")) {
+    const host = new URL(value).hostname.toLowerCase();
+    if (host === "soundcloud.com" || host.endsWith(".soundcloud.com")) return [value];
+    if (host === "youtube.com" || host.endsWith(".youtube.com") || host === "youtu.be") {
       throw new Error("এই বট এখন শুধু SoundCloud চালায়। গানটির নাম দিয়ে সার্চ করুন অথবা SoundCloud link দিন।");
     }
     throw new Error("Use a SoundCloud track/playlist link, or search by song name.");
   }
-  const simplified = value.replace(/\([^)]*\)|\[[^\]]*\]/g, " ").replace(/\b(official|audio|lyrics|lyric video|visualizer|topic)\b/gi, " ").replace(/[|,:;]+/g, " ").replace(/\s+/g, " ").trim();
+  const simplified = value.split(" | ")[0].split(" (")[0].trim();
   const candidates = ["scsearch:" + value];
   if (simplified && simplified.toLowerCase() !== value.toLowerCase()) candidates.push("scsearch:" + simplified);
   return [...new Set(candidates)];
