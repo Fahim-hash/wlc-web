@@ -197,8 +197,9 @@ function musicSearchCandidates(query) {
     throw new Error("Use a YouTube or SoundCloud track/playlist link, or search by song name.");
   }
 
-  // Prefer YouTube for broad catalogue coverage; use SoundCloud when YouTube has no result.
-  return [`ytsearch:${value}`, `ytmsearch:${value}`, `scsearch:${value}`];
+  // SoundCloud first: its AAC/fMP4 source plugin supports public playback without YouTube OAuth.
+  // YouTube remains a secondary search fallback for tracks unavailable on SoundCloud.
+  return [`scsearch:${value}`, `ytmsearch:${value}`, `ytsearch:${value}`];
 }
 
 async function searchMusic(player, query, requester = client.user) {
