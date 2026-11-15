@@ -64,6 +64,41 @@ const commands = [
     .setDescription("Synchronize published GEN panel roles from the WLC website")
     .setDefaultMemberPermissions(PermissionFlagsBits.ManageGuild),
 
+
+  new SlashCommandBuilder().setName("userinfo").setDescription("View a member's Discord profile")
+    .addUserOption(o => o.setName("member").setDescription("Member to inspect")),
+  new SlashCommandBuilder().setName("serverinfo").setDescription("View WLC Discord server information"),
+  new SlashCommandBuilder().setName("avatar").setDescription("Show a member's avatar")
+    .addUserOption(o => o.setName("member").setDescription("Member whose avatar to show")),
+  new SlashCommandBuilder().setName("clear").setDescription("Delete recent messages from this channel")
+    .addIntegerOption(o => o.setName("amount").setDescription("Number of messages (1–100)").setRequired(true).setMinValue(1).setMaxValue(100))
+    .setDefaultMemberPermissions(PermissionFlagsBits.ManageMessages),
+  new SlashCommandBuilder().setName("lock").setDescription("Lock this text channel")
+    .setDefaultMemberPermissions(PermissionFlagsBits.ManageChannels),
+  new SlashCommandBuilder().setName("unlock").setDescription("Unlock this text channel")
+    .setDefaultMemberPermissions(PermissionFlagsBits.ManageChannels),
+  new SlashCommandBuilder().setName("slowmode").setDescription("Set this channel's slowmode")
+    .addIntegerOption(o => o.setName("seconds").setDescription("0 to 21600 seconds").setRequired(true).setMinValue(0).setMaxValue(21600))
+    .setDefaultMemberPermissions(PermissionFlagsBits.ManageChannels),
+  new SlashCommandBuilder().setName("timeout").setDescription("Temporarily timeout a member")
+    .addUserOption(o => o.setName("member").setDescription("Member to timeout").setRequired(true))
+    .addIntegerOption(o => o.setName("minutes").setDescription("Timeout duration (1–40320 minutes)").setRequired(true).setMinValue(1).setMaxValue(40320))
+    .addStringOption(o => o.setName("reason").setDescription("Reason for timeout").setMaxLength(500))
+    .setDefaultMemberPermissions(PermissionFlagsBits.ModerateMembers),
+  new SlashCommandBuilder().setName("untimeout").setDescription("Remove a member's timeout")
+    .addUserOption(o => o.setName("member").setDescription("Member to untimeout").setRequired(true))
+    .addStringOption(o => o.setName("reason").setDescription("Reason").setMaxLength(500))
+    .setDefaultMemberPermissions(PermissionFlagsBits.ModerateMembers),
+  new SlashCommandBuilder().setName("kick").setDescription("Kick a member from the server")
+    .addUserOption(o => o.setName("member").setDescription("Member to kick").setRequired(true))
+    .addStringOption(o => o.setName("reason").setDescription("Reason").setMaxLength(500))
+    .setDefaultMemberPermissions(PermissionFlagsBits.KickMembers),
+  new SlashCommandBuilder().setName("ban").setDescription("Ban a member from the server")
+    .addUserOption(o => o.setName("member").setDescription("Member to ban").setRequired(true))
+    .addStringOption(o => o.setName("reason").setDescription("Reason").setMaxLength(500))
+    .addIntegerOption(o => o.setName("delete_days").setDescription("Delete up to 7 days of messages").setMinValue(0).setMaxValue(7))
+    .setDefaultMemberPermissions(PermissionFlagsBits.BanMembers),
+
 ].map(command => command.toJSON());
 
 const rest = new REST({ version: "10" }).setToken(token);
@@ -508,7 +543,7 @@ client.on(Events.InteractionCreate, async interaction => {
     if (interaction.commandName === "wlc") {
       await interaction.reply({
         ephemeral: true,
-        content: "**Willes Literary Club Bot**\nOfficial WLC community management and panel directory.\nManagement: `/panels`, `/gen`, `/sync`, `/announce`, `/post`.",
+        content: "**Willes Literary Club Bot**\nOfficial WLC community management and panel directory.\nCommunity: `/panels`, `/gen`, `/userinfo`, `/serverinfo`, `/avatar`.\\nModeration: `/clear`, `/lock`, `/unlock`, `/slowmode`, `/timeout`, `/untimeout`, `/kick`, `/ban`.\\nManagement: `/sync`, `/announce`, `/post`.",
       });
       return;
     }
@@ -563,6 +598,109 @@ client.on(Events.InteractionCreate, async interaction => {
         }],
       });
       await interaction.reply({ content: "Announcement published.", ephemeral: true });
+      return;
+    }
+
+
+    if (interaction.commandName === "userinfo") {
+      const user = interaction.options.getUser("member") || interaction.user;
+      const member = await interaction.guild.members.fetch(user.id).catch(() => null);
+      const roles = member ? member.roles.cache.filter(r => r.id !== interaction.guild.id).map(r => r.toString()).slice(0, 12) : [];
+      await interaction.reply({ embeds: [{
+        color: 0x8f263d, title: `Member · ${user.username}`,
+        thumbnail: { url: user.displayAvatarURL({ size: 256 }) },
+        fields: [
+          { name: "User", value: `${user}\\n` + `\`${user.tag}\``, inline: true },
+          { name: "Account created", value: `<t:${Math.floor(user.createdTimestamp / 1000)}:R>`, inline: true },
+          ...(member ? [{ name: "Joined server", value: member.joinedTimestamp ? `<t:${Math.floor(member.joinedTimestamp / 1000)}:R>` : "Unknown", inline: true },
+            { name: `Roles (${member.roles.cache.size - 1})`, value: roles.join(" ") || "No roles" }] : [])
+        ],
+        footer: { text: `User ID: ${user.id}` }
+      }] });
+      return;
+    }
+
+    if (interaction.commandName === "serverinfo") {
+      const guild = interaction.guild;
+      await guild.fetch();
+      const owner = await guild.fetchOwner();
+      await interaction.reply({ embeds: [{
+        color: 0x8f263d, title: guild.name, thumbnail: { url: guild.iconURL({ size: 256 }) || undefined },
+        fields: [
+          { name: "Owner", value: `${owner.user.tag}`, inline: true },
+          { name: "Members", value: `${guild.memberCount}`, inline: true },
+          { name: "Channels", value: `${guild.channels.cache.size}`, inline: true },
+          { name: "Roles", value: `${guild.roles.cache.size - 1}`, inline: true },
+          { name: "Created", value: `<t:${Math.floor(guild.createdTimestamp / 1000)}:D>`, inline: true },
+          { name: "Verification", value: `${guild.verificationLevel}`, inline: true }
+        ],
+        footer: { text: `Server ID: ${guild.id}` }
+      }] });
+      return;
+    }
+
+    if (interaction.commandName === "avatar") {
+      const user = interaction.options.getUser("member") || interaction.user;
+      const url = user.displayAvatarURL({ size: 1024, extension: "png" });
+      await interaction.reply({ embeds: [{ color: 0x8f263d, title: `${user.username}'s avatar`, image: { url }, url }] });
+      return;
+    }
+
+    if (interaction.commandName === "clear") {
+      const amount = interaction.options.getInteger("amount", true);
+      if (!interaction.channel?.bulkDelete) throw new Error("এই চ্যানেলে মেসেজ মুছে ফেলা যাবে না।");
+      const deleted = await interaction.channel.bulkDelete(amount, true);
+      await interaction.reply({ content: `🧹 ${deleted.size}টি সাম্প্রতিক মেসেজ মুছে ফেলা হয়েছে। (১৪ দিনের বেশি পুরোনো মেসেজ Discord bulk delete করতে দেয় না।)`, ephemeral: true });
+      return;
+    }
+
+    if (interaction.commandName === "lock" || interaction.commandName === "unlock") {
+      const locked = interaction.commandName === "lock";
+      if (!interaction.channel?.permissionOverwrites) throw new Error("এই চ্যানেলের permission পরিবর্তন করা যাচ্ছে না।");
+      await interaction.channel.permissionOverwrites.edit(interaction.guild.roles.everyone, {
+        SendMessages: locked ? false : null,
+        SendMessagesInThreads: locked ? false : null,
+        CreatePublicThreads: locked ? false : null,
+        CreatePrivateThreads: locked ? false : null
+      }, { reason: `${locked ? "Locked" : "Unlocked"} by ${interaction.user.tag}` });
+      await interaction.reply({ content: locked ? "🔒 এই চ্যানেলটি lock করা হয়েছে।" : "🔓 এই চ্যানেলটি unlock করা হয়েছে।" });
+      return;
+    }
+
+    if (interaction.commandName === "slowmode") {
+      const seconds = interaction.options.getInteger("seconds", true);
+      if (!interaction.channel?.setRateLimitPerUser) throw new Error("এই চ্যানেলে slowmode support নেই।");
+      await interaction.channel.setRateLimitPerUser(seconds, `Changed by ${interaction.user.tag}`);
+      await interaction.reply({ content: seconds ? `🐢 Slowmode ${seconds} সেকেন্ড করা হয়েছে।` : "⚡ Slowmode বন্ধ করা হয়েছে।" });
+      return;
+    }
+
+    if (["timeout", "untimeout", "kick", "ban"].includes(interaction.commandName)) {
+      const target = interaction.options.getUser("member", true);
+      if (target.id === interaction.user.id) throw new Error("নিজের ওপর এই moderation action নেওয়া যাবে না।");
+      if (target.id === client.user.id) throw new Error("বটের ওপর এই action নেওয়া যাবে না।");
+      const member = await interaction.guild.members.fetch(target.id);
+      const reason = interaction.options.getString("reason") || `Action by ${interaction.user.tag}`;
+      if (member.id === interaction.guild.ownerId) throw new Error("Server owner-এর ওপর এই action নেওয়া যাবে না।");
+      if (!member.moderatable && ["timeout", "untimeout"].includes(interaction.commandName)) throw new Error("এই member-কে moderate করার permission/role hierarchy নেই।");
+      if (!member.kickable && interaction.commandName === "kick") throw new Error("এই member-কে kick করা যাচ্ছে না; bot role hierarchy পরীক্ষা করুন।");
+      if (!member.bannable && interaction.commandName === "ban") throw new Error("এই member-কে ban করা যাচ্ছে না; bot role hierarchy পরীক্ষা করুন।");
+
+      if (interaction.commandName === "timeout") {
+        const minutes = interaction.options.getInteger("minutes", true);
+        await member.timeout(minutes * 60 * 1000, reason);
+        await interaction.reply({ content: `⏳ ${target.tag}-কে ${minutes} মিনিটের জন্য timeout করা হয়েছে।\nকারণ: ${reason}` });
+      } else if (interaction.commandName === "untimeout") {
+        await member.timeout(null, reason);
+        await interaction.reply({ content: `✅ ${target.tag}-এর timeout তুলে নেওয়া হয়েছে।` });
+      } else if (interaction.commandName === "kick") {
+        await member.kick(reason);
+        await interaction.reply({ content: `👢 ${target.tag}-কে server থেকে kick করা হয়েছে।\nকারণ: ${reason}` });
+      } else {
+        const days = interaction.options.getInteger("delete_days") || 0;
+        await interaction.guild.members.ban(target.id, { reason, deleteMessageSeconds: days * 86400 });
+        await interaction.reply({ content: `🔨 ${target.tag}-কে ban করা হয়েছে।\nকারণ: ${reason}` });
+      }
       return;
     }
 
