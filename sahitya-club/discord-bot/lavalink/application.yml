@@ -47,9 +47,11 @@ plugins:
     allowDirectPlaylistIds: true
     # No OAuth or Google account is configured. These public clients are tried in order.
     clients:
+      - IOS
       - WEB
       - MWEB
       - ANDROID_VR
       - WEBEMBEDDED
       - ANDROID_MUSIC
+      - ANDROID
       - MUSIC
