@@ -204,14 +204,14 @@ function getMusicPlayer(guildId) {
 function musicSearchCandidates(query) {
   const value = query.trim();
   if (!value) throw new Error("Enter a song name or a SoundCloud link.");
-  if (/^https?:\\/\\//i.test(value)) {
-    if (/^https?:\\/\\/(?:www\\.)?soundcloud\\.com\\//i.test(value)) return [value];
-    if (/^https?:\\/\\/(?:www\\.)?(?:youtube\\.com|music\\.youtube\\.com|youtu\\.be)\\//i.test(value)) {
+  if (/^https?:\/\//i.test(value)) {
+    if (/^https?:\/\/(?:www\.)?soundcloud\.com\//i.test(value)) return [value];
+    if (/^https?:\/\/(?:www\.)?(?:youtube\.com|music\.youtube\.com|youtu\.be)\//i.test(value)) {
       throw new Error("এই বট এখন শুধু SoundCloud চালায়। গানটির নাম দিয়ে সার্চ করুন অথবা SoundCloud link দিন।");
     }
     throw new Error("Use a SoundCloud track/playlist link, or search by song name.");
   }
-  const simplified = value.replace(/\\([^)]*\\)|\\[[^\\]]*\\]/g, " ").replace(/\\b(official|audio|lyrics|lyric video|visualizer|topic)\\b/gi, " ").replace(/[|,:;]+/g, " ").replace(/\\s+/g, " ").trim();
+  const simplified = value.replace(/\([^)]*\)|\[[^\]]*\]/g, " ").replace(/\b(official|audio|lyrics|lyric video|visualizer|topic)\b/gi, " ").replace(/[|,:;]+/g, " ").replace(/\s+/g, " ").trim();
   const candidates = ["scsearch:" + value];
   if (simplified && simplified.toLowerCase() !== value.toLowerCase()) candidates.push("scsearch:" + simplified);
   return [...new Set(candidates)];
@@ -250,7 +250,7 @@ async function addRadioTrack(player) {
 
       const found = await searchMusic(player, query, client.user);
       if (!found?.track) {
-        console.warn(`WLC Radio found no result for "${query}" across configured sources; trying the next station query.`);
+        console.warn(`WLC Radio found no result for "${query}" on SoundCloud; trying the next station query.`);
         continue;
       }
 
