@@ -9,7 +9,7 @@ A standalone, persistent Discord.js worker for Willes Literary Club. It lives in
 - `/gen generation:GEN-1|GEN-2|GEN-3` — view a published panel
 - `/announce message:<text> channel:<optional>` — publish an official embed (Manage Server permission)
 - `/sync` — verify website panel data and prepare generation roles (Manage Server permission)
-- `/play query:<song or Spotify link>` — search Spotify and play the matching track
+- `/play query:<song or YouTube/SoundCloud link>` — search YouTube first, then SoundCloud
 - `/skip`, `/pause`, `/resume`, `/stop` — playback controls
 - `/queue`, `/nowplaying`, `/volume level:<1-100>` — music information and controls
 - `/radio enabled:true|false` — enable/disable automatic WLC radio (Manage Server permission)
@@ -32,12 +32,14 @@ Set `DISCORD_GUILD_ID` for immediate per-server slash-command registration durin
 ## Music architecture and operation
 
 - The Discord bot uses `lavalink-client` 2.11.x, which supports Lavalink v4 and Discord DAVE voice encryption.
-- The separate Lavalink 4.2.2 service performs audio streaming; LavaSrc 4.8.3 handles Spotify search and track resolution in `lavalink/application.yml`. The YouTube plugin is removed.
-- On startup, the bot joins the configured WLC voice channel and starts a radio search. When the queue empties, it searches the next configured query and queues a new track.
-- Members can search by song name or provide a Spotify track link with `/play`. Spotify is the only user-facing search source. Spotify does not expose native audio playback to Lavalink, so LavaSrc uses SoundCloud internally as the audio resolver for Spotify metadata; no YouTube search or fallback is configured. Spotify track search/links require Spotify Client ID and Client Secret on the Lavalink service. The bot only controls one active player per Discord server; members must join the same music voice channel to control it.
+- The separate Lavalink 4.2.2 service performs audio streaming. The official YouTube source plugin 1.18.2 is enabled with public clients and no OAuth credentials; the built-in YouTube source remains disabled. The existing AAC-capable SoundCloud source plugin remains installed.
+- On startup, the bot joins the configured WLC voice channel and starts a radio search. When the queue empties, it searches configured station queries, trying YouTube, YouTube Music, and then SoundCloud.
+- Members can search by song name or provide a YouTube/SoundCloud track link with `/play`. Spotify is not part of this setup and no Spotify Premium subscription, Spotify API credentials, or Google account login is required.
+- YouTube may still temporarily reject automated requests or restrict individual tracks. The bot therefore keeps SoundCloud as a fallback; not every track on either service is guaranteed to be playable.
+- The bot only controls one active player per Discord server; members must join the same music voice channel to control it.
 - `/radio enabled:false` stops the automatic station but leaves the player available for member requests. `/radio enabled:true` restarts it.
 - Radio automatically starts again after a bot restart. A member-created queue is in memory and is not guaranteed to survive a full bot restart.
-- Spotify search depends on valid Spotify Client ID and Client Secret. If a Spotify track cannot be matched by the configured audio resolver, it will not play. Use sources only in compliance with their terms.
+- Use sources only in compliance with their terms.
 
 ## Data contract and current limitation
 
