@@ -35,14 +35,21 @@ const generalInviteCode = process.env.DISCORD_GENERAL_INVITE_CODE?.trim();
 const panelInviteCode = process.env.DISCORD_PANEL_INVITE_CODE?.trim();
 const inviteUseCache = new Map();
 const presenceIntervalMs = 45_000;
-const presenceFallbacks = [
-  { type: ActivityType.Listening, name: "চাইনা মেয়ে", details: "by Hridoy Khan" },
-  { type: ActivityType.Playing, name: "with words & writing" },
-  { type: ActivityType.Playing, name: "organising something special" },
-  { type: ActivityType.Watching, name: "the world of literature" },
+// Ten curated presence lines. The event entry is refreshed from the WLC website.
+const presenceNotes = [
+  { type: ActivityType.Listening, name: "Chaina Meye • Hridoy Khan" },
+  { type: ActivityType.Playing, name: "Organising WLC's latest event", dynamicEvent: true },
+  { type: ActivityType.Playing, name: "loving sahitto" },
+  { type: ActivityType.Playing, name: "boka chele siam" },
+  { type: ActivityType.Playing, name: "Willes Literary Club" },
+  { type: ActivityType.Watching, name: "words turn into stories" },
+  { type: ActivityType.Playing, name: "with creativity & imagination" },
+  { type: ActivityType.Listening, name: "the silence between words" },
+  { type: ActivityType.Watching, name: "WLC memories unfold" },
+  { type: ActivityType.Playing, name: "living in a literary world" },
 ];
 let presenceIndex = 0;
-let latestEventActivity = null;
+let latestEventTitle = null;
 let presenceTimer = null;
 
 async function refreshLatestEventActivity() {
@@ -53,28 +60,24 @@ async function refreshLatestEventActivity() {
     });
     if (!response.ok) throw new Error(`Event endpoint returned ${response.status}`);
     const data = await response.json();
-    if (data?.event?.title) {
-      latestEventActivity = {
-        type: ActivityType.Watching,
-        name: String(data.event.title).slice(0, 100),
-      };
-    } else {
-      latestEventActivity = null;
-    }
+    latestEventTitle = data?.event?.title
+      ? String(data.event.title).trim().slice(0, 100)
+      : null;
   } catch (error) {
     console.warn("Could not refresh WLC latest-event presence:", error?.message || error);
   }
 }
 
 function rotateWlcPresence() {
-  const activity = presenceIndex === 2 && latestEventActivity
-    ? latestEventActivity
-    : presenceFallbacks[presenceIndex % presenceFallbacks.length];
+  const note = presenceNotes[presenceIndex % presenceNotes.length];
+  const activityName = note.dynamicEvent && latestEventTitle
+    ? `Organising: ${latestEventTitle}`.slice(0, 100)
+    : note.name;
   client.user?.setPresence({
     status: "online",
-    activities: [{ name: activity.name, type: activity.type }],
+    activities: [{ name: activityName, type: note.type }],
   });
-  presenceIndex = (presenceIndex + 1) % presenceFallbacks.length;
+  presenceIndex = (presenceIndex + 1) % presenceNotes.length;
 }
 
 async function startWlcPresence() {
