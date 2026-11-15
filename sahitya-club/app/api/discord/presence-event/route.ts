@@ -4,14 +4,23 @@ import { listPublished } from "@/lib/cms";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
+type PublishedEvent = {
+  id: string;
+  title?: unknown;
+  status?: string;
+  date?: string | number | null;
+  updatedAt?: string | number | null;
+  createdAt?: string | number | null;
+};
+
 export async function GET() {
   try {
-    const events = await listPublished("events", 50);
+    const events = await listPublished("events", 50) as unknown as PublishedEvent[];
     const event = events
-      .filter((item: any) => item.title && item.status === "PUBLISHED")
-      .sort((a: any, b: any) => {
-        const dateA = new Date(a.date || a.updatedAt || a.createdAt || 0).getTime();
-        const dateB = new Date(b.date || b.updatedAt || b.createdAt || 0).getTime();
+      .filter((item) => typeof item.title === "string" && item.title.trim() && item.status === "PUBLISHED")
+      .sort((a, b) => {
+        const dateA = new Date(String(a.date ?? a.updatedAt ?? a.createdAt ?? 0)).getTime();
+        const dateB = new Date(String(b.date ?? b.updatedAt ?? b.createdAt ?? 0)).getTime();
         return dateB - dateA;
       })[0] || null;
 
