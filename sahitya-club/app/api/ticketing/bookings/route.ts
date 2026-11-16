@@ -102,9 +102,15 @@ export async function POST(request: Request) {
       },
     }, { status: 201 });
   } catch (error) {
-    return NextResponse.json(
-      { message: error instanceof Error ? error.message : "Unable to reserve tickets." },
-      { status: 400 }
-    );
+    const message = error instanceof Error ? error.message : "Unable to reserve tickets.";
+    const conflictMessages = [
+      "This event could not be found.",
+      "Ticket booking is not open for this event.",
+      "Online payment is not connected yet. Paid ticket booking will open after the payment provider is configured.",
+      "Ticket booking for this event has closed.",
+      "Not enough tickets are available for this quantity.",
+    ];
+    const status = error instanceof SyntaxError ? 400 : conflictMessages.includes(message) ? 409 : 500;
+    return NextResponse.json({ message }, { status });
   }
 }
