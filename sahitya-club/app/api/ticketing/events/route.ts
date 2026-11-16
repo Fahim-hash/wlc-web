@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getAdminDb } from "@/lib/firebase-admin";
 import { isMemberAdminAuthenticated } from "@/lib/member-management";
-import { publicEvent, slugifyEventTitle, type TicketingEventStatus } from "@/lib/ticketing";
+import { publicEvent, slugifyEventTitle, type TicketingEvent, type TicketingEventStatus } from "@/lib/ticketing";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -17,7 +17,7 @@ export async function GET(request: Request) {
     const admin = await isMemberAdminAuthenticated();
     const snapshot = await getAdminDb().collection("ticketing_events").limit(100).get();
     const events = snapshot.docs
-      .map((doc) => ({ ...(doc.data() as Record<string, unknown>), id: doc.id }))
+      .map((doc) => ({ ...(doc.data() as Omit<TicketingEvent, "id">), id: doc.id }))
       .filter((event) => admin || event.status === "PUBLISHED")
       .filter((event) => !slug || event.slug === slug)
       .map(publicEvent)
