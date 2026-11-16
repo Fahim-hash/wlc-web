@@ -17,7 +17,7 @@ export async function GET(request: Request) {
     const admin = await isMemberAdminAuthenticated();
     const snapshot = await getAdminDb().collection("ticketing_events").limit(100).get();
     const events = snapshot.docs
-      .map((doc) => ({ ...doc.data(), id: doc.id }))
+      .map((doc) => ({ ...(doc.data() as Record<string, unknown>), id: doc.id }))
       .filter((event) => admin || event.status === "PUBLISHED")
       .filter((event) => !slug || event.slug === slug)
       .map(publicEvent)
