@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
-import { ArrowLeft, CalendarDays, CheckCircle2, Printer, ShieldCheck, Ticket } from "lucide-react";
+import { ArrowLeft, CalendarDays, CheckCircle2, Printer, ShieldCheck } from "lucide-react";
 
 type TicketInfo = {
   bookingId: string; ticketId: string; eventTitle: string; eventStartAt: string;
