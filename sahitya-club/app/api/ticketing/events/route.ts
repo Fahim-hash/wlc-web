@@ -55,7 +55,7 @@ export async function POST(request: Request) {
     if (!Number.isFinite(parseDhakaDate(startAt).getTime())) {
       return NextResponse.json({ message: "Please provide a valid event date and time." }, { status: 400 });
     }
-    if (endAt && (!Number.isFinite(parseDhakaDate(endAt).getTime()) || parseDhakaDate(endAt).getTime() < parseDhakaDate(startAt).getTime())) {
+    if (endAt && (!Number.isFinite(parseDhakaDate(endAt).getTime()) || parseDhakaDate(endAt).getTime() <= parseDhakaDate(startAt).getTime())) {
       return NextResponse.json({ message: "Event end time must be after its start time." }, { status: 400 });
     }
     if (!Number.isInteger(capacity) || capacity < 1 || capacity > 100000) {
@@ -63,6 +63,11 @@ export async function POST(request: Request) {
     }
     if (!Number.isInteger(ticketPrice) || ticketPrice < 0 || ticketPrice > 10000000) {
       return NextResponse.json({ message: "Ticket price must be a valid BDT amount." }, { status: 400 });
+    }
+
+    const normalizedStartTime = parseDhakaDate(startAt).getTime();
+    if (status === "PUBLISHED" && normalizedStartTime <= Date.now()) {
+      return NextResponse.json({ message: "A published event must start in the future." }, { status: 400 });
     }
 
     const slug = slugifyEventTitle(title) || `event-${Date.now().toString(36)}`;
