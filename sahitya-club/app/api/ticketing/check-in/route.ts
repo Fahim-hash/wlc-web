@@ -65,7 +65,7 @@ export async function POST(request: Request) {
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Unable to check in this ticket.";
-    const status = ["Ticket not found."].includes(message) ? 404 : 409;
+    const status = error instanceof SyntaxError ? 400 : message === "Ticket not found." ? 404 : 409;
     return NextResponse.json({ success: false, message }, { status });
   }
 }
