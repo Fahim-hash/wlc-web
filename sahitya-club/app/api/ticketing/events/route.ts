@@ -39,6 +39,7 @@ export async function POST(request: Request) {
     const title = typeof body?.title === "string" ? body.title.trim() : "";
     const summary = typeof body?.summary === "string" ? body.summary.trim() : "";
     const description = typeof body?.description === "string" ? body.description.trim() : "";
+    const bannerUrl = typeof body?.bannerUrl === "string" ? body.bannerUrl.trim() : "";
     const venue = typeof body?.venue === "string" ? body.venue.trim() : "";
     const startAt = typeof body?.startAt === "string" ? body.startAt : "";
     const endAt = typeof body?.endAt === "string" && body.endAt ? body.endAt : null;
@@ -48,6 +49,9 @@ export async function POST(request: Request) {
 
     if (title.length < 4 || title.length > 120) {
       return NextResponse.json({ message: "Event title must be 4–120 characters." }, { status: 400 });
+    }
+    if (bannerUrl && (bannerUrl.length > 1000 || !/^https:\/\//i.test(bannerUrl))) {
+      return NextResponse.json({ message: "Banner image must be a valid public HTTPS URL." }, { status: 400 });
     }
     if (venue.length < 2 || venue.length > 180) {
       return NextResponse.json({ message: "Please enter a valid venue." }, { status: 400 });
@@ -86,6 +90,7 @@ export async function POST(request: Request) {
         title,
         summary,
         description,
+        bannerUrl,
         venue,
         startAt: normalizedStart,
         endAt: normalizedEnd,
@@ -102,7 +107,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json({
       success: true,
-      event: { id: slug, slug, title, summary, description, venue, startAt: normalizedStart, endAt: normalizedEnd, capacity, ticketPrice, currency: "BDT", status, reservedCount: 0 },
+      event: { id: slug, slug, title, summary, description, bannerUrl, venue, startAt: normalizedStart, endAt: normalizedEnd, capacity, ticketPrice, currency: "BDT", status, reservedCount: 0 },
     }, { status: 201 });
   } catch (error) {
     return NextResponse.json(
