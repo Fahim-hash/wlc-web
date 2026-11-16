@@ -36,106 +36,131 @@ export default function MemberCardPage() {
   }
 
   async function downloadPdf() {
-    const card = document.getElementById("wlc-print-card");
-    if (!card) return;
+    if (!member) return;
 
     setLoading(true);
     setMessage("");
     try {
-      await document.fonts.ready;
-      const bounds = card.getBoundingClientRect();
-      const width = Math.ceil(bounds.width);
-      const height = Math.ceil(bounds.height);
-      if (!width || !height) throw new Error("The member card is not ready to export.");
-
-      // Clone the complete card and inline computed styles so the PNG is a
-      // faithful snapshot, independent of the browser's print CSS handling.
-      const clone = card.cloneNode(true) as HTMLElement;
-      const sourceNodes = [card, ...Array.from(card.querySelectorAll("*"))];
-      const cloneNodes = [clone, ...Array.from(clone.querySelectorAll("*"))];
-
-      sourceNodes.forEach((source, index) => {
-        const target = cloneNodes[index] as HTMLElement | undefined;
-        if (!target) return;
-        const computed = window.getComputedStyle(source);
-        let cssText = "";
-        for (let i = 0; i < computed.length; i++) {
-          const property = computed[i];
-          const value = computed.getPropertyValue(property);
-          // CSS url() references inside an SVG foreignObject can taint the
-          // canvas even when <img> elements have already been embedded.
-          // Keep the snapshot self-contained; the card's actual images are
-          // separately converted to data URLs below.
-          if (!/url\s*\(/i.test(value)) {
-            cssText += property + ":" + value + ";";
-          }
-        }
-        target.style.cssText = cssText;
-      });
-
-      clone.style.width = width + "px";
-      clone.style.height = height + "px";
-      clone.style.maxWidth = "none";
-      clone.style.margin = "0";
-      clone.style.borderRadius = "0";
-      clone.style.boxShadow = "none";
-      clone.style.transform = "none";
-
-      // Embed image bytes into the snapshot so the canvas is never tainted
-      // by a remote QR image or delayed image loading.
-      const sourceImages = Array.from(card.querySelectorAll("img"));
-      const cloneImages = Array.from(clone.querySelectorAll("img"));
-      await Promise.all(sourceImages.map(async (image, index) => {
-        const target = cloneImages[index];
-        if (!target) return;
-        const response = await fetch(image.currentSrc || image.src, { mode: "cors", cache: "force-cache" });
+      // Fetch both card images and convert them to data URLs before drawing.
+      // The exported SVG contains no HTML foreignObject, CSS URLs, or remote
+      // resources, so its canvas cannot inherit cross-origin taint.
+      const card = document.getElementById("wlc-print-card");
+      const imageElements = card ? Array.from(card.querySelectorAll("img")) : [];
+      const imageData = await Promise.all(imageElements.map(async (image) => {
+        const response = await fetch(image.currentSrc || image.src, {
+          mode: "cors",
+          cache: "force-cache",
+        });
         if (!response.ok) throw new Error("Could not load a card image for PDF export.");
         const blob = await response.blob();
-        const dataUrl = await new Promise<string>((resolve, reject) => {
+        return await new Promise<string>((resolve, reject) => {
           const reader = new FileReader();
           reader.onload = () => resolve(String(reader.result));
           reader.onerror = () => reject(new Error("Could not prepare a card image."));
           reader.readAsDataURL(blob);
         });
-        target.src = dataUrl;
-        target.removeAttribute("srcset");
       }));
 
-      const serialized = new XMLSerializer().serializeToString(clone);
-      const svg = '<svg xmlns="http://www.w3.org/2000/svg" width="' + width + '" height="' + height + '" viewBox="0 0 ' + width + ' ' + height + '"><foreignObject width="100%" height="100%"><div xmlns="http://www.w3.org/1999/xhtml" style="width:' + width + 'px;height:' + height + 'px;overflow:hidden">' + serialized + '</div></foreignObject></svg>';
+      const escapeXml = (value: string) => value
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&apos;");
+      const logoData = imageData[0];
+      const qrData = imageData[1];
+      if (!logoData || !qrData) throw new Error("The card logo or QR code is not ready.");
+
+      const nameWords = member.name.trim().split(/\s+/);
+      const nameLines: string[] = [];
+      let currentLine = "";
+      for (const word of nameWords) {
+        const candidate = currentLine ? currentLine + " " + word : word;
+        if (candidate.length > 25 && currentLine) {
+          nameLines.push(currentLine);
+          currentLine = word;
+        } else {
+          currentLine = candidate;
+        }
+      }
+      if (currentLine) nameLines.push(currentLine);
+      const visibleNameLines = nameLines.slice(0, 2);
+      const nameSvg = visibleNameLines.map((line, index) =>
+        '<tspan x="82" dy="' + (index === 0 ? "0" : "48") + '">' + escapeXml(line) + "</tspan>"
+      ).join("");
+
+      const svg = `
+        <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="856" height="540" viewBox="0 0 856 540">
+          <rect width="856" height="540" fill="#ffffff"/>
+          <rect x="0" y="0" width="856" height="145" fill="#1c1917"/>
+          <rect x="0" y="142" width="856" height="5" fill="#9f1239"/>
+          <circle cx="88" cy="72" r="49" fill="#ffffff" stroke="#ffffff" stroke-width="3"/>
+          <image x="48" y="32" width="80" height="80" preserveAspectRatio="xMidYMid meet" href="${logoData}" xlink:href="${logoData}"/>
+          <text x="158" y="66" fill="#ffffff" font-family="Arial, sans-serif" font-size="31" font-weight="900" letter-spacing="2">WILLES LITERARY CLUB</text>
+          <text x="158" y="96" fill="#f5f5f4" font-family="Arial, sans-serif" font-size="15" font-weight="700" letter-spacing="3">OFFICIAL MEMBERSHIP IDENTITY CARD</text>
+          <text x="790" y="57" text-anchor="end" fill="#a8a29e" font-family="Arial, sans-serif" font-size="12" font-weight="700" letter-spacing="3">MEMBER</text>
+          <text x="790" y="88" text-anchor="end" fill="#ffffff" font-family="Arial, sans-serif" font-size="23" font-weight="900" letter-spacing="2">WLC</text>
+
+          <rect x="0" y="147" width="856" height="369" fill="#ffffff"/>
+          <rect x="72" y="190" width="5" height="270" fill="#9f1239"/>
+          <text x="94" y="218" fill="#78716c" font-family="Arial, sans-serif" font-size="14" font-weight="800" letter-spacing="3">MEMBER NAME</text>
+          <text x="94" y="270" fill="#1c1917" font-family="Arial, sans-serif" font-size="40" font-weight="900">${nameSvg}</text>
+          <text x="94" y="355" fill="#78716c" font-family="Arial, sans-serif" font-size="13" font-weight="800" letter-spacing="2">MEMBERSHIP ID</text>
+          <text x="94" y="388" fill="#1c1917" font-family="monospace" font-size="24" font-weight="800">${escapeXml(member.memberId)}</text>
+          <text x="94" y="446" fill="#44403c" font-family="Arial, sans-serif" font-size="15" font-weight="800">CLASS / YEAR: ${escapeXml(member.batch || "—")}</text>
+          <rect x="94" y="463" width="160" height="30" fill="#ffffff" stroke="#1c1917" stroke-width="2"/>
+          <circle cx="111" cy="478" r="5" fill="#1c1917"/>
+          <text x="125" y="483" fill="#1c1917" font-family="Arial, sans-serif" font-size="13" font-weight="800" letter-spacing="1">ACTIVE MEMBER</text>
+
+          <rect x="590" y="190" width="205" height="260" fill="#ffffff" stroke="#1c1917" stroke-width="4"/>
+          <image x="606" y="206" width="173" height="173" preserveAspectRatio="xMidYMid meet" href="${qrData}" xlink:href="${qrData}"/>
+          <text x="692" y="410" text-anchor="middle" fill="#1c1917" font-family="Arial, sans-serif" font-size="15" font-weight="900" letter-spacing="2">SCAN TO VERIFY</text>
+          <text x="692" y="432" text-anchor="middle" fill="#78716c" font-family="Arial, sans-serif" font-size="10" font-weight="700" letter-spacing="2">OFFICIAL WLC PORTAL</text>
+
+          <rect x="0" y="516" width="856" height="24" fill="#1c1917"/>
+          <text x="36" y="533" fill="#ffffff" font-family="Arial, sans-serif" font-size="10" font-weight="700" letter-spacing="2">WILLES LITERARY CLUB</text>
+          <text x="820" y="533" text-anchor="end" fill="#ffffff" font-family="Arial, sans-serif" font-size="10" font-weight="700" letter-spacing="2">LEARN · WRITE · INSPIRE</text>
+        </svg>`;
+
       const svgUrl = URL.createObjectURL(new Blob([svg], { type: "image/svg+xml;charset=utf-8" }));
       try {
         const snapshot = new Image();
         snapshot.src = svgUrl;
         await new Promise<void>((resolve, reject) => {
           snapshot.onload = () => resolve();
-          snapshot.onerror = () => reject(new Error("Could not render the member card as an image."));
+          snapshot.onerror = () => reject(new Error("Could not render the member card image."));
         });
 
         const scale = 3;
         const canvas = document.createElement("canvas");
-        canvas.width = width * scale;
-        canvas.height = height * scale;
+        canvas.width = 856 * scale;
+        canvas.height = 540 * scale;
         const context = canvas.getContext("2d");
         if (!context) throw new Error("Your browser could not create the card image.");
         context.fillStyle = "#ffffff";
         context.fillRect(0, 0, canvas.width, canvas.height);
-        context.scale(scale, scale);
-        context.drawImage(snapshot, 0, 0, width, height);
+        context.drawImage(snapshot, 0, 0, canvas.width, canvas.height);
 
-        const pngDataUrl = canvas.toDataURL("image/png");
+        // This canvas is drawn only from a self-contained SVG with embedded
+        // data:image resources; no remote image or stylesheet can taint it.
+        const pngBlob = await new Promise<Blob>((resolve, reject) => {
+          canvas.toBlob(blob => blob ? resolve(blob) : reject(new Error("Could not export the card PNG.")), "image/png");
+        });
+        const pngBytes = await pngBlob.arrayBuffer();
         const { PDFDocument } = await import("pdf-lib");
         const pdf = await PDFDocument.create();
-        const png = await pdf.embedPng(pngDataUrl);
+        const png = await pdf.embedPng(pngBytes);
         const mmToPt = 72 / 25.4;
-        const page = pdf.addPage([85.6 * mmToPt, 54 * mmToPt]);
-        page.drawImage(png, { x: 0, y: 0, width: 85.6 * mmToPt, height: 54 * mmToPt });
+        const pageWidth = 85.6 * mmToPt;
+        const pageHeight = 54 * mmToPt;
+        const page = pdf.addPage([pageWidth, pageHeight]);
+        page.drawImage(png, { x: 0, y: 0, width: pageWidth, height: pageHeight });
         const pdfBytes = await pdf.save();
         const pdfBlob = new Blob([pdfBytes as BlobPart], { type: "application/pdf" });
         const downloadUrl = URL.createObjectURL(pdfBlob);
         const link = document.createElement("a");
         link.href = downloadUrl;
-        link.download = "WLC-Member-Card-" + member?.memberId + ".pdf";
+        link.download = "WLC-Member-Card-" + member.memberId + ".pdf";
         document.body.appendChild(link);
         link.click();
         link.remove();
