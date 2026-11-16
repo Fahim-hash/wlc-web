@@ -66,7 +66,7 @@ export default function MemberCardPage() {
           // canvas even when <img> elements have already been embedded.
           // Keep the snapshot self-contained; the card's actual images are
           // separately converted to data URLs below.
-          if (!/url\\s*\\(/i.test(value)) {
+          if (!/url\s*\(/i.test(value)) {
             cssText += property + ":" + value + ";";
           }
         }
