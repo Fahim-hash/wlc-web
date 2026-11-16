@@ -6,7 +6,7 @@ import { ArrowLeft, CalendarPlus, ExternalLink, ShieldCheck, ScanLine, Download,
 
 type EventRow = {
   id: string; slug: string; title: string; venue: string; startAt: string;
-  capacity: number; reservedCount: number; ticketPrice: number; status: string;
+  capacity: number; reservedCount: number; ticketPrice: number; status: string; bannerUrl?: string;
 };
 
 type BookingRow = {
@@ -21,7 +21,7 @@ type BarcodeDetectorLike = {
 };
 type BarcodeDetectorConstructor = new (options: { formats: string[] }) => BarcodeDetectorLike;
 
-const initial = { title: "", summary: "", description: "", venue: "", startAt: "", endAt: "", capacity: "100", ticketPrice: "0", status: "DRAFT" };
+const initial = { title: "", summary: "", description: "", venue: "", startAt: "", endAt: "", capacity: "100", ticketPrice: "0", bannerUrl: "", status: "DRAFT" };
 
 function extractBookingId(raw: string) {
   const match = raw.trim().match(/[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}/i);
@@ -218,6 +218,7 @@ export default function TicketingAdminPage() {
           <label className="block text-sm font-semibold">Event title<input required minLength={4} maxLength={120} value={form.title} onChange={e=>setForm({...form,title:e.target.value})} className="mt-1.5 w-full rounded-xl border border-[#dce8df] bg-[#fbfdfb] px-3.5 py-3 outline-none focus:border-[#719b51]"/></label>
           <label className="block text-sm font-semibold">Short description<input maxLength={240} value={form.summary} onChange={e=>setForm({...form,summary:e.target.value})} className="mt-1.5 w-full rounded-xl border border-[#dce8df] bg-[#fbfdfb] px-3.5 py-3 outline-none focus:border-[#719b51]"/></label>
           <label className="block text-sm font-semibold">Full description<textarea rows={4} maxLength={5000} value={form.description} onChange={e=>setForm({...form,description:e.target.value})} className="mt-1.5 w-full rounded-xl border border-[#dce8df] bg-[#fbfdfb] px-3.5 py-3 outline-none focus:border-[#719b51]"/></label>
+          <label className="block text-sm font-semibold">Event banner image URL <input type="url" maxLength={1000} placeholder="https://example.com/event-banner.jpg" value={form.bannerUrl} onChange={e=>setForm({...form,bannerUrl:e.target.value})} className="mt-1.5 w-full rounded-xl border border-[#dce8df] bg-[#fbfdfb] px-3.5 py-3 outline-none focus:border-[#719b51]"/><span className="mt-1 block text-xs font-normal text-[#819690]">Use a public HTTPS image URL. Recommended landscape ratio: 16:9.</span></label>
           <label className="block text-sm font-semibold">Venue<input required minLength={2} maxLength={180} value={form.venue} onChange={e=>setForm({...form,venue:e.target.value})} className="mt-1.5 w-full rounded-xl border border-[#dce8df] bg-[#fbfdfb] px-3.5 py-3 outline-none focus:border-[#719b51]"/></label>
           <div className="grid gap-3 sm:grid-cols-2"><label className="block text-sm font-semibold">Start date & time<input required type="datetime-local" value={form.startAt} onChange={e=>setForm({...form,startAt:e.target.value})} className="mt-1.5 w-full rounded-xl border border-[#dce8df] bg-[#fbfdfb] px-3 py-3 outline-none focus:border-[#719b51]"/></label><label className="block text-sm font-semibold">End date & time<input type="datetime-local" value={form.endAt} onChange={e=>setForm({...form,endAt:e.target.value})} className="mt-1.5 w-full rounded-xl border border-[#dce8df] bg-[#fbfdfb] px-3 py-3 outline-none focus:border-[#719b51]"/></label></div>
           <div className="grid gap-3 sm:grid-cols-2"><label className="block text-sm font-semibold">Ticket capacity<input required type="number" min="1" max="100000" value={form.capacity} onChange={e=>setForm({...form,capacity:e.target.value})} className="mt-1.5 w-full rounded-xl border border-[#dce8df] bg-[#fbfdfb] px-3.5 py-3 outline-none focus:border-[#719b51]"/></label><label className="block text-sm font-semibold">Price per ticket (BDT)<input required type="number" min="0" max="10000000" value={form.ticketPrice} onChange={e=>setForm({...form,ticketPrice:e.target.value})} className="mt-1.5 w-full rounded-xl border border-[#dce8df] bg-[#fbfdfb] px-3.5 py-3 outline-none focus:border-[#719b51]"/></label></div>
