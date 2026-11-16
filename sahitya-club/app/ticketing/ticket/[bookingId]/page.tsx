@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { useParams, useSearchParams } from "next/navigation";
+import { useParams } from "next/navigation";
 import { ArrowLeft, CalendarDays, CheckCircle2, Printer, ShieldCheck, Ticket } from "lucide-react";
 
 type TicketInfo = {
@@ -12,13 +12,12 @@ type TicketInfo = {
 
 export default function SecureTicketPage() {
   const params = useParams<{ bookingId: string }>();
-  const search = useSearchParams();
   const [ticket, setTicket] = useState<TicketInfo | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
   useEffect(() => {
-    const token = search.get("token") || "";
+    const token = new URLSearchParams(window.location.search).get("token") || "";
     if (!params.bookingId || !token) {
       setError("This ticket link is incomplete."); setLoading(false); return;
     }
@@ -30,7 +29,7 @@ export default function SecureTicketPage() {
       })
       .catch(reason => setError(reason instanceof Error ? reason.message : "Ticket verification failed."))
       .finally(() => setLoading(false));
-  }, [params.bookingId, search]);
+  }, [params.bookingId]);
 
   if (loading) return <main className="min-h-screen bg-[#f5f8f5] p-8 text-[#154546]">Verifying your ticket…</main>;
   if (!ticket) return <main className="min-h-screen bg-[#f5f8f5] px-4 py-16 text-[#154546]"><div className="mx-auto max-w-lg rounded-3xl border border-[#e1eae3] bg-white p-8 text-center"><ShieldCheck className="mx-auto text-[#9a7442]" size={36}/><h1 className="mt-4 text-2xl font-semibold">Ticket unavailable</h1><p className="mt-2 text-sm text-[#718582]">{error || "This ticket could not be verified."}</p><Link href="/ticketing" className="mt-6 inline-flex rounded-xl bg-[#154546] px-4 py-3 text-sm font-semibold text-white">Back to events</Link></div></main>;
