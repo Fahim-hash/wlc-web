@@ -35,9 +35,112 @@ export default function MemberCardPage() {
     }
   }
 
-  function downloadPdf() {
-    // Match the working Member Portal card export flow.
-    window.print();
+  async function downloadPdf() {
+    const card = document.getElementById("wlc-print-card");
+    if (!card) return;
+
+    setLoading(true);
+    setMessage("");
+    try {
+      await document.fonts.ready;
+      const bounds = card.getBoundingClientRect();
+      const width = Math.ceil(bounds.width);
+      const height = Math.ceil(bounds.height);
+      if (!width || !height) throw new Error("The member card is not ready to export.");
+
+      // Clone the complete card and inline computed styles so the PNG is a
+      // faithful snapshot, independent of the browser's print CSS handling.
+      const clone = card.cloneNode(true) as HTMLElement;
+      const sourceNodes = [card, ...Array.from(card.querySelectorAll("*"))];
+      const cloneNodes = [clone, ...Array.from(clone.querySelectorAll("*"))];
+
+      sourceNodes.forEach((source, index) => {
+        const target = cloneNodes[index] as HTMLElement | undefined;
+        if (!target) return;
+        const computed = window.getComputedStyle(source);
+        let cssText = "";
+        for (let i = 0; i < computed.length; i++) {
+          const property = computed[i];
+          cssText += property + ":" + computed.getPropertyValue(property) + ";";
+        }
+        target.style.cssText = cssText;
+      });
+
+      clone.style.width = width + "px";
+      clone.style.height = height + "px";
+      clone.style.maxWidth = "none";
+      clone.style.margin = "0";
+      clone.style.borderRadius = "0";
+      clone.style.boxShadow = "none";
+      clone.style.transform = "none";
+
+      // Embed image bytes into the snapshot so the canvas is never tainted
+      // by a remote QR image or delayed image loading.
+      const sourceImages = Array.from(card.querySelectorAll("img"));
+      const cloneImages = Array.from(clone.querySelectorAll("img"));
+      await Promise.all(sourceImages.map(async (image, index) => {
+        const target = cloneImages[index];
+        if (!target) return;
+        const response = await fetch(image.currentSrc || image.src, { mode: "cors", cache: "force-cache" });
+        if (!response.ok) throw new Error("Could not load a card image for PDF export.");
+        const blob = await response.blob();
+        const dataUrl = await new Promise<string>((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(String(reader.result));
+          reader.onerror = () => reject(new Error("Could not prepare a card image."));
+          reader.readAsDataURL(blob);
+        });
+        target.src = dataUrl;
+        target.removeAttribute("srcset");
+      }));
+
+      const serialized = new XMLSerializer().serializeToString(clone);
+      const svg = '<svg xmlns="http://www.w3.org/2000/svg" width="' + width + '" height="' + height + '" viewBox="0 0 ' + width + ' ' + height + '"><foreignObject width="100%" height="100%"><div xmlns="http://www.w3.org/1999/xhtml" style="width:' + width + 'px;height:' + height + 'px;overflow:hidden">' + serialized + '</div></foreignObject></svg>';
+      const svgUrl = URL.createObjectURL(new Blob([svg], { type: "image/svg+xml;charset=utf-8" }));
+      try {
+        const snapshot = new Image();
+        snapshot.src = svgUrl;
+        await new Promise<void>((resolve, reject) => {
+          snapshot.onload = () => resolve();
+          snapshot.onerror = () => reject(new Error("Could not render the member card as an image."));
+        });
+
+        const scale = 3;
+        const canvas = document.createElement("canvas");
+        canvas.width = width * scale;
+        canvas.height = height * scale;
+        const context = canvas.getContext("2d");
+        if (!context) throw new Error("Your browser could not create the card image.");
+        context.fillStyle = "#ffffff";
+        context.fillRect(0, 0, canvas.width, canvas.height);
+        context.scale(scale, scale);
+        context.drawImage(snapshot, 0, 0, width, height);
+
+        const pngDataUrl = canvas.toDataURL("image/png");
+        const { PDFDocument } = await import("pdf-lib");
+        const pdf = await PDFDocument.create();
+        const png = await pdf.embedPng(pngDataUrl);
+        const mmToPt = 72 / 25.4;
+        const page = pdf.addPage([85.6 * mmToPt, 54 * mmToPt]);
+        page.drawImage(png, { x: 0, y: 0, width: 85.6 * mmToPt, height: 54 * mmToPt });
+        const pdfBytes = await pdf.save();
+        const pdfBlob = new Blob([pdfBytes as BlobPart], { type: "application/pdf" });
+        const downloadUrl = URL.createObjectURL(pdfBlob);
+        const link = document.createElement("a");
+        link.href = downloadUrl;
+        link.download = "WLC-Member-Card-" + member?.memberId + ".pdf";
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        window.setTimeout(() => URL.revokeObjectURL(downloadUrl), 1500);
+      } finally {
+        URL.revokeObjectURL(svgUrl);
+      }
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "Could not generate the PDF. Please try again.");
+    } finally {
+      setLoading(false);
+    }
   }
   const verifyUrl = member
     ? "https://wlc.pro.bd/member-portal/verify?id=" + encodeURIComponent(member.memberId)
@@ -152,30 +255,6 @@ export default function MemberCardPage() {
         <footer className="mt-10 text-center text-xs text-stone-500 print:hidden">Willes Literary Club · Official Member Services</footer>
       </div>
 
-      <style jsx global>{`@media print {
-        @page { size: auto; margin: 8mm; }
-        html, body { background: #fff !important; }
-        body * { visibility: hidden !important; }
-        #wlc-print-card, #wlc-print-card * { visibility: visible !important; }
-        #wlc-print-card {
-          position: absolute !important; left: 0 !important; top: 0 !important;
-          display: flex !important; flex-direction: column !important;
-          width: 85.6mm !important; height: 54mm !important; min-height: 54mm !important; max-width: none !important;
-          aspect-ratio: auto !important; box-sizing: border-box !important; margin: 0 !important;
-          overflow: hidden !important; border: 0.45mm solid #111 !important; border-radius: 3mm !important;
-          background: #fff !important; color: #171717 !important;
-          box-shadow: none !important; print-color-adjust: exact !important; -webkit-print-color-adjust: exact !important;
-        }
-        #wlc-print-card > div:first-child {
-          display: flex !important; flex: 0 0 auto !important;
-          background: #111 !important; color: #fff !important; border-bottom: 0.7mm solid #555 !important;
-        }
-        #wlc-print-card > div:last-child {
-          display: flex !important; flex: 0 0 4.5% !important;
-          background: #111 !important; color: #fff !important;
-        }
-        #wlc-print-card img { print-color-adjust:exact !important; -webkit-print-color-adjust:exact !important; }
-        #wlc-print-card h3, #wlc-print-card p, #wlc-print-card span { text-shadow:none !important; }
-      }`}</style>   </main>
+   </main>
   );
 }
