@@ -107,6 +107,8 @@ export default function TicketingAdminPage() {
 
     let stopped = false;
     let frame = 0;
+    let lastScannedValue = "";
+    let emptyFrameCount = 0;
 
     async function startScanner() {
       try {
@@ -136,7 +138,21 @@ export default function TicketingAdminPage() {
           if (video.readyState >= 2 && !scanLockRef.current) {
             try {
               const codes = await detector.detect(video);
-              if (codes[0]?.rawValue) await performCheckIn(codes[0].rawValue);
+              const rawValue = codes[0]?.rawValue;
+              if (rawValue) {
+                emptyFrameCount = 0;
+                const scannedValue = extractBookingId(rawValue);
+                if (scannedValue && scannedValue !== lastScannedValue) {
+                  lastScannedValue = scannedValue;
+                  await performCheckIn(rawValue);
+                }
+              } else {
+                emptyFrameCount += 1;
+                if (emptyFrameCount >= 10) {
+                  lastScannedValue = "";
+                  emptyFrameCount = 0;
+                }
+              }
             } catch {
               // Keep the camera loop alive when a frame cannot be decoded.
             }
