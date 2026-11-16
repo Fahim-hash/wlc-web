@@ -61,7 +61,14 @@ export default function MemberCardPage() {
         let cssText = "";
         for (let i = 0; i < computed.length; i++) {
           const property = computed[i];
-          cssText += property + ":" + computed.getPropertyValue(property) + ";";
+          const value = computed.getPropertyValue(property);
+          // CSS url() references inside an SVG foreignObject can taint the
+          // canvas even when <img> elements have already been embedded.
+          // Keep the snapshot self-contained; the card's actual images are
+          // separately converted to data URLs below.
+          if (!/url\\s*\\(/i.test(value)) {
+            cssText += property + ":" + value + ";";
+          }
         }
         target.style.cssText = cssText;
       });
