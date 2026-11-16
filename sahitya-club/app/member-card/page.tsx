@@ -35,38 +35,10 @@ export default function MemberCardPage() {
     }
   }
 
-  async function downloadPdf() {
-    const card = document.getElementById("wlc-print-card");
-    if (!card) return;
-
-    // Wait for the logo and verification QR image before opening the print dialog.
-    const images = Array.from(card.querySelectorAll("img"));
-    await Promise.all(images.map(async (img) => {
-      if (img.complete && img.naturalWidth > 0) {
-        try { await img.decode(); } catch { /* Keep the already loaded image. */ }
-        return;
-      }
-
-      await new Promise<void>((resolve) => {
-        const finish = () => resolve();
-        img.addEventListener("load", finish, { once: true });
-        img.addEventListener("error", finish, { once: true });
-        window.setTimeout(finish, 10000);
-      });
-
-      if (img.complete && img.naturalWidth > 0) {
-        try { await img.decode(); } catch { /* Continue to print if decode is unsupported. */ }
-      }
-    }));
-
-    if ("fonts" in document) {
-      try { await document.fonts.ready; } catch { /* Fonts are non-blocking for export. */ }
-    }
-
-    // Give the browser one frame to apply the print layout after assets are ready.
-    requestAnimationFrame(() => requestAnimationFrame(() => window.print()));
+  function downloadPdf() {
+    // Match the working Member Portal card export flow.
+    window.print();
   }
-
   const verifyUrl = member
     ? "https://wlc.pro.bd/member-portal/verify?id=" + encodeURIComponent(member.memberId)
     : "";
@@ -181,28 +153,29 @@ export default function MemberCardPage() {
       </div>
 
       <style jsx global>{`@media print {
-        @page { size: 85.6mm 54mm; margin: 0; }
-        html, body { width: 85.6mm !important; height: 54mm !important; margin: 0 !important; padding: 0 !important; background: #fff !important; }
+        @page { size: auto; margin: 8mm; }
+        html, body { background: #fff !important; }
         body * { visibility: hidden !important; }
         #wlc-print-card, #wlc-print-card * { visibility: visible !important; }
         #wlc-print-card {
+          position: absolute !important; left: 0 !important; top: 0 !important;
           display: flex !important; flex-direction: column !important;
-          position: fixed !important; left: 0 !important; top: 0 !important; right: auto !important; bottom: auto !important;
-          width: 85.6mm !important; height: 54mm !important; max-width: none !important;
+          width: 85.6mm !important; height: 54mm !important; min-height: 54mm !important; max-width: none !important;
           aspect-ratio: auto !important; box-sizing: border-box !important; margin: 0 !important;
-          border-radius: 0 !important; box-shadow: none !important;
-          background: #fff !important; border: 0.45mm solid #111 !important;
-          print-color-adjust: exact !important; -webkit-print-color-adjust: exact !important;
+          overflow: hidden !important; border: 0.45mm solid #111 !important; border-radius: 3mm !important;
+          background: #fff !important; color: #171717 !important;
+          box-shadow: none !important; print-color-adjust: exact !important; -webkit-print-color-adjust: exact !important;
         }
         #wlc-print-card > div:first-child {
+          display: flex !important; flex: 0 0 auto !important;
           background: #111 !important; color: #fff !important; border-bottom: 0.7mm solid #555 !important;
         }
         #wlc-print-card > div:last-child {
+          display: flex !important; flex: 0 0 4.5% !important;
           background: #111 !important; color: #fff !important;
         }
-        #wlc-print-card img { print-color-adjust: exact !important; -webkit-print-color-adjust: exact !important; }
-        #wlc-print-card h3, #wlc-print-card p, #wlc-print-card span { text-shadow: none !important; }
-      }`}</style>
-    </main>
+        #wlc-print-card img { print-color-adjust:exact !important; -webkit-print-color-adjust:exact !important; }
+        #wlc-print-card h3, #wlc-print-card p, #wlc-print-card span { text-shadow:none !important; }
+      }`}</style>   </main>
   );
 }
