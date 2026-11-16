@@ -9,6 +9,7 @@ export type TicketingEvent = {
   title: string;
   summary: string;
   description: string;
+  bannerUrl: string;
   venue: string;
   startAt: string;
   endAt: string | null;
@@ -51,6 +52,7 @@ export function publicEvent(event: Record<string, unknown>) {
     title: event.title,
     summary: event.summary,
     description: event.description,
+    bannerUrl: event.bannerUrl ?? "",
     venue: event.venue,
     startAt: event.startAt,
     endAt: event.endAt ?? null,
