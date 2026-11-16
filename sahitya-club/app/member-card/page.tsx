@@ -35,8 +35,36 @@ export default function MemberCardPage() {
     }
   }
 
-  function downloadPdf() {
-    window.print();
+  async function downloadPdf() {
+    const card = document.getElementById("wlc-print-card");
+    if (!card) return;
+
+    // Wait for the logo and verification QR image before opening the print dialog.
+    const images = Array.from(card.querySelectorAll("img"));
+    await Promise.all(images.map(async (img) => {
+      if (img.complete && img.naturalWidth > 0) {
+        try { await img.decode(); } catch { /* Keep the already loaded image. */ }
+        return;
+      }
+
+      await new Promise<void>((resolve) => {
+        const finish = () => resolve();
+        img.addEventListener("load", finish, { once: true });
+        img.addEventListener("error", finish, { once: true });
+        window.setTimeout(finish, 10000);
+      });
+
+      if (img.complete && img.naturalWidth > 0) {
+        try { await img.decode(); } catch { /* Continue to print if decode is unsupported. */ }
+      }
+    }));
+
+    if ("fonts" in document) {
+      try { await document.fonts.ready; } catch { /* Fonts are non-blocking for export. */ }
+    }
+
+    // Give the browser one frame to apply the print layout after assets are ready.
+    requestAnimationFrame(() => requestAnimationFrame(() => window.print()));
   }
 
   const verifyUrl = member
@@ -158,7 +186,8 @@ export default function MemberCardPage() {
         body * { visibility: hidden !important; }
         #wlc-print-card, #wlc-print-card * { visibility: visible !important; }
         #wlc-print-card {
-          position: absolute !important; inset: 0 auto auto 0 !important;
+          display: flex !important; flex-direction: column !important;
+          position: fixed !important; left: 0 !important; top: 0 !important; right: auto !important; bottom: auto !important;
           width: 85.6mm !important; height: 54mm !important; max-width: none !important;
           aspect-ratio: auto !important; box-sizing: border-box !important; margin: 0 !important;
           border-radius: 0 !important; box-shadow: none !important;
