@@ -1,0 +1,62 @@
+"use client";
+
+import Link from "next/link";
+import { FormEvent, useEffect, useState } from "react";
+import { ArrowLeft, CalendarDays, CheckCircle2, MapPin, ShieldCheck, Ticket } from "lucide-react";
+
+type EventItem = {
+  id: string; slug: string; title: string; summary: string; description: string;
+  venue: string; startAt: string; endAt: string | null; capacity: number;
+  availableCount: number; ticketPrice: number; currency: string;
+};
+
+export default function TicketingEventPage({ params }: { params: Promise<{ slug: string }> }) {
+  const [slug, setSlug] = useState("");
+  const [event, setEvent] = useState<EventItem | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [busy, setBusy] = useState(false);
+  const [notice, setNotice] = useState("");
+  const [ticket, setTicket] = useState<{ticketId:string;ticketToken:string;bookingId:string;quantity:number}|null>(null);
+  const [form, setForm] = useState({ name: "", email: "", phone: "", quantity: "1" });
+
+  useEffect(() => { params.then((value) => setSlug(value.slug)); }, [params]);
+  useEffect(() => {
+    if (!slug) return;
+    fetch(`/api/ticketing/events?slug=${encodeURIComponent(slug)}`, { cache: "no-store" })
+      .then(async (response) => { const data = await response.json(); if (!response.ok) throw new Error(data.message || "Unable to load event."); setEvent(data.events?.[0] || null); })
+      .catch((error) => setNotice(error instanceof Error ? error.message : "Unable to load event."))
+      .finally(() => setLoading(false));
+  }, [slug]);
+
+  async function reserve(event: FormEvent) {
+    event.preventDefault(); setBusy(true); setNotice(""); setTicket(null);
+    try {
+      const response = await fetch("/api/ticketing/bookings", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ eventSlug: slug, ...form, quantity: Number(form.quantity) }) });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.message || "Booking failed.");
+      setTicket(data.booking); setNotice("Your free ticket has been confirmed.");
+    } catch (error) { setNotice(error instanceof Error ? error.message : "Booking failed."); }
+    finally { setBusy(false); }
+  }
+
+  if (loading) return <main className="min-h-screen bg-[#f5f8f5] p-8 text-[#154546]">Loading event…</main>;
+  if (!event) return <main className="min-h-screen bg-[#f5f8f5] px-4 py-16 text-[#154546]"><div className="mx-auto max-w-xl rounded-3xl bg-white p-8 text-center"><h1 className="text-2xl font-semibold">Event not found</h1><p className="mt-2 text-sm text-[#718582]">This event may be unpublished or no longer available.</p><Link href="/ticketing" className="mt-6 inline-flex rounded-xl bg-[#154546] px-4 py-3 text-sm font-semibold text-white">Back to events</Link></div></main>;
+
+  const date = new Intl.DateTimeFormat("en-BD", { dateStyle: "full", timeStyle: "short" }).format(new Date(event.startAt));
+  return <main className="min-h-screen bg-[#f5f8f5] px-4 py-10 text-[#173c3b] sm:px-6"><div className="mx-auto max-w-5xl">
+    <Link href="/ticketing" className="inline-flex items-center gap-2 text-sm font-semibold text-[#63817c] hover:text-[#154546]"><ArrowLeft size={16}/> All events</Link>
+    <div className="mt-6 grid gap-6 lg:grid-cols-[1.2fr_.8fr]">
+      <section className="rounded-[2rem] bg-[#154546] p-7 text-white sm:p-10"><span className="rounded-full bg-white/10 px-3 py-1.5 text-xs font-bold text-[#c8ec8b]">WLC EVENT</span><h1 className="mt-7 text-4xl font-semibold leading-tight tracking-tight sm:text-5xl">{event.title}</h1><p className="mt-5 text-sm leading-7 text-white/70">{event.description || event.summary}</p><div className="mt-9 space-y-4 border-t border-white/15 pt-6 text-sm text-white/80"><p className="flex items-center gap-3"><CalendarDays className="text-[#c8ec8b]"/>{date}</p><p className="flex items-center gap-3"><MapPin className="text-[#c8ec8b]"/>{event.venue}</p><p className="flex items-center gap-3"><Ticket className="text-[#c8ec8b]"/>{event.ticketPrice === 0 ? "Free entry" : `৳${event.ticketPrice.toLocaleString("en-BD")} per ticket`}</p></div></section>
+      <section className="rounded-[2rem] border border-[#e1eae3] bg-white p-6 shadow-[0_12px_40px_rgba(23,60,59,.05)] sm:p-8">
+        {ticket ? <div className="text-center"><div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-[#eff8e9] text-[#5a873e]"><CheckCircle2 size={28}/></div><h2 className="mt-5 text-2xl font-semibold">You're on the list!</h2><p className="mt-2 text-sm text-[#718582]">Your booking is confirmed. Keep this ticket reference safe.</p><div className="mt-6 rounded-2xl border border-dashed border-[#b9d1b5] bg-[#f7fbf4] p-5"><p className="text-xs font-bold uppercase tracking-widest text-[#7c9791]">Ticket ID</p><p className="mt-2 break-all font-mono text-xl font-bold text-[#154546]">{ticket.ticketId}</p><p className="mt-3 text-xs text-[#7c9791]">Booking reference: {ticket.bookingId}</p></div><p className="mt-4 text-xs leading-5 text-[#7c9791]">QR ticket and entry verification will be available in the next ticketing release. Do not share your booking reference publicly.</p><Link href="/ticketing" className="mt-6 inline-flex rounded-xl bg-[#154546] px-4 py-3 text-sm font-semibold text-white">Explore more events</Link></div> :
+        <><p className="text-xs font-bold uppercase tracking-[.2em] text-[#6b928d]">Reserve your place</p><h2 className="mt-2 text-2xl font-semibold">Get your ticket</h2><p className="mt-2 text-sm text-[#718582]">{event.availableCount} tickets currently available</p>
+          <form onSubmit={reserve} className="mt-7 space-y-4"><label className="block text-sm font-semibold">Full name<input required minLength={2} maxLength={120} value={form.name} onChange={e=>setForm({...form,name:e.target.value})} className="mt-2 w-full rounded-xl border border-[#dce8df] bg-[#fbfdfb] px-4 py-3 outline-none focus:border-[#719b51]"/></label><label className="block text-sm font-semibold">Email address<input required type="email" maxLength={254} value={form.email} onChange={e=>setForm({...form,email:e.target.value})} className="mt-2 w-full rounded-xl border border-[#dce8df] bg-[#fbfdfb] px-4 py-3 outline-none focus:border-[#719b51]"/></label><label className="block text-sm font-semibold">Phone number<input required type="tel" maxLength={30} value={form.phone} onChange={e=>setForm({...form,phone:e.target.value})} placeholder="+8801XXXXXXXXX" className="mt-2 w-full rounded-xl border border-[#dce8df] bg-[#fbfdfb] px-4 py-3 outline-none focus:border-[#719b51]"/></label><label className="block text-sm font-semibold">Number of tickets<select value={form.quantity} onChange={e=>setForm({...form,quantity:e.target.value})} className="mt-2 w-full rounded-xl border border-[#dce8df] bg-[#fbfdfb] px-4 py-3 outline-none focus:border-[#719b51]">{[1,2,3,4,5].map(n=><option key={n} value={n}>{n} {n===1?"ticket":"tickets"}</option>)}</select></label>
+          <div className="rounded-2xl bg-[#f1f7ee] p-4"><div className="flex justify-between text-sm"><span className="text-[#66817b]">Total</span><strong className="text-[#154546]">{event.ticketPrice===0?"Free":`৳${(event.ticketPrice*Number(form.quantity)).toLocaleString("en-BD")}`}</strong></div>{event.ticketPrice>0&&<p className="mt-2 text-xs leading-5 text-[#8a6b3b]">Paid booking is not available until a payment provider is connected.</p>}</div>
+          <button disabled={busy||event.availableCount<1||event.ticketPrice>0} className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#154546] px-4 py-3.5 text-sm font-bold text-white transition hover:bg-[#1d5d5d] disabled:cursor-not-allowed disabled:opacity-45">{busy?"Reserving…":event.ticketPrice>0?"Paid booking coming soon":"Confirm free booking"}</button>
+          <p className="flex items-center justify-center gap-2 text-center text-xs text-[#8aa09a]"><ShieldCheck size={14}/> Your details are used only for event registration.</p></form>
+        </>}
+        {notice&&!ticket&&<p role="alert" className="mt-4 rounded-xl bg-[#fff7e8] p-3 text-sm text-[#805d2d]">{notice}</p>}
+      </section>
+    </div>
+  </div></main>;
+}
