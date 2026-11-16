@@ -6,6 +6,10 @@ import { publicEvent, slugifyEventTitle, type TicketingEventStatus } from "@/lib
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
+function parseDhakaDate(value: string) {
+  return new Date(/(?:Z|[+-][0-9]{2}:?[0-9]{2})$/i.test(value) ? value : `${value}+06:00`);
+}
+
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
@@ -48,7 +52,7 @@ export async function POST(request: Request) {
     if (venue.length < 2 || venue.length > 180) {
       return NextResponse.json({ message: "Please enter a valid venue." }, { status: 400 });
     }
-    const parseDhakaDate = (value: string) => new Date(/(?:Z|[+-]\\d{2}:?\\d{2})$/i.test(value) ? value : `${value}+06:00`);\n    if (!Number.isFinite(parseDhakaDate(startAt).getTime())) {
+    if (!Number.isFinite(parseDhakaDate(startAt).getTime())) {
       return NextResponse.json({ message: "Please provide a valid event date and time." }, { status: 400 });
     }
     if (endAt && (!Number.isFinite(parseDhakaDate(endAt).getTime()) || parseDhakaDate(endAt).getTime() < parseDhakaDate(startAt).getTime())) {
@@ -62,11 +66,16 @@ export async function POST(request: Request) {
     }
 
     const slug = slugifyEventTitle(title);
-    if (!slug) return NextResponse.json({ message: "Please use an event title with English letters or numbers for its URL." }, { status: 400 });
+    if (!slug) {
+      return NextResponse.json({ message: "Please use an event title with English letters or numbers for its URL." }, { status: 400 });
+    }
 
     const db = getAdminDb();
     const eventRef = db.collection("ticketing_events").doc(slug);
     const now = Date.now();
+    const normalizedStart = parseDhakaDate(startAt).toISOString();
+    const normalizedEnd = endAt ? parseDhakaDate(endAt).toISOString() : null;
+
     await db.runTransaction(async (transaction) => {
       const existing = await transaction.get(eventRef);
       if (existing.exists) throw new Error("An event with this URL already exists. Change the title slightly.");
@@ -76,8 +85,8 @@ export async function POST(request: Request) {
         summary,
         description,
         venue,
-        startAt: parseDhakaDate(startAt).toISOString(),
-        endAt: endAt ? new Date(endAt).toISOString() : null,
+        startAt: normalizedStart,
+        endAt: normalizedEnd,
         capacity,
         ticketPrice,
         currency: "BDT",
@@ -89,7 +98,10 @@ export async function POST(request: Request) {
       });
     });
 
-    return NextResponse.json({ success: true, event: { id: slug, slug, title, summary, description, venue, startAt: parseDhakaDate(startAt).toISOString(), endAt: endAt ? parseDhakaDate(endAt).toISOString() : null, capacity, ticketPrice, currency: "BDT", status, reservedCount: 0 } }, { status: 201 });
+    return NextResponse.json({
+      success: true,
+      event: { id: slug, slug, title, summary, description, venue, startAt: normalizedStart, endAt: normalizedEnd, capacity, ticketPrice, currency: "BDT", status, reservedCount: 0 },
+    }, { status: 201 });
   } catch (error) {
     return NextResponse.json(
       { message: error instanceof Error ? error.message : "Unable to create event." },
