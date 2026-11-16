@@ -93,6 +93,7 @@ export default function RootLayout({
     { name: "কথাসখী", path: "/kothasokhi", emoji: "💬" },
     { name: "সদস্য নিবন্ধন", path: "/register", emoji: "📝" },
     { name: "ইভেন্টস", path: "/events", emoji: "📅" },
+    { name: "টিকিটিং", path: "/ticketing", emoji: "🎟️" },
     { name: "অর্জনসমূহ", path: "/achievements", emoji: "🏆" },
     { name: "অ্যালবাম", path: "/album", emoji: "🖼️" },
     { name: "শব্দকোষ", path: "/shobdo", emoji: "📖" },
