@@ -48,10 +48,10 @@ export async function POST(request: Request) {
     if (venue.length < 2 || venue.length > 180) {
       return NextResponse.json({ message: "Please enter a valid venue." }, { status: 400 });
     }
-    if (!Number.isFinite(Date.parse(startAt))) {
+    const parseDhakaDate = (value: string) => new Date(/(?:Z|[+-]\\d{2}:?\\d{2})$/i.test(value) ? value : `${value}+06:00`);\n    if (!Number.isFinite(parseDhakaDate(startAt).getTime())) {
       return NextResponse.json({ message: "Please provide a valid event date and time." }, { status: 400 });
     }
-    if (endAt && (!Number.isFinite(Date.parse(endAt)) || Date.parse(endAt) < Date.parse(startAt))) {
+    if (endAt && (!Number.isFinite(parseDhakaDate(endAt).getTime()) || parseDhakaDate(endAt).getTime() < parseDhakaDate(startAt).getTime())) {
       return NextResponse.json({ message: "Event end time must be after its start time." }, { status: 400 });
     }
     if (!Number.isInteger(capacity) || capacity < 1 || capacity > 100000) {
@@ -76,7 +76,7 @@ export async function POST(request: Request) {
         summary,
         description,
         venue,
-        startAt: new Date(startAt).toISOString(),
+        startAt: parseDhakaDate(startAt).toISOString(),
         endAt: endAt ? new Date(endAt).toISOString() : null,
         capacity,
         ticketPrice,
@@ -89,7 +89,7 @@ export async function POST(request: Request) {
       });
     });
 
-    return NextResponse.json({ success: true, event: { id: slug, slug, title, summary, description, venue, startAt: new Date(startAt).toISOString(), endAt, capacity, ticketPrice, currency: "BDT", status, reservedCount: 0 } }, { status: 201 });
+    return NextResponse.json({ success: true, event: { id: slug, slug, title, summary, description, venue, startAt: parseDhakaDate(startAt).toISOString(), endAt: endAt ? parseDhakaDate(endAt).toISOString() : null, capacity, ticketPrice, currency: "BDT", status, reservedCount: 0 } }, { status: 201 });
   } catch (error) {
     return NextResponse.json(
       { message: error instanceof Error ? error.message : "Unable to create event." },
