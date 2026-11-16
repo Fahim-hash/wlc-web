@@ -298,6 +298,7 @@ export default function MemberHubPage() {
           </div>
           <div className="flex flex-wrap items-center gap-3">
             <a href="/memberhub/activity" className="inline-flex items-center gap-2 rounded-2xl bg-rose-900 px-4 py-2.5 text-sm font-semibold text-white hover:bg-rose-800">Attendance & Certificates</a>
+            <a href="/memberhub/ticketing" className="inline-flex items-center gap-2 rounded-2xl bg-[#154546] px-4 py-2.5 text-sm font-semibold text-white hover:bg-[#1d5d5d]">Event Ticketing</a>
             <button
               onClick={loadMembers}
               className="inline-flex items-center gap-2 rounded-2xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-medium hover:bg-stone-100"
