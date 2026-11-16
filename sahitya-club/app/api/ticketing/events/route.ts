@@ -65,10 +65,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ message: "Ticket price must be a valid BDT amount." }, { status: 400 });
     }
 
-    const slug = slugifyEventTitle(title);
-    if (!slug) {
-      return NextResponse.json({ message: "Please use an event title with English letters or numbers for its URL." }, { status: 400 });
-    }
+    const slug = slugifyEventTitle(title) || `event-${Date.now().toString(36)}`;
 
     const db = getAdminDb();
     const eventRef = db.collection("ticketing_events").doc(slug);
