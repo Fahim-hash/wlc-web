@@ -9,6 +9,7 @@ type EventItem = {
   slug: string;
   title: string;
   summary: string;
+  bannerUrl?: string;
   venue: string;
   startAt: string;
   capacity: number;
@@ -65,12 +66,12 @@ export default function TicketingHomePage() {
             error ? <p role="alert" className="mt-7 rounded-2xl border border-red-200 bg-red-50 p-5 text-sm text-red-800">{error}</p> :
             events.length === 0 ? <div className="mt-7 rounded-3xl border border-dashed border-[#cbdcd1] bg-white/70 px-6 py-16 text-center"><div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-[#edf5e8] text-[#557f43]"><CalendarDays/></div><h3 className="mt-5 text-xl font-semibold">No events published yet</h3><p className="mx-auto mt-2 max-w-md text-sm leading-6 text-[#718987]">WLC events will appear here as soon as the team publishes them. Check back soon.</p></div> :
             <div className="mt-7 grid gap-5 md:grid-cols-2">
-              {events.map((event) => <article key={event.id} className="group rounded-3xl border border-[#e1eae3] bg-white p-6 shadow-[0_8px_30px_rgba(23,60,59,.04)] transition hover:-translate-y-1 hover:shadow-[0_18px_50px_rgba(23,60,59,.1)]">
-                <div className="flex items-start justify-between gap-4"><span className="rounded-full bg-[#edf6e6] px-3 py-1.5 text-xs font-bold text-[#4d7136]">{money(event.ticketPrice)}</span><span className="text-xs font-medium text-[#7c9791]">{event.availableCount} seats left</span></div>
+              {events.map((event) => <article key={event.id} className="group overflow-hidden rounded-3xl border border-[#e1eae3] bg-white shadow-[0_8px_30px_rgba(23,60,59,.04)] transition hover:-translate-y-1 hover:shadow-[0_18px_50px_rgba(23,60,59,.1)]">
+                {event.bannerUrl ? <img src={event.bannerUrl} alt={`${event.title} event banner`} className="aspect-[16/7] w-full object-cover" loading="lazy"/> : <div className="flex aspect-[16/7] items-center justify-center bg-gradient-to-br from-[#154546] via-[#1d5d5d] to-[#A9DD36]/70"><span className="text-xs font-bold uppercase tracking-[.25em] text-white/80">Willes Literary Club</span></div>}<div className="p-6"><div className="flex items-start justify-between gap-4"><span className="rounded-full bg-[#edf6e6] px-3 py-1.5 text-xs font-bold text-[#4d7136]">{money(event.ticketPrice)}</span><span className="text-xs font-medium text-[#7c9791]">{event.availableCount} seats left</span></div>
                 <h3 className="mt-6 text-2xl font-semibold leading-tight tracking-tight">{event.title}</h3>
                 <p className="mt-3 min-h-12 text-sm leading-6 text-[#718582]">{event.summary || "Join the Willes Literary Club community for a memorable event."}</p>
                 <div className="mt-6 space-y-3 border-t border-[#edf1ed] pt-5 text-sm text-[#5d7773]"><p className="flex items-center gap-2"><CalendarDays size={16} className="text-[#719b51]"/>{dateLabel(event.startAt)}</p><p className="flex items-center gap-2"><MapPin size={16} className="text-[#719b51]"/>{event.venue}</p></div>
-                <Link href={`/ticketing/${event.slug}`} className="mt-7 inline-flex items-center gap-2 rounded-xl bg-[#154546] px-4 py-3 text-sm font-semibold text-white transition hover:bg-[#1d5d5d]">View event & tickets <ArrowUpRight size={16}/></Link>
+                <Link href={`/ticketing/${event.slug}`} className="mt-7 inline-flex items-center gap-2 rounded-xl bg-[#154546] px-4 py-3 text-sm font-semibold text-white transition hover:bg-[#1d5d5d]">View event & tickets <ArrowUpRight size={16}/></Link></div>
               </article>)}
             </div>}
         </section>
