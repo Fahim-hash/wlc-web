@@ -1,4 +1,15 @@
 import { PDFDocument, StandardFonts, rgb, type PDFFont } from "pdf-lib";
+import fontkit from "@pdf-lib/fontkit";
+
+let bengaliFontBytes: Promise<Uint8Array | null> | null = null;
+async function loadBengaliFont() {
+  if (!bengaliFontBytes) {
+    bengaliFontBytes = fetch("https://raw.githubusercontent.com/google/fonts/main/ofl/notosansbengali/NotoSansBengali%5Bwdth%2Cwght%5D.ttf", { cache: "force-cache", signal: AbortSignal.timeout(12000) })
+      .then(async (response) => response.ok ? new Uint8Array(await response.arrayBuffer()) : null)
+      .catch(() => null);
+  }
+  return bengaliFontBytes;
+}
 
 export type TicketPdfData = {
   eventTitle: string;
