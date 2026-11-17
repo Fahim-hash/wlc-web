@@ -28,6 +28,18 @@ export async function createTicketPdf(data: TicketPdfData) {
   const page = pdf.addPage([595.28, 841.89]);
   const regular = await pdf.embedFont(StandardFonts.Helvetica);
   const bold = await pdf.embedFont(StandardFonts.HelveticaBold);
+  const hasBengali = [data.attendeeName, data.eventTitle, data.venue].some((value) => /[\\u0980-\\u09FF]/.test(value));
+  let unicodeFont: PDFFont | null = null;
+  if (hasBengali) {
+    const bengaliBytes = await loadBengaliFont();
+    if (bengaliBytes) {
+      pdf.registerFontkit(fontkit);
+      unicodeFont = await pdf.embedFont(bengaliBytes, { subset: true });
+    }
+  }
+  const attendeeFont = unicodeFont || bold;
+  const titleFont = unicodeFont || bold;
+  const venueFont = unicodeFont || regular;
   const rose = rgb(0.624, 0.071, 0.224);
   const ink = rgb(0.11, 0.098, 0.09);
   const muted = rgb(0.42, 0.43, 0.45);
@@ -39,19 +51,19 @@ export async function createTicketPdf(data: TicketPdfData) {
   page.drawRectangle({ x: 0, y: 590, width: 595.28, height: 251.89, color: rose });
   page.drawText("WILLES LITERARY CLUB", { x: left, y: 790, size: 11, font: bold, color: white, characterSpacing: 2 });
   page.drawText("EVENT ADMISSION", { x: left, y: 752, size: 10, font: bold, color: rgb(1, 0.82, 0.88), characterSpacing: 1.6 });
-  const titleLines = wrapText(data.eventTitle, bold, 27, 430).slice(0, 3);
+  const titleLines = wrapText(data.eventTitle, titleFont, 27, 430).slice(0, 3);
   let titleY = 708;
   for (const line of titleLines) {
-    page.drawText(line, { x: left, y: titleY, size: 27, font: bold, color: white });
+    page.drawText(line, { x: left, y: titleY, size: 27, font: titleFont, color: white });
     titleY -= 34;
   }
   const date = new Intl.DateTimeFormat("en-GB", { dateStyle: "full", timeStyle: "short", timeZone: "Asia/Dhaka" }).format(new Date(data.eventStartAt));
   page.drawText(date, { x: left, y: 620, size: 10, font: regular, color: white });
-  page.drawText(data.venue.slice(0, 90), { x: left, y: 600, size: 10, font: regular, color: rgb(1, 0.88, 0.91) });
+  page.drawText(unicodeFont ? data.venue.slice(0, 90) : data.venue.slice(0, 90).replace(/[^\\x20-\\x7E]/g, "?"), { x: left, y: 600, size: 10, font: venueFont, color: rgb(1, 0.88, 0.91) });
 
   page.drawText("ATTENDEE", { x: left, y: 548, size: 9, font: bold, color: muted, characterSpacing: 1.5 });
   const name = data.attendeeName.length > 42 ? data.attendeeName.slice(0, 39) + "…" : data.attendeeName;
-  page.drawText(name, { x: left, y: 518, size: 21, font: bold, color: ink });
+  const safeName = unicodeFont ? name : name.replace(/[^\\x20-\\x7E]/g, "?");\n  page.drawText(safeName, { x: left, y: 518, size: 21, font: attendeeFont, color: ink });
   page.drawText(`${data.quantity} ${data.quantity === 1 ? "ticket" : "tickets"} · FREE ADMISSION`, { x: left, y: 493, size: 10, font: regular, color: muted });
   page.drawRectangle({ x: left, y: 380, width, height: 82, color: pale, borderColor: rgb(0.98, 0.66, 0.81), borderWidth: 1 });
   page.drawText("TICKET ID", { x: left + 18, y: 437, size: 8, font: bold, color: muted, characterSpacing: 1.4 });
