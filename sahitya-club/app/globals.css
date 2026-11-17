@@ -95,12 +95,3 @@ body.maintenance-page {
 }
 
 
-/* Ticketing is a standalone experience without the website-wide chrome. */
-body.ticketing-platform > header,
-body.ticketing-platform > footer {
-  display: none !important;
-}
-
-body.ticketing-platform > main {
-  z-index: auto;
-}
