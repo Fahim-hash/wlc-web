@@ -1,4 +1,4 @@
-import { PDFDocument, StandardFonts, rgb } from "pdf-lib";
+import { PDFDocument, StandardFonts, rgb, type PDFFont } from "pdf-lib";
 
 export type TicketPdfData = {
   eventTitle: string;
@@ -67,7 +67,7 @@ export async function createTicketPdf(data: TicketPdfData) {
   return Buffer.from(await pdf.save());
 }
 
-function wrapText(value: string, font: Awaited<ReturnType<PDFDocument["embedFont"]>>, size: number, maxWidth: number) {
+function wrapText(value: string, font: PDFFont, size: number, maxWidth: number) {
   const words = value.split(/\s+/).filter(Boolean);
   const lines: string[] = [];
   let line = "";
