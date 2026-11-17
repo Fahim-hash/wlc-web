@@ -28,7 +28,7 @@ export async function createTicketPdf(data: TicketPdfData) {
   const page = pdf.addPage([595.28, 841.89]);
   const regular = await pdf.embedFont(StandardFonts.Helvetica);
   const bold = await pdf.embedFont(StandardFonts.HelveticaBold);
-  const hasBengali = [data.attendeeName, data.eventTitle, data.venue].some((value) => /[\\u0980-\\u09FF]/.test(value));
+  const hasBengali = [data.attendeeName, data.eventTitle, data.venue].some((value) => /[\u0980-\u09FF]/.test(value));
   let unicodeFont: PDFFont | null = null;
   if (hasBengali) {
     const bengaliBytes = await loadBengaliFont();
@@ -59,11 +59,11 @@ export async function createTicketPdf(data: TicketPdfData) {
   }
   const date = new Intl.DateTimeFormat("en-GB", { dateStyle: "full", timeStyle: "short", timeZone: "Asia/Dhaka" }).format(new Date(data.eventStartAt));
   page.drawText(date, { x: left, y: 620, size: 10, font: regular, color: white });
-  page.drawText(unicodeFont ? data.venue.slice(0, 90) : data.venue.slice(0, 90).replace(/[^\\x20-\\x7E]/g, "?"), { x: left, y: 600, size: 10, font: venueFont, color: rgb(1, 0.88, 0.91) });
+  page.drawText(unicodeFont ? data.venue.slice(0, 90) : data.venue.slice(0, 90).replace(/[^\x20-\x7E]/g, "?"), { x: left, y: 600, size: 10, font: venueFont, color: rgb(1, 0.88, 0.91) });
 
   page.drawText("ATTENDEE", { x: left, y: 548, size: 9, font: bold, color: muted, characterSpacing: 1.5 });
   const name = data.attendeeName.length > 42 ? data.attendeeName.slice(0, 39) + "…" : data.attendeeName;
-  const safeName = unicodeFont ? name : name.replace(/[^\\x20-\\x7E]/g, "?");\n  page.drawText(safeName, { x: left, y: 518, size: 21, font: attendeeFont, color: ink });
+  const safeName = unicodeFont ? name : name.replace(/[^\x20-\x7E]/g, "?");\n  page.drawText(safeName, { x: left, y: 518, size: 21, font: attendeeFont, color: ink });
   page.drawText(`${data.quantity} ${data.quantity === 1 ? "ticket" : "tickets"} · FREE ADMISSION`, { x: left, y: 493, size: 10, font: regular, color: muted });
   page.drawRectangle({ x: left, y: 380, width, height: 82, color: pale, borderColor: rgb(0.98, 0.66, 0.81), borderWidth: 1 });
   page.drawText("TICKET ID", { x: left + 18, y: 437, size: 8, font: bold, color: muted, characterSpacing: 1.4 });
