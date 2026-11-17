@@ -51,7 +51,13 @@ export async function createTicketPdf(data: TicketPdfData) {
   page.drawRectangle({ x: 0, y: 590, width: 595.28, height: 251.89, color: rose });
   page.drawText("WILLES LITERARY CLUB", { x: left, y: 790, size: 11, font: bold, color: white, characterSpacing: 2 });
   page.drawText("EVENT ADMISSION", { x: left, y: 752, size: 10, font: bold, color: rgb(1, 0.82, 0.88), characterSpacing: 1.6 });
-  const titleLines = wrapText(data.eventTitle, titleFont, 27, 430).slice(0, 3);
+  let titleSize = 27;
+  let titleLines = wrapText(data.eventTitle, titleFont, titleSize, 430);
+  while (titleLines.length > 3 && titleSize > 17) {
+    titleSize -= 2;
+    titleLines = wrapText(data.eventTitle, titleFont, titleSize, 430);
+  }
+  titleLines = titleLines.slice(0, 3);
   let titleY = 708;
   for (const line of titleLines) {
     page.drawText(line, { x: left, y: titleY, size: 27, font: titleFont, color: white });
