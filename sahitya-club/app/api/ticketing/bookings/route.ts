@@ -3,6 +3,8 @@ import { randomUUID } from "node:crypto";
 import { enforceRateLimit, rateLimitResponse } from "@/lib/api-rate-limit";
 import { getAdminDb } from "@/lib/firebase-admin";
 import { createTicketId, createTicketToken, hashTicketToken } from "@/lib/ticketing";
+import { createTicketPdf } from "@/lib/ticketing-pdf";
+import { sendTicketEmail } from "@/lib/ticketing-email";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -87,6 +89,30 @@ export async function POST(request: Request) {
       return { title: String(event.title || ""), startAt: String(event.startAt || ""), venue: String(event.venue || "") };
     });
 
+    let emailSent = false;
+    let emailError: string | null = null;
+    let emailMessageId: string | null = null;
+    try {
+      const pdf = await createTicketPdf({
+        eventTitle: result.title,
+        eventStartAt: result.startAt,
+        venue: result.venue,
+        attendeeName: name,
+        attendeeEmail: email,
+        attendeePhone: phone,
+        quantity,
+        ticketId,
+        bookingId,
+      });
+      const delivery = await sendTicketEmail({ email, attendeeName: name, eventTitle: result.title, bookingId, ticketId, pdf });
+      emailSent = true;
+      emailMessageId = delivery.messageId || null;
+      await bookingRef.update({ ticketEmailStatus: "SENT", ticketEmailSentAt: Date.now(), ticketEmailMessageId: emailMessageId, ticketEmailError: null, updatedAt: Date.now() });
+    } catch (deliveryError) {
+      emailError = deliveryError instanceof Error ? deliveryError.message : "Ticket email delivery failed.";
+      await bookingRef.update({ ticketEmailStatus: "FAILED", ticketEmailError: emailError, updatedAt: Date.now() });
+    }
+
     return NextResponse.json({
       success: true,
       booking: {
@@ -96,9 +122,12 @@ export async function POST(request: Request) {
         eventStartAt: result.startAt,
         venue: result.venue,
         attendeeName: name,
+        attendeeEmail: email,
         quantity,
         status: "CONFIRMED",
         ticketToken,
+        emailSent,
+        emailError,
       },
     }, { status: 201 });
   } catch (error) {
