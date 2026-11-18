@@ -36,6 +36,7 @@ export async function GET(
         eventTitle: booking.eventTitle,
         eventStartAt: booking.eventStartAt,
         venue: booking.venue,
+        bannerUrl: booking.bannerUrl || "",
         attendeeName: booking.attendeeName,
         quantity: booking.quantity,
         status: booking.status,
