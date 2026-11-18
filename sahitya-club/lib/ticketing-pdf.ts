@@ -34,7 +34,7 @@ export type TicketPdfData = {
 const PAGE_W = 595.28;
 const PAGE_H = 841.89;
 const BLACK = rgb(0.025, 0.025, 0.025);
-const PAPER = rgb(0.94, 0.94, 0.94);
+const PAPER = rgb(0.975, 0.969, 0.957);
 const INK = rgb(0.035, 0.035, 0.035);
 const MUTED = rgb(0.31, 0.31, 0.31);
 const WHITE = rgb(1, 1, 1);
@@ -108,7 +108,9 @@ export async function createTicketPdf(data: TicketPdfData) {
   const bodyFont = unicodeFont || regular;
   const nameFont = unicodeFont || bold;
   const rose = rgb(0.62, 0.07, 0.22);
-  const lightGray = rgb(0.78, 0.78, 0.78);
+  const deepRose = rgb(0.31, 0.035, 0.11);
+  const blush = rgb(0.985, 0.94, 0.95);
+  const lightGray = rgb(0.86, 0.83, 0.81);
   const page1 = pdf.addPage([PAGE_W, PAGE_H]);
   page1.drawRectangle({ x: 0, y: 0, width: PAGE_W, height: PAGE_H, color: PAPER });
 
@@ -131,70 +133,77 @@ export async function createTicketPdf(data: TicketPdfData) {
     }
   }
 
-  // Event title panel.
-  page1.drawText(fitText(data.eventTitle, titleFont, 27, PAGE_W - 64), { x: 32, y: 548, size: 27, font: titleFont, color: INK });
-  page1.drawLine({ start: { x: 32, y: 531 }, end: { x: PAGE_W - 32, y: 531 }, thickness: 0.7, color: lightGray });
+  // Editorial event title and a restrained brand accent.
+  page1.drawText("WILLES LITERARY CLUB  /  OFFICIAL ADMISSION", { x: 32, y: 584, size: 7, font: bold, color: rose });
+  page1.drawText(fitText(data.eventTitle, titleFont, 26, PAGE_W - 64), { x: 32, y: 552, size: 26, font: titleFont, color: INK });
+  page1.drawRectangle({ x: 32, y: 535, width: 38, height: 2.5, color: rose });
+  page1.drawLine({ start: { x: 80, y: 536 }, end: { x: PAGE_W - 32, y: 536 }, thickness: 0.6, color: lightGray });
 
-  // Date / time / venue row.
+  // Date / time / venue in three quiet information columns.
   const eventDate = new Date(data.eventStartAt);
-  const dateText = new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Dhaka", year: "numeric", month: "2-digit", day: "2-digit" }).format(eventDate);
+  const dateText = new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Dhaka", year: "numeric", month: "short", day: "2-digit" }).format(eventDate);
   const timeText = new Intl.DateTimeFormat("en-US", { timeZone: "Asia/Dhaka", hour: "2-digit", minute: "2-digit" }).format(eventDate);
   const safeVenue = unicodeFont ? data.venue : data.venue.replace(/[^\x20-\x7E]/g, "?");
-  page1.drawText("DATE", { x: 32, y: 510, size: 8, font: bold, color: MUTED });
-  page1.drawText(dateText, { x: 32, y: 488, size: 14, font: bold, color: INK });
-  page1.drawLine({ start: { x: 190, y: 478 }, end: { x: 190, y: 520 }, thickness: 0.8, color: lightGray });
-  page1.drawText("TIME", { x: 205, y: 510, size: 8, font: bold, color: MUTED });
-  page1.drawText(timeText, { x: 205, y: 488, size: 14, font: bold, color: INK });
-  page1.drawLine({ start: { x: 315, y: 478 }, end: { x: 315, y: 520 }, thickness: 0.8, color: lightGray });
-  page1.drawText("VENUE", { x: 330, y: 510, size: 8, font: bold, color: MUTED });
-  page1.drawText(fitText(safeVenue, bodyFont, 12, 230), { x: 330, y: 488, size: 12, font: bodyFont, color: INK });
-  page1.drawLine({ start: { x: 32, y: 470 }, end: { x: PAGE_W - 32, y: 470 }, thickness: 0.8, color: lightGray });
+  page1.drawRectangle({ x: 32, y: 466, width: PAGE_W - 64, height: 54, color: WHITE, borderColor: lightGray, borderWidth: 0.5 });
+  page1.drawText("DATE", { x: 46, y: 501, size: 7, font: bold, color: MUTED });
+  page1.drawText(dateText, { x: 46, y: 481, size: 12, font: bold, color: INK });
+  page1.drawLine({ start: { x: 205, y: 476 }, end: { x: 205, y: 510 }, thickness: 0.6, color: lightGray });
+  page1.drawText("TIME", { x: 222, y: 501, size: 7, font: bold, color: MUTED });
+  page1.drawText(timeText, { x: 222, y: 481, size: 12, font: bold, color: INK });
+  page1.drawLine({ start: { x: 340, y: 476 }, end: { x: 340, y: 510 }, thickness: 0.6, color: lightGray });
+  page1.drawText("VENUE", { x: 357, y: 501, size: 7, font: bold, color: MUTED });
+  page1.drawText(fitText(safeVenue, bodyFont, 10, 185), { x: 357, y: 481, size: 10, font: bodyFont, color: INK });
 
-  // Ticket type and price.
-  page1.drawText("TICKET TYPE", { x: 32, y: 450, size: 8, font: bold, color: MUTED });
+  // Ticket information: a balanced two-column composition.
+  page1.drawRectangle({ x: 32, y: 378, width: PAGE_W - 64, height: 76, color: blush });
+  page1.drawText("TICKET TYPE", { x: 48, y: 434, size: 7, font: bold, color: rose });
   const ticketType = data.eventSummary || "General Admission";
-  const typeLines = wrapText(ticketType, bodyFont, 11, 365).slice(0, 3);
-  let typeY = 428;
+  const typeLines = wrapText(ticketType, bodyFont, 10, 330).slice(0, 2);
+  let typeY = 414;
   for (const line of typeLines) {
-    page1.drawText(line, { x: 32, y: typeY, size: 11, font: bodyFont, color: INK });
-    typeY -= 14;
+    page1.drawText(line, { x: 48, y: typeY, size: 10, font: bodyFont, color: INK });
+    typeY -= 13;
   }
-  page1.drawText("PRICE", { x: 474, y: 450, size: 8, font: bold, color: MUTED });
+  page1.drawText(`Valid for ${data.quantity} ${data.quantity === 1 ? "entry" : "entries"}`, { x: 48, y: 389, size: 8, font: regular, color: MUTED });
+  page1.drawLine({ start: { x: 408, y: 390 }, end: { x: 408, y: 442 }, thickness: 0.6, color: lightGray });
+  page1.drawText("PRICE", { x: 428, y: 434, size: 7, font: bold, color: rose });
   const priceText = Number(data.ticketPrice || 0) === 0 ? "FREE" : `${data.currency || "BDT"} ${Number(data.ticketPrice).toLocaleString("en-BD")}`;
-  page1.drawText(fitText(priceText, bold, 17, 100), { x: 430, y: 420, size: 17, font: bold, color: INK });
-  page1.drawText(`Valid for ${data.quantity} ${data.quantity === 1 ? "entry" : "entries"}`, { x: 32, y: typeY - 1, size: 9, font: regular, color: MUTED });
-  page1.drawText(`Attendee: ${fitText(unicodeFont ? data.attendeeName : data.attendeeName.replace(/[^\x20-\x7E]/g, "?"), bodyFont, 9, 320)}`, { x: 32, y: typeY - 17, size: 9, font: bodyFont, color: MUTED });
+  page1.drawText(fitText(priceText, bold, 16, 105), { x: 428, y: 407, size: 16, font: bold, color: INK });
+  page1.drawText(`Attendee  ·  ${fitText(unicodeFont ? data.attendeeName : data.attendeeName.replace(/[^\x20-\x7E]/g, "?"), bodyFont, 8, 350)}`, { x: 48, y: 363, size: 8, font: bodyFont, color: MUTED });
 
-  // About section.
-  page1.drawText("ABOUT", { x: 32, y: 344, size: 8, font: bold, color: MUTED });
+  // About section on a clean white panel.
+  page1.drawRectangle({ x: 32, y: 282, width: PAGE_W - 64, height: 66, color: WHITE, borderColor: lightGray, borderWidth: 0.45 });
+  page1.drawText("ABOUT THE EVENT", { x: 46, y: 329, size: 7, font: bold, color: rose });
   const about = data.eventDescription || data.eventSummary || "Join us for this WLC event.";
   const aboutText = unicodeFont ? about : about.replace(/[^\x20-\x7E]/g, "?");
-  let aboutY = 326;
-  for (const line of wrapText(aboutText, bodyFont, 8, PAGE_W - 64).slice(0, 5)) {
-    page1.drawText(line, { x: 32, y: aboutY, size: 8, font: bodyFont, color: INK });
+  let aboutY = 311;
+  for (const line of wrapText(aboutText, bodyFont, 8, PAGE_W - 92).slice(0, 3)) {
+    page1.drawText(line, { x: 46, y: aboutY, size: 8, font: bodyFont, color: INK });
     aboutY -= 11;
   }
 
   // Perforation / detachable ticket stub.
-  const cutY = 255;
+  const cutY = 258;
   for (let x = 32; x < PAGE_W - 32; x += 12) {
     page1.drawLine({ start: { x, y: cutY }, end: { x: x + 6, y: cutY }, thickness: 0.8, color: MUTED });
   }
   const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=420x420&format=png&margin=8&data=${encodeURIComponent(data.bookingId)}`;
   const qr = await fetchImage(pdf, qrUrl, 12000);
   if (qr) {
-    page1.drawRectangle({ x: 32, y: 38, width: 198, height: 198, color: WHITE });
+    page1.drawRectangle({ x: 32, y: 38, width: 198, height: 198, color: WHITE, borderColor: lightGray, borderWidth: 0.6 });
     drawLogo(page1, qr, 40, 46, 182, 182);
   } else {
     page1.drawRectangle({ x: 32, y: 38, width: 198, height: 198, color: WHITE });
     page1.drawText("QR UNAVAILABLE", { x: 70, y: 130, size: 11, font: bold, color: rose });
   }
-  page1.drawText("TICKET NO.", { x: 260, y: 173, size: 8, font: bold, color: MUTED });
-  page1.drawText(fitText(data.ticketId, bold, 16, 260), { x: 260, y: 148, size: 16, font: bold, color: INK });
-  page1.drawText("ENTRY", { x: 510, y: 173, size: 8, font: bold, color: MUTED });
-  page1.drawText(`×${data.quantity}`, { x: 510, y: 148, size: 16, font: bold, color: INK });
-  page1.drawText("Do not share this QR code or ticket number. Both are unique", { x: 260, y: 72, size: 8, font: regular, color: MUTED });
-  page1.drawText("to this ticket and are required for entry.", { x: 260, y: 60, size: 8, font: regular, color: MUTED });
+  page1.drawText("YOUR ADMISSION PASS", { x: 260, y: 190, size: 7, font: bold, color: rose });
+  page1.drawText("TICKET NO.", { x: 260, y: 165, size: 7, font: bold, color: MUTED });
+  page1.drawText(fitText(data.ticketId, bold, 15, 220), { x: 260, y: 142, size: 15, font: bold, color: INK });
+  page1.drawLine({ start: { x: 260, y: 126 }, end: { x: PAGE_W - 32, y: 126 }, thickness: 0.6, color: lightGray });
+  page1.drawText("ENTRY", { x: 260, y: 105, size: 7, font: bold, color: MUTED });
+  page1.drawText(`×${data.quantity}`, { x: 260, y: 80, size: 17, font: bold, color: deepRose });
+  page1.drawText("Present this pass at the event desk.", { x: 315, y: 88, size: 8, font: regular, color: MUTED });
+  page1.drawText("Keep your QR code private.", { x: 315, y: 73, size: 8, font: regular, color: MUTED });
   page1.drawRectangle({ x: 0, y: 0, width: PAGE_W, height: 27, color: BLACK });
 
   // Both partner logos sit directly on the black footer, without logo boxes.
