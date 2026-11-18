@@ -70,6 +70,10 @@ export async function POST(request: Request) {
         eventTitle: String(event.title || ""),
         eventStartAt: String(event.startAt || ""),
         venue: String(event.venue || ""),
+        eventSummary: String(event.summary || ""),
+        eventDescription: String(event.description || ""),
+        bannerUrl: typeof event.bannerUrl === "string" ? event.bannerUrl : "",
+        ticketPrice: Number(event.ticketPrice || 0),
         attendeeName: name,
         attendeeEmail: email,
         attendeePhone: phone,
@@ -86,7 +90,7 @@ export async function POST(request: Request) {
       });
       transaction.update(eventRef, { reservedCount: reservedCount + quantity, updatedAt: now });
 
-      return { title: String(event.title || ""), startAt: String(event.startAt || ""), venue: String(event.venue || ""), bannerUrl: typeof event.bannerUrl === "string" ? event.bannerUrl : undefined };
+      return { title: String(event.title || ""), summary: String(event.summary || ""), description: String(event.description || ""), startAt: String(event.startAt || ""), venue: String(event.venue || ""), bannerUrl: typeof event.bannerUrl === "string" ? event.bannerUrl : undefined, ticketPrice: Number(event.ticketPrice || 0) };
     });
 
     let emailSent = false;
@@ -98,6 +102,10 @@ export async function POST(request: Request) {
         eventStartAt: result.startAt,
         venue: result.venue,
         bannerUrl: result.bannerUrl,
+        eventSummary: result.summary,
+        eventDescription: result.description,
+        ticketPrice: result.ticketPrice,
+        currency: "BDT",
         attendeeName: name,
         attendeeEmail: email,
         attendeePhone: phone,
