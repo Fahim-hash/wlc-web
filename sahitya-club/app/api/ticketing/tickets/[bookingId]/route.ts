@@ -5,6 +5,7 @@ import { hashTicketToken } from "@/lib/ticketing";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+export const maxDuration = 60;
 
 export async function GET(
   request: Request,
@@ -29,14 +30,16 @@ export async function GET(
       return NextResponse.json({ message: "Ticket not found or no longer valid." }, { status: 404 });
     }
 
+    const eventSnapshot = booking.eventId ? await getAdminDb().collection("ticketing_events").doc(String(booking.eventId)).get() : null;
+    const event = eventSnapshot?.exists ? eventSnapshot.data()! : {};
     return NextResponse.json({
       ticket: {
         bookingId: booking.bookingId,
         ticketId: booking.ticketId,
-        eventTitle: booking.eventTitle,
-        eventStartAt: booking.eventStartAt,
-        venue: booking.venue,
-        bannerUrl: booking.bannerUrl || "",
+        eventTitle: booking.eventTitle || event.title || "WLC Event",
+        eventStartAt: booking.eventStartAt || event.startAt || "",
+        venue: booking.venue || event.venue || "",
+        bannerUrl: booking.bannerUrl || event.bannerUrl || "",
         attendeeName: booking.attendeeName,
         quantity: booking.quantity,
         status: booking.status,
