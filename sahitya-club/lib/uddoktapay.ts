@@ -11,10 +11,13 @@ function getConfig() {
     throw new Error("UDDOKTAPAY_BASE_URL must use HTTPS.");
   }
   const base = configuredBase.replace(/\/+$/, "");
-  const root = base.replace(/\/api\/(?:checkout-v2|checkout)$/i, "");
+  // Accept the exact endpoint copied from UddoktaPay's API Settings.
+  // Paymently-hosted brands expose /api/checkout (not the legacy /api/checkout-v2).
+  const isCheckoutEndpoint = /\/api\/(?:checkout|checkout-v2)$/i.test(base);
+  const root = base.replace(/\/api\/(?:checkout|checkout-v2)$/i, "").replace(/\/api$/i, "");
   return {
     apiKey,
-    checkoutUrl: /\/api\/(?:checkout-v2|checkout)$/i.test(base) ? base : `${root}/api/checkout-v2`,
+    checkoutUrl: isCheckoutEndpoint ? base : `${root}/api/checkout`,
     verifyUrl: `${root}/api/verify-payment`,
   };
 }
