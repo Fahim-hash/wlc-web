@@ -86,7 +86,7 @@ export async function POST(request: Request) {
       });
       transaction.update(eventRef, { reservedCount: reservedCount + quantity, updatedAt: now });
 
-      return { title: String(event.title || ""), startAt: String(event.startAt || ""), venue: String(event.venue || "") };
+      return { title: String(event.title || ""), startAt: String(event.startAt || ""), venue: String(event.venue || ""), bannerUrl: typeof event.bannerUrl === "string" ? event.bannerUrl : undefined };
     });
 
     let emailSent = false;
@@ -97,6 +97,7 @@ export async function POST(request: Request) {
         eventTitle: result.title,
         eventStartAt: result.startAt,
         venue: result.venue,
+        bannerUrl: result.bannerUrl,
         attendeeName: name,
         attendeeEmail: email,
         attendeePhone: phone,
