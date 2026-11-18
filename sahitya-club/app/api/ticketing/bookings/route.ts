@@ -102,12 +102,13 @@ export async function POST(request: Request) {
           bookingId,
           fullName: name,
           email,
+          phone,
           amount: result.totalAmount,
           eventTitle: result.title,
         });
         await bookingRef.update({
           paymentProvider: "UDDOKTAPAY",
-          paymentInvoiceId: checkout.invoiceId,
+          ...(checkout.invoiceId ? { paymentInvoiceId: checkout.invoiceId } : {}),
           paymentCheckoutCreatedAt: Date.now(),
           updatedAt: Date.now(),
         });
