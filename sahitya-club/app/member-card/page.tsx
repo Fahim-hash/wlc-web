@@ -125,7 +125,7 @@ export default function MemberCardPage() {
         <form onSubmit={searchMember} className="rounded-2xl border border-stone-200 bg-white p-5 shadow-sm sm:p-6 print:hidden">
           <label htmlFor="memberId" className="mb-2 block text-sm font-semibold">Official Member ID</label>
           <div className="flex flex-col gap-3 sm:flex-row">
-            <input id="memberId" value={memberId} onChange={event => setMemberId(event.target.value.toUpperCase())} placeholder="WLC-2026-0001" required maxLength={32} autoCapitalize="characters" className="min-w-0 flex-1 rounded-xl border border-stone-300 px-4 py-3 font-mono outline-none transition focus:border-rose-900 focus:ring-2 focus:ring-rose-100" />
+            <input id="memberId" value={memberId} onChange={event => setMemberId(event.target.value.toUpperCase())} placeholder="WLC-03-000" required maxLength={32} autoCapitalize="characters" className="min-w-0 flex-1 rounded-xl border border-stone-300 px-4 py-3 font-mono outline-none transition focus:border-rose-900 focus:ring-2 focus:ring-rose-100" />
             <button disabled={loading} className="rounded-xl bg-stone-950 px-6 py-3 text-sm font-semibold text-white transition hover:bg-rose-900 disabled:opacity-60">{loading ? "Searching…" : "Search member"}</button>
           </div>
           {message && <p role="status" className="mt-3 rounded-xl bg-amber-50 p-3 text-sm text-amber-900">{message}</p>}
