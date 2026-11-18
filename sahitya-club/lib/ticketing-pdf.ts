@@ -63,8 +63,8 @@ export async function createTicketPdf(data: TicketPdfData) {
   }
   if (!bannerDrawn) {
     page.drawRectangle({ x: 0, y: 591, width: 595.28, height: 250.89, color: rose });
-    page.drawText("WILLES LITERARY CLUB", { x: left, y: 795, size: 11, font: bold, color: white, characterSpacing: 2 });
-    page.drawText("EVENT ADMISSION", { x: left, y: 760, size: 10, font: bold, color: rgb(1, 0.82, 0.88), characterSpacing: 1.6 });
+    page.drawText("WILLES LITERARY CLUB", { x: left, y: 795, size: 11, font: bold, color: white });
+    page.drawText("EVENT ADMISSION", { x: left, y: 760, size: 10, font: bold, color: rgb(1, 0.82, 0.88) });
     let y = 713;
     for (const line of wrapText(data.eventTitle, titleFont, 26, 490).slice(0, 3)) {
       page.drawText(line, { x: left, y, size: 26, font: titleFont, color: white });
@@ -83,7 +83,7 @@ export async function createTicketPdf(data: TicketPdfData) {
   const venue = unicodeFont ? data.venue : data.venue.replace(/[^\x20-\x7E]/g, "?");
   page.drawText(venue.slice(0, 100), { x: 330, y: 530, size: 9, font: venueFont, color: muted });
 
-  page.drawText("ATTENDEE DETAILS", { x: left, y: 482, size: 9, font: bold, color: rose, characterSpacing: 1.5 });
+  page.drawText("ATTENDEE DETAILS", { x: left, y: 482, size: 9, font: bold, color: rose });
   const name = unicodeFont ? data.attendeeName : data.attendeeName.replace(/[^\x20-\x7E]/g, "?");
   let nameY = 450;
   for (const line of wrapText(name, attendeeFont, 19, 500).slice(0, 2)) {
@@ -95,7 +95,7 @@ export async function createTicketPdf(data: TicketPdfData) {
   page.drawText(`${data.quantity} ${data.quantity === 1 ? "ticket" : "tickets"} · ENTRY PASS`, { x: left, y: 353, size: 10, font: bold, color: rose });
 
   page.drawRectangle({ x: left, y: 265, width, height: 62, color: pale, borderColor: rgb(0.98, 0.66, 0.81), borderWidth: 1 });
-  page.drawText("TICKET ID", { x: left + 16, y: 306, size: 8, font: bold, color: muted, characterSpacing: 1.4 });
+  page.drawText("TICKET ID", { x: left + 16, y: 306, size: 8, font: bold, color: muted });
   page.drawText(data.ticketId, { x: left + 16, y: 282, size: 16, font: bold, color: rose });
   page.drawText(`BOOKING REF.  ${data.bookingId.slice(0, 18).toUpperCase()}`, { x: 325, y: 289, size: 8, font: bold, color: ink });
 
@@ -109,7 +109,7 @@ export async function createTicketPdf(data: TicketPdfData) {
     page.drawRectangle({ x: left + 8, y: 83, width: 154, height: 154, borderColor: rose, borderWidth: 1 });
     page.drawText("QR unavailable", { x: left + 35, y: 156, size: 10, font: bold, color: rose });
   }
-  page.drawText("SCAN FOR ENTRY", { x: 220, y: 214, size: 10, font: bold, color: rose, characterSpacing: 1 });
+  page.drawText("SCAN FOR ENTRY", { x: 220, y: 214, size: 10, font: bold, color: rose });
   page.drawText("Present this QR code at the event desk.", { x: 220, y: 190, size: 9, font: regular, color: ink });
   page.drawText("Your ticket will be verified on arrival.", { x: 220, y: 174, size: 9, font: regular, color: ink });
   page.drawText("Keep your QR code and ticket ID private.", { x: 220, y: 150, size: 8, font: regular, color: muted });
@@ -124,7 +124,7 @@ export async function createTicketPdf(data: TicketPdfData) {
       page.drawImage(logo, { x: 595.28 - left - logo.width * scale, y: 35, width: logo.width * scale, height: logo.height * scale });
     }
   } catch { /* text credit remains */ }
-  page.drawText("POWERED BY", { x: left, y: 43, size: 7, font: regular, color: muted, characterSpacing: 1 });
+  page.drawText("POWERED BY", { x: left, y: 43, size: 7, font: regular, color: muted });
   page.drawText("RelaxStudio", { x: left, y: 27, size: 11, font: bold, color: rose });
   return Buffer.from(await pdf.save());
 }
