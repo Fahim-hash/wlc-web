@@ -6,6 +6,7 @@ import { createTicketPdf } from "@/lib/ticketing-pdf";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+export const maxDuration = 60;
 
 export async function GET(request: Request, context: { params: Promise<{ bookingId: string }> }) {
   try {
@@ -15,7 +16,8 @@ export async function GET(request: Request, context: { params: Promise<{ booking
       return NextResponse.json({ message: "Ticket not found." }, { status: 404 });
     }
 
-    const snapshot = await getAdminDb().collection("ticketing_bookings").doc(bookingId).get();
+    const db = getAdminDb();
+    const snapshot = await db.collection("ticketing_bookings").doc(bookingId).get();
     if (!snapshot.exists) return NextResponse.json({ message: "Ticket not found." }, { status: 404 });
     const booking = snapshot.data()!;
     const storedHash = typeof booking.ticketTokenHash === "string" ? booking.ticketTokenHash : "";
@@ -26,14 +28,16 @@ export async function GET(request: Request, context: { params: Promise<{ booking
       return NextResponse.json({ message: "Ticket not found or no longer valid." }, { status: 404 });
     }
 
+    const eventSnapshot = booking.eventId ? await db.collection("ticketing_events").doc(String(booking.eventId)).get() : null;
+    const event = eventSnapshot?.exists ? eventSnapshot.data()! : {};
     const pdf = await createTicketPdf({
-      eventTitle: String(booking.eventTitle || "WLC Event"),
-      eventStartAt: String(booking.eventStartAt || ""),
-      venue: String(booking.venue || ""),
-      eventSummary: String(booking.eventSummary || ""),
-      eventDescription: String(booking.eventDescription || ""),
-      bannerUrl: String(booking.bannerUrl || ""),
-      ticketPrice: Number(booking.ticketPrice || 0),
+      eventTitle: String(booking.eventTitle || event.title || "WLC Event"),
+      eventStartAt: String(booking.eventStartAt || event.startAt || ""),
+      venue: String(booking.venue || event.venue || ""),
+      eventSummary: String(booking.eventSummary || event.summary || ""),
+      eventDescription: String(booking.eventDescription || event.description || ""),
+      bannerUrl: String(booking.bannerUrl || event.bannerUrl || ""),
+      ticketPrice: Number(booking.ticketPrice ?? event.ticketPrice ?? 0),
       currency: String(booking.currency || "BDT"),
       attendeeName: String(booking.attendeeName || ""),
       attendeeEmail: String(booking.attendeeEmail || ""),
@@ -52,7 +56,8 @@ export async function GET(request: Request, context: { params: Promise<{ booking
         "X-Content-Type-Options": "nosniff",
       },
     });
-  } catch {
-    return NextResponse.json({ message: "Unable to generate your ticket PDF." }, { status: 500 });
+  } catch (error) {
+    console.error("[ticketing:pdf-download]", error);
+    return NextResponse.json({ message: error instanceof Error ? error.message : "Unable to generate your ticket PDF." }, { status: 500 });
   }
 }
