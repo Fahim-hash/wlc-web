@@ -1,5 +1,8 @@
 import { PDFDocument, StandardFonts, rgb, type PDFFont, type PDFImage } from "pdf-lib";
 import fontkit from "@pdf-lib/fontkit";
+import sharp from "sharp";
+import { readFile } from "node:fs/promises";
+import { join } from "node:path";
 
 let bengaliFontBytes: Promise<Uint8Array | null> | null = null;
 async function loadBengaliFont() {
@@ -38,13 +41,23 @@ const WHITE = rgb(1, 1, 1);
 
 async function fetchImage(pdf: PDFDocument, url: string, timeout = 9000): Promise<PDFImage | null> {
   try {
-    const response = await fetch(url, { cache: "force-cache", signal: AbortSignal.timeout(timeout) });
+    const response = await fetch(url, { cache: "no-store", signal: AbortSignal.timeout(timeout) });
     if (!response.ok) return null;
-    const bytes = new Uint8Array(await response.arrayBuffer());
+    const bytes = Buffer.from(await response.arrayBuffer());
     const type = response.headers.get("content-type") || "";
-    if (type.includes("png") || url.toLowerCase().endsWith(".png")) return await pdf.embedPng(bytes);
-    if (type.includes("jpeg") || type.includes("jpg") || /\.jpe?g(?:\?|$)/i.test(url)) return await pdf.embedJpg(bytes);
+    if (type.includes("png") || url.toLowerCase().split("?")[0].endsWith(".png")) return await pdf.embedPng(bytes);
+    if (type.includes("jpeg") || type.includes("jpg") || /\\.jpe?g(?:\\?|$)/i.test(url)) return await pdf.embedJpg(bytes);
+    const png = await sharp(bytes).rotate().png().toBuffer();
+    return await pdf.embedPng(png);
+  } catch {
     return null;
+  }
+}
+
+async function loadPublicPng(pdf: PDFDocument, filename: string): Promise<PDFImage | null> {
+  try {
+    const bytes = await readFile(join(process.cwd(), "public", filename));
+    return await pdf.embedPng(bytes);
   } catch {
     return null;
   }
@@ -185,8 +198,10 @@ export async function createTicketPdf(data: TicketPdfData) {
   page1.drawRectangle({ x: 0, y: 0, width: PAGE_W, height: 27, color: BLACK });
 
   // Both partner logos sit directly on the black footer, without logo boxes.
-  const wlcLogo = await fetchImage(pdf, "https://wlc.pro.bd/logo.png");
-  const relaxLogo = await fetchImage(pdf, "https://wlc.pro.bd/relaxstudio.png");
+  const [wlcLogo, relaxLogo] = await Promise.all([
+    loadPublicPng(pdf, "logo.png"),
+    loadPublicPng(pdf, "relaxstudio.png"),
+  ]);
   drawLogo(page1, wlcLogo, 240, 2, 54, 22);
   drawLogo(page1, relaxLogo, 301, 2, 86, 22);
 
