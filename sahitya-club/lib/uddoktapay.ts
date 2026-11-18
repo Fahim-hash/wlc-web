@@ -40,7 +40,7 @@ async function request<T extends UddoktaPayPayload>(url: string, body: Record<st
     const message = typeof data.message === "string" ? data.message : `UddoktaPay request failed (HTTP ${response.status}).`;
     throw new Error(message);
   }
-  if (data.status === "ERROR" || data.success === false) {
+  if (data.status === "ERROR" || data.status === false || data.success === false) {
     throw new Error(typeof data.message === "string" ? data.message : "UddoktaPay rejected the payment request.");
   }
   return data;
@@ -52,12 +52,15 @@ export async function createUddoktaPayCheckout(input: {
   email: string;
   amount: number;
   eventTitle: string;
+  phone: string;
 }) {
   const config = getConfig();
   const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL || "https://wlc.pro.bd").replace(/\/$/, "");
   const response = await request<UddoktaPayPayload>(config.checkoutUrl, {
     full_name: input.fullName,
     email: input.email,
+    phone: input.phone,
+    currency: "BDT",
     amount: input.amount.toFixed(2),
     metadata: {
       booking_id: input.bookingId,
@@ -79,14 +82,15 @@ export async function createUddoktaPayCheckout(input: {
     response.invoice_id, response.invoiceId, nested.invoice_id, nested.invoiceId,
   ].find((value): value is string => typeof value === "string" && value.length > 0);
 
-  if (!paymentUrl || !invoiceId) {
-    throw new Error("UddoktaPay did not return the expected payment URL and invoice ID. Check the API endpoint configured in your dashboard.");
+  if (!paymentUrl) {
+    const responseKeys = Object.keys(response).join(", ") || "empty response";
+    throw new Error(`UddoktaPay checkout response did not contain payment_url (received: ${responseKeys}).`);
   }
   const parsedPaymentUrl = new URL(paymentUrl);
   if (parsedPaymentUrl.protocol !== "https:") {
     throw new Error("UddoktaPay returned an invalid checkout URL.");
   }
-  return { paymentUrl: parsedPaymentUrl.toString(), invoiceId };
+  return { paymentUrl: parsedPaymentUrl.toString(), invoiceId: invoiceId || null };
 }
 
 export async function verifyUddoktaPayPayment(invoiceId: string) {
