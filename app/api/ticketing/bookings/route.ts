@@ -5,6 +5,7 @@ import { getAdminDb } from "@/lib/firebase-admin";
 import { createTicketId, createTicketToken, hashTicketToken } from "@/lib/ticketing";
 import { createTicketPdf } from "@/lib/ticketing-pdf";
 import { sendTicketEmail } from "@/lib/ticketing-email";
+import { createUddoktaPayCheckout } from "@/lib/uddoktapay";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -27,21 +28,11 @@ export async function POST(request: Request) {
     const phone = typeof body?.phone === "string" ? body.phone.trim() : "";
     const quantity = Number(body?.quantity);
 
-    if (!/^[a-z0-9-]{2,64}$/.test(eventSlug)) {
-      return NextResponse.json({ message: "Invalid event." }, { status: 400 });
-    }
-    if (name.length < 2 || name.length > 120) {
-      return NextResponse.json({ message: "Name must be between 2 and 120 characters." }, { status: 400 });
-    }
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || email.length > 254) {
-      return NextResponse.json({ message: "Please enter a valid email address." }, { status: 400 });
-    }
-    if (phone.replace(/\D/g, "").length < 10 || phone.length > 30) {
-      return NextResponse.json({ message: "Please enter a valid phone number." }, { status: 400 });
-    }
-    if (!Number.isInteger(quantity) || quantity < 1 || quantity > 5) {
-      return NextResponse.json({ message: "You can reserve 1–5 tickets per booking." }, { status: 400 });
-    }
+    if (!/^[a-z0-9-]{2,64}$/.test(eventSlug)) return NextResponse.json({ message: "Invalid event." }, { status: 400 });
+    if (name.length < 2 || name.length > 120) return NextResponse.json({ message: "Name must be between 2 and 120 characters." }, { status: 400 });
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || email.length > 254) return NextResponse.json({ message: "Please enter a valid email address." }, { status: 400 });
+    if (phone.replace(/\D/g, "").length < 10 || phone.length > 30) return NextResponse.json({ message: "Please enter a valid phone number." }, { status: 400 });
+    if (!Number.isInteger(quantity) || quantity < 1 || quantity > 5) return NextResponse.json({ message: "You can book 1–5 tickets per order." }, { status: 400 });
 
     const db = getAdminDb();
     const eventRef = db.collection("ticketing_events").doc(eventSlug);
@@ -54,12 +45,13 @@ export async function POST(request: Request) {
     const result = await db.runTransaction(async (transaction) => {
       const eventSnapshot = await transaction.get(eventRef);
       if (!eventSnapshot.exists) throw new Error("This event could not be found.");
-
       const event = eventSnapshot.data()!;
       if (event.status !== "PUBLISHED") throw new Error("Ticket booking is not open for this event.");
-      if (Number(event.ticketPrice || 0) > 0) throw new Error("Online payment is not connected yet. Paid ticket booking will open after the payment provider is configured.");
       if (Date.parse(String(event.startAt)) <= now) throw new Error("Ticket booking for this event has closed.");
 
+      const ticketPrice = Number(event.ticketPrice || 0);
+      if (!Number.isInteger(ticketPrice) || ticketPrice < 0) throw new Error("This event has an invalid ticket price.");
+      const totalAmount = ticketPrice * quantity;
       const capacity = Number(event.capacity || 0);
       const reservedCount = Number(event.reservedCount || 0);
       if (reservedCount + quantity > capacity) throw new Error("Not enough tickets are available for this quantity.");
@@ -74,16 +66,17 @@ export async function POST(request: Request) {
         eventSummary: String(event.summary || ""),
         eventDescription: String(event.description || ""),
         bannerUrl: typeof event.bannerUrl === "string" ? event.bannerUrl : "",
-        ticketPrice: Number(event.ticketPrice || 0),
+        ticketPrice,
         attendeeName: name,
         attendeeEmail: email,
         attendeePhone: phone,
         quantity,
-        unitPrice: 0,
-        totalAmount: 0,
+        unitPrice: ticketPrice,
+        totalAmount,
         currency: "BDT",
-        paymentStatus: "NOT_REQUIRED",
-        status: "CONFIRMED",
+        paymentStatus: totalAmount > 0 ? "PENDING" : "NOT_REQUIRED",
+        status: totalAmount > 0 ? "PENDING" : "CONFIRMED",
+        ticketEmailStatus: totalAmount > 0 ? "WAITING_PAYMENT" : "PENDING",
         ticketTokenHash: hashTicketToken(ticketToken),
         checkedInCount: 0,
         createdAt: now,
@@ -91,8 +84,73 @@ export async function POST(request: Request) {
       });
       transaction.update(eventRef, { reservedCount: reservedCount + quantity, updatedAt: now });
 
-      return { title: String(event.title || ""), summary: String(event.summary || ""), description: String(event.description || ""), startAt: String(event.startAt || ""), venue: String(event.venue || ""), bannerUrl: typeof event.bannerUrl === "string" ? event.bannerUrl : undefined, ticketPrice: Number(event.ticketPrice || 0) };
+      return {
+        title: String(event.title || ""),
+        summary: String(event.summary || ""),
+        description: String(event.description || ""),
+        startAt: String(event.startAt || ""),
+        venue: String(event.venue || ""),
+        bannerUrl: typeof event.bannerUrl === "string" ? event.bannerUrl : undefined,
+        ticketPrice,
+        totalAmount,
+      };
     });
+
+    if (result.totalAmount > 0) {
+      try {
+        const checkout = await createUddoktaPayCheckout({
+          bookingId,
+          fullName: name,
+          email,
+          amount: result.totalAmount,
+          eventTitle: result.title,
+        });
+        await bookingRef.update({
+          paymentProvider: "UDDOKTAPAY",
+          paymentInvoiceId: checkout.invoiceId,
+          paymentCheckoutCreatedAt: Date.now(),
+          updatedAt: Date.now(),
+        });
+        return NextResponse.json({
+          success: true,
+          booking: {
+            bookingId,
+            ticketId,
+            eventTitle: result.title,
+            attendeeEmail: email,
+            quantity,
+            totalAmount: result.totalAmount,
+            currency: "BDT",
+            status: "PENDING",
+            paymentStatus: "PENDING",
+            paymentUrl: checkout.paymentUrl,
+            ticketToken,
+          },
+        }, { status: 201 });
+      } catch (checkoutError) {
+        console.error("[ticketing:checkout-create]", checkoutError);
+        await db.runTransaction(async (transaction) => {
+          const [bookingSnapshot, eventSnapshot] = await Promise.all([
+            transaction.get(bookingRef),
+            transaction.get(eventRef),
+          ]);
+          if (!bookingSnapshot.exists) return;
+          const booking = bookingSnapshot.data()!;
+          if (booking.paymentStatus !== "PENDING") return;
+          transaction.update(bookingRef, {
+            paymentStatus: "FAILED",
+            status: "CANCELLED",
+            paymentError: "Unable to create checkout session.",
+            updatedAt: Date.now(),
+          });
+          if (eventSnapshot.exists) {
+            const current = Number(eventSnapshot.data()?.reservedCount || 0);
+            transaction.update(eventRef, { reservedCount: Math.max(0, current - quantity), updatedAt: Date.now() });
+          }
+        });
+        return NextResponse.json({ message: "We couldn't start the payment session. Please try again in a moment." }, { status: 502 });
+      }
+    }
 
     let emailSent = false;
     let emailError: string | null = null;
@@ -105,7 +163,7 @@ export async function POST(request: Request) {
         bannerUrl: result.bannerUrl,
         eventSummary: result.summary,
         eventDescription: result.description,
-        ticketPrice: result.ticketPrice,
+        ticketPrice: 0,
         currency: "BDT",
         attendeeName: name,
         attendeeEmail: email,
@@ -145,9 +203,9 @@ export async function POST(request: Request) {
     const conflictMessages = [
       "This event could not be found.",
       "Ticket booking is not open for this event.",
-      "Online payment is not connected yet. Paid ticket booking will open after the payment provider is configured.",
       "Ticket booking for this event has closed.",
       "Not enough tickets are available for this quantity.",
+      "This event has an invalid ticket price.",
     ];
     const status = error instanceof SyntaxError ? 400 : conflictMessages.includes(message) ? 409 : 500;
     return NextResponse.json({ message }, { status });
