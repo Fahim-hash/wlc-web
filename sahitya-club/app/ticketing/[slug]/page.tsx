@@ -17,7 +17,7 @@ export default function TicketingEventPage({ params }: { params: Promise<{ slug:
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState("");
-  const [ticket, setTicket] = useState<{ticketId:string;ticketToken:string;bookingId:string;quantity:number;emailSent:boolean;attendeeEmail:string}|null>(null);
+  const [ticket, setTicket] = useState<{ticketId:string;ticketToken:string;bookingId:string;quantity:number;emailSent:boolean;emailError?:string|null;attendeeEmail:string}|null>(null);
   const [form, setForm] = useState({ name: "", email: "", phone: "", quantity: "1" });
 
   useEffect(() => { params.then((value) => setSlug(value.slug)); }, [params]);
