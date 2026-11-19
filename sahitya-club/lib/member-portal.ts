@@ -124,21 +124,66 @@ export async function activateMemberAccount(input: { token: string; username: st
   });
 }
 
+export class MemberPortalAuthError extends Error {
+  readonly code: "INVALID_CREDENTIALS" | "ACCOUNT_INACTIVE";
+  constructor(message: string, code: "INVALID_CREDENTIALS" | "ACCOUNT_INACTIVE") {
+    super(message);
+    this.name = "MemberPortalAuthError";
+    this.code = code;
+  }
+}
+
 export async function loginMember(input: { username: string; password: string }) {
   const username = normalizeUsername(input.username);
+  const password = input.password;
+  if (!username || typeof password !== "string" || !password.length) {
+    throw new MemberPortalAuthError("Enter your UID and password.", "INVALID_CREDENTIALS");
+  }
+
   const db = getAdminDb();
-  const userSnap = await db.collection("member_usernames").doc(username).get();
-  if (!userSnap.exists) throw new Error("Incorrect UID/email or password.");
-  const memberId = String(userSnap.data()?.memberId || "");
+  const usernameRef = db.collection("member_usernames").doc(username);
+  let userSnap = await usernameRef.get();
+  let memberId = userSnap.exists ? String(userSnap.data()?.memberId || "") : "";
+
+  // Older portal records may have the username stored on the member document
+  // without the lookup document. Resolve that legacy shape and safely repair
+  // the index so existing activated members can continue signing in.
+  if (!memberId) {
+    const legacyMatches = await db.collection("registered_members")
+      .where("username", "==", username)
+      .limit(2)
+      .get();
+    if (legacyMatches.size === 1) {
+      const legacyMember = legacyMatches.docs[0];
+      await db.runTransaction(async (tx) => {
+        const [freshMember, freshUsername] = await Promise.all([
+          tx.get(legacyMember.ref),
+          tx.get(usernameRef),
+        ]);
+        if (!freshMember.exists || normalizeUsername(freshMember.data()?.username) !== username) {
+          throw new MemberPortalAuthError("Incorrect UID/email or password.", "INVALID_CREDENTIALS");
+        }
+        if (freshUsername.exists && String(freshUsername.data()?.memberId || "") !== legacyMember.id) {
+          throw new MemberPortalAuthError("Incorrect UID/email or password.", "INVALID_CREDENTIALS");
+        }
+        if (!freshUsername.exists) tx.create(usernameRef, { memberId: legacyMember.id, createdAt: Date.now() });
+      });
+      memberId = legacyMember.id;
+    } else if (legacyMatches.size > 1) {
+      throw new Error("Duplicate member portal usernames detected; admin repair is required.");
+    }
+  }
+
+  if (!memberId) throw new MemberPortalAuthError("Incorrect UID/email or password.", "INVALID_CREDENTIALS");
   const memberRef = db.collection("registered_members").doc(memberId);
   const memberSnap = await memberRef.get();
-  if (!memberSnap.exists) throw new Error("Incorrect UID/email or password.");
+  if (!memberSnap.exists) throw new MemberPortalAuthError("Incorrect UID/email or password.", "INVALID_CREDENTIALS");
   const member = memberSnap.data()!;
   if (member.status !== "ACTIVE" || member.portalStatus !== "ACTIVE" || !member.passwordSalt || !member.passwordHash) {
-    throw new Error("This account is not active. Please contact the club admin.");
+    throw new MemberPortalAuthError("This account is not active. Please contact the club admin.", "ACCOUNT_INACTIVE");
   }
-  const candidate = passwordHash(input.password, String(member.passwordSalt)).hash;
-  if (!equal(candidate, String(member.passwordHash))) throw new Error("Incorrect UID/email or password.");
+  const candidate = passwordHash(password, String(member.passwordSalt)).hash;
+  if (!equal(candidate, String(member.passwordHash))) throw new MemberPortalAuthError("Incorrect UID/email or password.", "INVALID_CREDENTIALS");
   const expiresAt = Date.now() + SESSION_TTL_MS;
   const payload = Buffer.from(JSON.stringify({ memberId, expiresAt })).toString("base64url");
   return { token: payload + "." + sign(payload), expiresAt };
