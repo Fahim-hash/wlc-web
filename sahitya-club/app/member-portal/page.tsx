@@ -108,6 +108,93 @@ export default function MemberPortalPage() {
     }
   }
 
+  async function downloadMemberCardPdf() {
+    if (!member) return;
+    setBusy(true);
+    setMessage("");
+    try {
+      const card = document.getElementById("wlc-print-card");
+      const images = card ? Array.from(card.querySelectorAll("img")) : [];
+      const imageData = await Promise.all(images.map(async (image) => {
+        const response = await fetch(image.currentSrc || image.src, { mode: "cors", cache: "force-cache" });
+        if (!response.ok) throw new Error("Could not load a card image for PDF export.");
+        const blob = await response.blob();
+        return await new Promise<string>((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(String(reader.result));
+          reader.onerror = () => reject(new Error("Could not prepare a card image."));
+          reader.readAsDataURL(blob);
+        });
+      }));
+      const escapeXml = (value: string) => value.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&apos;");
+      const logoData = imageData[0];
+      const qrData = imageData[1];
+      if (!logoData || !qrData) throw new Error("The card logo or QR code is not ready.");
+      const words = member.name.trim().split(/\\s+/);
+      const lines: string[] = [];
+      let line = "";
+      for (const word of words) {
+        const next = line ? line + " " + word : word;
+        if (next.length > 23 && line) { lines.push(line); line = word; } else line = next;
+      }
+      if (line) lines.push(line);
+      const nameSvg = lines.slice(0, 2).map((part, index) => '<tspan x="58" dy="' + (index === 0 ? "0" : "57") + '">' + escapeXml(part) + "</tspan>").join("");
+      const svg = [
+        '<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="856" height="540" viewBox="0 0 856 540">',
+        '<rect width="856" height="540" fill="#faf9f6"/><rect width="8" height="540" fill="#9f1239"/>',
+        '<image x="52" y="40" width="76" height="76" preserveAspectRatio="xMidYMid meet" href="' + logoData + '" xlink:href="' + logoData + '"/>',
+        '<text x="150" y="70" fill="#9f1239" font-family="Arial,sans-serif" font-size="13" font-weight="700" letter-spacing="3">WILLES LITERARY CLUB</text>',
+        '<text x="150" y="99" fill="#292524" font-family="Georgia,serif" font-size="23">Membership identity</text>',
+        '<text x="798" y="62" text-anchor="end" fill="#9f1239" font-family="Arial,sans-serif" font-size="12" font-weight="700" letter-spacing="3">WLC</text>',
+        '<text x="798" y="84" text-anchor="end" fill="#78716c" font-family="Arial,sans-serif" font-size="10" letter-spacing="2">OFFICIAL MEMBER</text>',
+        '<line x1="52" y1="145" x2="804" y2="145" stroke="#e7d9d9" stroke-width="2"/>',
+        '<text x="58" y="193" fill="#9f1239" font-family="Arial,sans-serif" font-size="12" font-weight="700" letter-spacing="3">MEMBER NAME</text>',
+        '<text x="58" y="264" fill="#1c1917" font-family="Georgia,serif" font-size="54">' + nameSvg + '</text>',
+        '<text x="58" y="365" fill="#78716c" font-family="Arial,sans-serif" font-size="12" font-weight="700" letter-spacing="3">MEMBERSHIP ID</text>',
+        '<text x="58" y="400" fill="#292524" font-family="Arial,sans-serif" font-size="25" font-weight="700" letter-spacing="1">' + escapeXml(member.memberId) + '</text>',
+        '<text x="58" y="453" fill="#57534e" font-family="Arial,sans-serif" font-size="14" font-weight="600">' + escapeXml(member.batch ? "CLASS / YEAR  ·  " + member.batch : "WILLES LITERARY CLUB") + '</text>',
+        '<line x1="58" y1="480" x2="510" y2="480" stroke="#e7d9d9" stroke-width="1.5"/>',
+        '<text x="58" y="510" fill="#9f1239" font-family="Arial,sans-serif" font-size="11" font-weight="700" letter-spacing="2">ACTIVE MEMBER</text>',
+        '<image x="622" y="218" width="174" height="174" preserveAspectRatio="xMidYMid meet" href="' + qrData + '" xlink:href="' + qrData + '"/>',
+        '<text x="709" y="426" text-anchor="middle" fill="#292524" font-family="Arial,sans-serif" font-size="13" font-weight="700" letter-spacing="2">SCAN TO VERIFY</text>',
+        '<text x="709" y="448" text-anchor="middle" fill="#78716c" font-family="Arial,sans-serif" font-size="10" letter-spacing="1.5">OFFICIAL WLC PORTAL</text>',
+        '<text x="798" y="510" text-anchor="end" fill="#78716c" font-family="Georgia,serif" font-size="13" font-style="italic">Learn · Write · Inspire</text></svg>'
+      ].join("");
+      const svgUrl = URL.createObjectURL(new Blob([svg], { type: "image/svg+xml;charset=utf-8" }));
+      try {
+        const snapshot = new Image();
+        snapshot.src = svgUrl;
+        await new Promise<void>((resolve, reject) => { snapshot.onload = () => resolve(); snapshot.onerror = () => reject(new Error("Could not render the member card image.")); });
+        const canvas = document.createElement("canvas");
+        canvas.width = 856 * 3;
+        canvas.height = 540 * 3;
+        const context = canvas.getContext("2d");
+        if (!context) throw new Error("Your browser could not create the card image.");
+        context.drawImage(snapshot, 0, 0, canvas.width, canvas.height);
+        const pngBlob = await new Promise<Blob>((resolve, reject) => canvas.toBlob(blob => blob ? resolve(blob) : reject(new Error("Could not export the card PNG.")), "image/png"));
+        const { PDFDocument } = await import("pdf-lib");
+        const pdf = await PDFDocument.create();
+        const png = await pdf.embedPng(await pngBlob.arrayBuffer());
+        const mmToPt = 72 / 25.4;
+        const pageWidth = 85.6 * mmToPt;
+        const pageHeight = 54 * mmToPt;
+        const page = pdf.addPage([pageWidth, pageHeight]);
+        page.drawImage(png, { x: 0, y: 0, width: pageWidth, height: pageHeight });
+        const pdfBlob = new Blob([await pdf.save() as BlobPart], { type: "application/pdf" });
+        const downloadUrl = URL.createObjectURL(pdfBlob);
+        const link = document.createElement("a");
+        link.href = downloadUrl;
+        link.download = "WLC-Member-Card-" + member.memberId + ".pdf";
+        document.body.appendChild(link); link.click(); link.remove();
+        window.setTimeout(() => URL.revokeObjectURL(downloadUrl), 1500);
+      } finally { URL.revokeObjectURL(svgUrl); }
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "Could not generate the PDF. Please try again.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
   async function logout() {
     setBusy(true);
     try {
@@ -179,7 +266,7 @@ export default function MemberPortalPage() {
             <section id="member-card" className="mt-5 rounded-2xl border border-stone-200 bg-white p-6 print-card-section">
               <div className="mb-4 flex flex-wrap items-center justify-between gap-3 print:hidden">
                 <div><h2 className="font-semibold">Digital membership card</h2><p className="mt-1 text-xs text-stone-500">Your official WLC identity card.</p></div>
-                <button type="button" onClick={() => window.print()} className="rounded-xl bg-rose-900 px-4 py-2.5 text-sm font-semibold text-white hover:bg-rose-800">Print member card</button>
+                <div className="flex gap-2"><button type="button" onClick={downloadMemberCardPdf} disabled={busy} className="rounded-xl bg-rose-900 px-4 py-2.5 text-sm font-semibold text-white hover:bg-rose-800 disabled:opacity-60">{busy ? "Preparing PDF…" : "Download PDF"}</button><button type="button" onClick={() => window.print()} className="rounded-xl border border-stone-300 px-4 py-2.5 text-sm font-semibold text-stone-700 hover:bg-stone-50">Print</button></div>
               </div>
               <div className="flex justify-center">
                 <div id="wlc-print-card" className="relative mx-auto flex aspect-[85.6/54] w-full max-w-[680px] flex-col overflow-hidden rounded-lg border border-[#e7d9d9] bg-[#FAF9F6] px-[6.1%] pb-[4.2%] pt-[5%] shadow-lg">
