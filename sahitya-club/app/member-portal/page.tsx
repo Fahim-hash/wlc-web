@@ -130,7 +130,7 @@ export default function MemberPortalPage() {
       const logoData = imageData[0];
       const qrData = imageData[1];
       if (!logoData || !qrData) throw new Error("The card logo or QR code is not ready.");
-      const words = member.name.trim().split(/\\s+/);
+      const words = member.name.trim().split(/\s+/);
       const lines: string[] = [];
       let line = "";
       for (const word of words) {
