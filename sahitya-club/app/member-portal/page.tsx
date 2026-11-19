@@ -70,7 +70,7 @@ export default function MemberPortalPage() {
       });
       const data = await response.json();
       if (!response.ok) {
-        setMessage(data.message || "Sign-in failed. Check your UID and password.");
+        setMessage(data.message || data.error || "Sign-in failed. Check your UID and password.");
         return;
       }
       setPassword("");
