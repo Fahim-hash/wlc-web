@@ -18,7 +18,7 @@ export async function GET(request: Request) {
     const snapshot = await getAdminDb().collection("ticketing_events").limit(100).get();
     const events = snapshot.docs
       .map((doc) => ({ ...(doc.data() as Omit<TicketingEvent, "id">), id: doc.id }))
-      .filter((event) => admin || event.status === "PUBLISHED")
+      .filter((event) => admin || (event.status === "PUBLISHED" && event.visibility !== "INTERNAL"))
       .filter((event) => !slug || event.slug === slug)
       .map(publicEvent)
       .sort((a, b) => String(a.startAt).localeCompare(String(b.startAt)));
@@ -46,6 +46,7 @@ export async function POST(request: Request) {
     const capacity = Number(body?.capacity);
     const ticketPrice = Number(body?.ticketPrice);
     const status: TicketingEventStatus = body?.status === "PUBLISHED" ? "PUBLISHED" : "DRAFT";
+    const visibility = body?.visibility === "INTERNAL" ? "INTERNAL" : "PUBLIC";
 
     if (title.length < 4 || title.length > 120) {
       return NextResponse.json({ message: "Event title must be 4–120 characters." }, { status: 400 });
@@ -98,6 +99,7 @@ export async function POST(request: Request) {
         ticketPrice,
         currency: "BDT",
         status,
+        visibility,
         reservedCount: 0,
         createdAt: now,
         updatedAt: now,
@@ -107,7 +109,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json({
       success: true,
-      event: { id: slug, slug, title, summary, description, bannerUrl, venue, startAt: normalizedStart, endAt: normalizedEnd, capacity, ticketPrice, currency: "BDT", status, reservedCount: 0 },
+      event: { id: slug, slug, title, summary, description, bannerUrl, venue, startAt: normalizedStart, endAt: normalizedEnd, capacity, ticketPrice, currency: "BDT", status, visibility, reservedCount: 0 },
     }, { status: 201 });
   } catch (error) {
     return NextResponse.json(
