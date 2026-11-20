@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { FormEvent, useCallback, useEffect, useRef, useState } from "react";
-import { ArrowLeft, CalendarPlus, ExternalLink, ShieldCheck, ScanLine, Download, RefreshCw, CheckCircle2, Camera, CameraOff } from "lucide-react";
+import { ArrowLeft, CalendarPlus, ExternalLink, ShieldCheck, ScanLine, Download, RefreshCw, CheckCircle2, Camera, CameraOff, ImagePlus, Crop, Upload, X } from "lucide-react";
 
 type EventRow = {
   id: string; slug: string; title: string; venue: string; startAt: string;
@@ -34,6 +34,12 @@ export default function TicketingAdminPage() {
   const [bookings, setBookings] = useState<BookingRow[]>([]);
   const [selectedEvent, setSelectedEvent] = useState("");
   const [form, setForm] = useState(initial);
+  const [bannerFile, setBannerFile] = useState<File | null>(null);
+  const [bannerPreview, setBannerPreview] = useState("");
+  const [bannerCropX, setBannerCropX] = useState(50);
+  const [bannerCropY, setBannerCropY] = useState(50);
+  const [bannerZoom, setBannerZoom] = useState(1);
+  const [bannerUploading, setBannerUploading] = useState(false);
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState("");
   const [scannerActive, setScannerActive] = useState(false);
@@ -175,6 +181,67 @@ export default function TicketingAdminPage() {
     };
   }, [scannerActive, performCheckIn]);
 
+  function selectBanner(file?: File) {
+    if (!file) return;
+    if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) {
+      setNotice("Choose a JPG, PNG, or WEBP banner image.");
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      setNotice("Banner image must be 5 MB or smaller.");
+      return;
+    }
+    setNotice("");
+    setBannerFile(file);
+    setBannerPreview(URL.createObjectURL(file));
+    setBannerCropX(50);
+    setBannerCropY(50);
+    setBannerZoom(1);
+  }
+
+  async function uploadCroppedBanner() {
+    if (!bannerFile || !bannerPreview) return;
+    setBannerUploading(true);
+    setNotice("");
+    try {
+      const image = new Image();
+      image.src = bannerPreview;
+      await image.decode();
+      const width = 1500;
+      const height = 608;
+      const targetRatio = width / height;
+      let cropWidth = image.naturalWidth;
+      let cropHeight = image.naturalHeight;
+      if (cropWidth / cropHeight > targetRatio) cropWidth = cropHeight * targetRatio;
+      else cropHeight = cropWidth / targetRatio;
+      cropWidth /= bannerZoom;
+      cropHeight /= bannerZoom;
+      const left = (image.naturalWidth - cropWidth) * (bannerCropX / 100);
+      const top = (image.naturalHeight - cropHeight) * (bannerCropY / 100);
+      const canvas = document.createElement("canvas");
+      canvas.width = width;
+      canvas.height = height;
+      const context = canvas.getContext("2d");
+      if (!context) throw new Error("Could not prepare the banner crop.");
+      context.drawImage(image, left, top, cropWidth, cropHeight, 0, 0, width, height);
+      const blob = await new Promise<Blob>((resolve, reject) => canvas.toBlob((value) => value ? resolve(value) : reject(new Error("Could not export the cropped banner.")), "image/jpeg", 0.9));
+      const upload = new FormData();
+      upload.append("file", blob, "wlc-event-banner.jpg");
+      const response = await fetch("/api/ticketing/banner-upload", { method: "POST", body: upload });
+      const data = await response.json();
+      if (!response.ok || !data.imageUrl) throw new Error(data.message || "Banner upload failed.");
+      setForm((current) => ({ ...current, bannerUrl: data.imageUrl }));
+      setBannerFile(null);
+      URL.revokeObjectURL(bannerPreview);
+      setBannerPreview("");
+      setNotice("Event banner uploaded and saved. It will be used on the event page and Event Pass.");
+    } catch (error) {
+      setNotice(error instanceof Error ? error.message : "Banner upload failed.");
+    } finally {
+      setBannerUploading(false);
+    }
+  }
+
   async function createEvent(event: FormEvent) {
     event.preventDefault(); setBusy(true); setNotice("");
     try {
@@ -218,7 +285,31 @@ export default function TicketingAdminPage() {
           <label className="block text-sm font-semibold">Event title<input required minLength={4} maxLength={120} value={form.title} onChange={e=>setForm({...form,title:e.target.value})} className="mt-1.5 w-full rounded-xl border border-[#E5E7EB] bg-[#FAFAFA] px-3.5 py-3 outline-none focus:border-[#9F1239]"/></label>
           <label className="block text-sm font-semibold">Short description<input maxLength={240} value={form.summary} onChange={e=>setForm({...form,summary:e.target.value})} className="mt-1.5 w-full rounded-xl border border-[#E5E7EB] bg-[#FAFAFA] px-3.5 py-3 outline-none focus:border-[#9F1239]"/></label>
           <label className="block text-sm font-semibold">Full description<textarea rows={4} maxLength={5000} value={form.description} onChange={e=>setForm({...form,description:e.target.value})} className="mt-1.5 w-full rounded-xl border border-[#E5E7EB] bg-[#FAFAFA] px-3.5 py-3 outline-none focus:border-[#9F1239]"/></label>
-          <label className="block text-sm font-semibold">Event banner image URL <input type="url" maxLength={1000} placeholder="https://example.com/event-banner.jpg" value={form.bannerUrl} onChange={e=>setForm({...form,bannerUrl:e.target.value})} className="mt-1.5 w-full rounded-xl border border-[#E5E7EB] bg-[#FAFAFA] px-3.5 py-3 outline-none focus:border-[#9F1239]"/><span className="mt-1 block text-xs font-normal text-[#6B7280]">Use a public HTTPS image URL. Recommended landscape ratio: 16:9.</span></label>
+          <div className="space-y-3 rounded-2xl border border-[#E5E7EB] p-4">
+            <div className="flex items-center gap-2 text-sm font-semibold"><ImagePlus size={17} className="text-[#9F1239]"/> Event banner</div>
+            <label className="flex cursor-pointer items-center justify-center gap-2 rounded-xl border border-dashed border-[#D1D5DB] bg-[#FAFAFA] px-4 py-4 text-sm font-semibold text-[#9F1239] hover:border-[#9F1239]">
+              <Upload size={16}/> {bannerFile ? "Choose a different image" : "Upload banner image"}
+              <input type="file" accept="image/jpeg,image/png,image/webp" className="sr-only" onChange={e=>selectBanner(e.target.files?.[0])}/>
+            </label>
+            <p className="text-xs font-normal leading-5 text-[#6B7280]">JPG, PNG or WEBP · up to 5 MB. Fixed Event Pass banner: 1500 × 608 px (about 2.47:1).</p>
+            {bannerPreview && <div className="space-y-3">
+              <div className="relative aspect-[1500/608] overflow-hidden rounded-xl bg-[#F3F4F6]">
+                <img src={bannerPreview} alt="Banner crop preview" className="h-full w-full object-cover" style={{objectPosition: `${bannerCropX}% ${bannerCropY}%`, transform: `scale(${bannerZoom})`}}/>
+                <span className="absolute bottom-2 left-2 rounded-md bg-black/65 px-2 py-1 text-[10px] font-semibold text-white">CROP PREVIEW · 1500 × 608</span>
+              </div>
+              <div className="grid gap-3 sm:grid-cols-2">
+                <label className="block text-xs font-semibold text-[#6B7280]">Horizontal position <input type="range" min="0" max="100" value={bannerCropX} onChange={e=>setBannerCropX(Number(e.target.value))} className="mt-2 w-full accent-[#9F1239]"/></label>
+                <label className="block text-xs font-semibold text-[#6B7280]">Vertical position <input type="range" min="0" max="100" value={bannerCropY} onChange={e=>setBannerCropY(Number(e.target.value))} className="mt-2 w-full accent-[#9F1239]"/></label>
+              </div>
+              <label className="block text-xs font-semibold text-[#6B7280]">Zoom <input type="range" min="1" max="2.5" step="0.05" value={bannerZoom} onChange={e=>setBannerZoom(Number(e.target.value))} className="mt-2 w-full accent-[#9F1239]"/></label>
+              <div className="flex flex-wrap gap-2">
+                <button type="button" disabled={bannerUploading} onClick={uploadCroppedBanner} className="inline-flex items-center gap-2 rounded-xl bg-[#9F1239] px-4 py-2.5 text-xs font-bold text-white disabled:opacity-50"><Crop size={14}/>{bannerUploading ? "Uploading…" : "Crop & upload banner"}</button>
+                <button type="button" disabled={bannerUploading} onClick={()=>{URL.revokeObjectURL(bannerPreview);setBannerPreview("");setBannerFile(null);}} className="inline-flex items-center gap-2 rounded-xl border border-[#E5E7EB] px-4 py-2.5 text-xs font-semibold"><X size={14}/> Cancel</button>
+              </div>
+            </div>}
+            {form.bannerUrl && <div className="space-y-2"><p className="text-xs font-semibold text-[#9F1239]">Uploaded banner</p><img src={form.bannerUrl} alt="Uploaded event banner" className="aspect-[1500/608] w-full rounded-xl object-cover"/><button type="button" onClick={()=>setForm({...form,bannerUrl:""})} className="text-xs font-semibold text-[#9F1239] underline">Remove banner</button></div>}
+            <label className="block text-xs font-semibold text-[#6B7280]">Or use an existing public image URL<input type="url" maxLength={1000} placeholder="https://example.com/event-banner.jpg" value={form.bannerUrl} onChange={e=>setForm({...form,bannerUrl:e.target.value})} className="mt-1.5 w-full rounded-xl border border-[#E5E7EB] bg-[#FAFAFA] px-3.5 py-3 text-sm font-normal outline-none focus:border-[#9F1239]"/></label>
+          </div>
           <label className="block text-sm font-semibold">Venue<input required minLength={2} maxLength={180} value={form.venue} onChange={e=>setForm({...form,venue:e.target.value})} className="mt-1.5 w-full rounded-xl border border-[#E5E7EB] bg-[#FAFAFA] px-3.5 py-3 outline-none focus:border-[#9F1239]"/></label>
           <div className="grid gap-3 sm:grid-cols-2"><label className="block text-sm font-semibold">Start date & time<input required type="datetime-local" value={form.startAt} onChange={e=>setForm({...form,startAt:e.target.value})} className="mt-1.5 w-full rounded-xl border border-[#E5E7EB] bg-[#FAFAFA] px-3 py-3 outline-none focus:border-[#9F1239]"/></label><label className="block text-sm font-semibold">End date & time<input type="datetime-local" value={form.endAt} onChange={e=>setForm({...form,endAt:e.target.value})} className="mt-1.5 w-full rounded-xl border border-[#E5E7EB] bg-[#FAFAFA] px-3 py-3 outline-none focus:border-[#9F1239]"/></label></div>
           <div className="grid gap-3 sm:grid-cols-2"><label className="block text-sm font-semibold">Ticket capacity<input required type="number" min="1" max="100000" value={form.capacity} onChange={e=>setForm({...form,capacity:e.target.value})} className="mt-1.5 w-full rounded-xl border border-[#E5E7EB] bg-[#FAFAFA] px-3.5 py-3 outline-none focus:border-[#9F1239]"/></label><label className="block text-sm font-semibold">Price per ticket (BDT)<input required type="number" min="0" max="10000000" value={form.ticketPrice} onChange={e=>setForm({...form,ticketPrice:e.target.value})} className="mt-1.5 w-full rounded-xl border border-[#E5E7EB] bg-[#FAFAFA] px-3.5 py-3 outline-none focus:border-[#9F1239]"/></label></div>
