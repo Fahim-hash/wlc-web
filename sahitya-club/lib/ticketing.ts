@@ -2,6 +2,7 @@ import { createHash, randomBytes, randomUUID } from "node:crypto";
 import { getAdminDb } from "@/lib/firebase-admin";
 
 export type TicketingEventStatus = "DRAFT" | "PUBLISHED" | "CANCELLED";
+export type TicketingEventVisibility = "PUBLIC" | "INTERNAL";
 
 export type TicketingEvent = {
   id: string;
@@ -17,6 +18,7 @@ export type TicketingEvent = {
   ticketPrice: number;
   currency: "BDT";
   status: TicketingEventStatus;
+  visibility?: TicketingEventVisibility;
   reservedCount: number;
   createdAt: number;
   updatedAt: number;
@@ -60,6 +62,7 @@ export function publicEvent(event: Record<string, unknown>) {
     ticketPrice: event.ticketPrice,
     currency: event.currency ?? "BDT",
     status: event.status,
+    visibility: event.visibility === "INTERNAL" ? "INTERNAL" : "PUBLIC",
     reservedCount: event.reservedCount ?? 0,
     availableCount: Math.max(0, Number(event.capacity || 0) - Number(event.reservedCount || 0)),
   };
