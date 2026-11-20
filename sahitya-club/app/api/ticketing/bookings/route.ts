@@ -46,7 +46,7 @@ export async function POST(request: Request) {
       const eventSnapshot = await transaction.get(eventRef);
       if (!eventSnapshot.exists) throw new Error("This event could not be found.");
       const event = eventSnapshot.data()!;
-      if (event.status !== "PUBLISHED") throw new Error("Ticket booking is not open for this event.");
+      if (event.status !== "PUBLISHED" || event.visibility === "INTERNAL") throw new Error("Ticket booking is not open for this event.");
       if (Date.parse(String(event.startAt)) <= now) throw new Error("Ticket booking for this event has closed.");
 
       const ticketPrice = Number(event.ticketPrice || 0);
